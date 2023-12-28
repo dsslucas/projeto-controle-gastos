@@ -62,22 +62,22 @@ const Home = (props: any) => {
                 <div className="flex flex-wrap xs:justify-between xl:justify-between gap-2">
                     <Title title="Indicadores" />
 
-                    <CardDash title="Valor bruto" value={3200} fullCard color="bg-gray-300" />
-                    <CardDash title="Contas" value={140} color="bg-gray-300" />
-                    <CardDash title="Investimentos" value={3200} color="bg-gray-300" />
+                    <CardDash title="Valor bruto" value={3200} fullCard color="bg-gray-300" returnCardSelected={(value: string) => console.log("Valor selecionado: ", value)}/>
+                    <CardDash title="Contas" value={140} color="bg-gray-300" returnCardSelected={(value: string) => console.log("Valor selecionado: ", value)}/>
+                    <CardDash title="Investimentos" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => console.log("Valor selecionado: ", value)}/>
 
-                    <CardDash title="Lazer" value={3200} color="bg-gray-300" />
-                    <CardDash title="Alimentação" value={3200} color="bg-gray-300" />
-                    <CardDash title="Compras" value={3200} color="bg-gray-300" />
-                    <CardDash title="Saúde" value={3200} color="bg-gray-300" />
-                    <CardDash title="Viagens" value={3200} color="bg-gray-300" />
-                    <CardDash title="Outros" value={3200} color="bg-gray-300" />
+                    <CardDash title="Lazer" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => console.log("Valor selecionado: ", value)}/>
+                    <CardDash title="Alimentação" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => console.log("Valor selecionado: ", value)}/>
+                    <CardDash title="Compras" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => console.log("Valor selecionado: ", value)}/>
+                    <CardDash title="Saúde" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => console.log("Valor selecionado: ", value)}/>
+                    <CardDash title="Viagens" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => console.log("Valor selecionado: ", value)}/>
+                    <CardDash title="Outros" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => console.log("Valor selecionado: ", value)}/>
                 </div>
                 <div className="flex flex-wrap xl:justify-between gap-2">
                     <Title title="Total gasto" />
-                    <CardDash title="Crédito" value={3200} color="bg-gray-300" />
-                    <CardDash title="Débito" value={3200} color="bg-gray-300" />
-                    <CardDash title="Espécie" value={3200} color="bg-gray-300" />
+                    <CardDash title="Crédito" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => console.log("Valor selecionado: ", value)}/>
+                    <CardDash title="Débito" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => console.log("Valor selecionado: ", value)}/>
+                    <CardDash title="Espécie" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => console.log("Valor selecionado: ", value)}/>
                 </div>
             </>
         )
@@ -113,7 +113,7 @@ const Home = (props: any) => {
                 />
             )}
 
-            <header className="flex xs:items-center xs:justify-start xs:h-12 xl:flex-row xl:justify-between xl:items-center xl:h-[10%] xs:bg-orange-500">
+            <header className="flex xs:items-center xs:justify-start xs:h-12 xl:flex-row xl:justify-between xl:items-center">
                 <Navbar
                     clickButtonConfig={() => setShowModalConfig(true)}
                     clickButtonRegister={() => setShowModalRegister(true)}

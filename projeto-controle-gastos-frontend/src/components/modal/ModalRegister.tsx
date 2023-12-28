@@ -14,12 +14,14 @@ const ModalRegister = (props: any) => {
     }
 
     const selectOptions = ["Contas", "Investimentos", "Lazer", "Alimentação", "Compras", "Saúde", "Viagens", "Outros"];
+    const optionsPayment = ["Débito", "Crédito", "Espécie"];
 
     const [dadosForm, setDadosForm] = useState({
         title: "",
         date: new Date(),
         category: selectOptions[0],
         description: "",
+        paymentMethod: optionsPayment[0],
         value: ""
     })
 
@@ -62,9 +64,9 @@ const ModalRegister = (props: any) => {
                                 <div className="flex">
                                     <Label label="Categoria" />
                                     <Select
-                                        name="categoria"
+                                        name="category"
                                         options={selectOptions}
-                                        returnSelect={(name: string, value: string) => console.log(name, value)}
+                                        returnSelect={(name: string, value: string) => changeData(name, value)}
                                     />
                                 </div>
                                 <div className="flex">
@@ -75,6 +77,14 @@ const ModalRegister = (props: any) => {
                                         placeholder="Descreva este gasto"
                                         returnInput={(name: string, value: string) => changeData(name, value)}
                                         required
+                                    />
+                                </div>
+                                <div className="flex">
+                                    <Label label="Forma de pagamento" />
+                                    <Select
+                                        name="paymentMethod"
+                                        options={optionsPayment}
+                                        returnSelect={(name: string, value: string) => changeData(name, value)}
                                     />
                                 </div>
                                 <div className="flex">

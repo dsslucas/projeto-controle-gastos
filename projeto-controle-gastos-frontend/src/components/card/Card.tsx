@@ -27,7 +27,13 @@ const CardDash = (props: any) => {
                 <Text card text={value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} />
             </div>
             <div className="xs:w-[40px] xl:w-10">
-                <Button type="button" content={<FontAwesomeIcon icon={faInfo} className="p-1" />} color="bg-green-500" iconCard />
+                <Button 
+                    type="button" 
+                    content={<FontAwesomeIcon icon={faInfo} className="p-1" />} 
+                    color="bg-green-500" iconCard 
+                    returnClick={() => props.returnCardSelected(title)}
+                />
+                    
             </div>
         </div>
     );
