@@ -6,6 +6,7 @@ const Button = (props: any) => {
     const iconCard = props.iconCard;
     const iconTable = props.iconTable;
     const color = props.color;
+    const iconConfig = props.iconConfig;
 
     return (
         <button
@@ -13,6 +14,7 @@ const Button = (props: any) => {
             className={`
                 ${iconCard && 'h-full w-full rounded-r'} 
                 ${iconTable && 'w-8 h-8 rounded'}
+                ${iconConfig && 'xs:w-[60px] xs:h-auto'}
                 ${!iconCard && !iconTable && 'p-2 rounded'}
                 ${color}
                 uppercase
