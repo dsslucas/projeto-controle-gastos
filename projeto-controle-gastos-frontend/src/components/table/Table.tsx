@@ -7,7 +7,7 @@ import { faEye } from "@fortawesome/free-solid-svg-icons";
 
 const Table = (props: any) => {
     return (
-        <table className="table-auto xs:block xs:overflow-x-auto xl:w-full">
+        <table className="table-auto xs:p-2 xs:w-full xl:w-full">
             <thead className='bg-blue-800 text-white uppercase'>
                 <tr>
                     <th>Título</th>
