@@ -17,7 +17,7 @@ const CardDash = (props: any) => {
     return (
         <div
             className={`flex justify-between bg-white border-gray-500 rounded-lg shadow  
-                ${fullCard ? 'w-full' : 'xs:w-[48.6%] xl:w-[48.9%]'} 
+                ${fullCard ? 'w-full' : 'xs:w-[48.6%] lg:w-[100%] xl:w-[48.9%]'} 
                 ${color}
                 xl:max-h-12
             `}

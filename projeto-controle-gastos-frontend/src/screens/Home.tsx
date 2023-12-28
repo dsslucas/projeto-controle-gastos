@@ -84,7 +84,7 @@ const Home = (props: any) => {
     }
 
     return (
-        <main className="flex flex-col xs:overflow-x-hidden xl:h-screen p-1">
+        <main className="flex flex-col xs:overflow-x-hidden xl:h-screen xl:overflow-hidden p-1">
             {showModalConfig && (
                 <ModalConfig
                     returnClick={() => setShowModalConfig(false)}
@@ -107,14 +107,14 @@ const Home = (props: any) => {
             )}
 
             {showModalDashboard && (
-                <ModalDashboard 
+                <ModalDashboard
                     content={dashboardData()}
                     returnClick={() => setShowModalDashboard(false)}
                 />
             )}
 
             <header className="flex xs:items-center xs:justify-start xs:h-12 xl:flex-row xl:justify-between xl:items-center xl:h-[10%] xs:bg-orange-500">
-                <Navbar 
+                <Navbar
                     clickButtonConfig={() => setShowModalConfig(true)}
                     clickButtonRegister={() => setShowModalRegister(true)}
                     clickButtonDashboard={() => setShowModalDashboard(true)}
@@ -126,10 +126,10 @@ const Home = (props: any) => {
             </section>
 
             <section className="flex xl:flex-row gap-2 xl:h-[90%]">
-                <div className="xl:w-[30%] flex flex-col gap-2 xs:hidden sm:hidden">
+                <div className="lg:w-[20%] xl:w-[30%] flex flex-col gap-2 xs:hidden sm:hidden md:hidden lg:flex lg:h-[100%]">
                     {dashboardData()}
                 </div>
-                <div className="xs:w-[100%] xl:w-[70%]">
+                <div className="xs:w-[100%] xl:w-[70%] lg:h-[100%]">
                     <div className="flex justify-between mb-1 items-center">
                         <Title title="Listagem" />
                         <div className="flex border rounded bg-blue-300 bg-opacity-10">
@@ -142,12 +142,14 @@ const Home = (props: any) => {
                                 returnInput={(name: string, text: string) => setSearchString(text)} />
                         </div>
                     </div>
-                    <Table
-                        returnClick={(id: number) => {
-                            setIdSelected(id);
-                            setShowModalView(true)
-                        }}
-                    />
+                    <div className="xs:max-h-[85vh] lg:max-h-[90vh] xl:max-h-[80vh] overflow-y-auto block">
+                        <Table
+                            returnClick={(id: number) => {
+                                setIdSelected(id);
+                                setShowModalView(true)
+                            }}
+                        />
+                    </div>
                 </div>
             </section>
         </main>
