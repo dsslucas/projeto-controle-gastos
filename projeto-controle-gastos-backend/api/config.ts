@@ -1,4 +1,4 @@
-module.exports((app: any) => {
+module.exports = ((app: any) => {
     const registerConfig = (req: any, res: any) => {
 
     }
@@ -10,4 +10,6 @@ module.exports((app: any) => {
     const editConfig = (req: any, res: any) => {
         
     }
+
+    return {registerConfig, getConfig, editConfig}
 })

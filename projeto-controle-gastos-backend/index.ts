@@ -13,9 +13,9 @@ const port = 3003
 // Inicia o sistema
 consign()
     // .include('./config/passaporte.js')
-    // .then('./config/middlewares.js')
-    // .then('./api')
-    // .then('./config/rotas.js')
+    .include('./config/middleware.js')
+    .then('./api')
+    .then('./config/routes.ts')
     .into(app) // Passa o App como padrão para todos os Then
 
 // Permite fazer inserções junto ao Knex

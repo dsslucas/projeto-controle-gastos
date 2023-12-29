@@ -1,5 +1,6 @@
-module.exports((app: any) => {
+module.exports = ((app: any) => {
     const registerPayment = (req: any, res: any) => {
+        console.log(req.body)
         res.status(200).send("Opa joia")
     }
 
