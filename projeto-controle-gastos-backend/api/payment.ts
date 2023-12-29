@@ -97,6 +97,7 @@ module.exports = ((app: any) => {
 
                         if (response.description === "") response.description = "-";
                         response.date = `${year}-${month}-${day}T${hour}:${minute}`;
+                        response.value = response.value.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' });
                         return response;
                     });
 
