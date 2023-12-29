@@ -7,13 +7,30 @@ const Input = (props: any) => {
     const className = props.className;
     const value = props.value;
     const required = props.required;
+    const inputMode = props.inputMode;
+    const mask = props.mask;
+
+    function checkField(name: string, value: string){
+        var newFieldValue = "";
+
+        if(mask === "money"){
+            let money = value.replace(/\D/g, '');
+            newFieldValue = `R$ ${(Number(money) / 100).toFixed(2).replace('.', ',').replace(/(\d)(?=(\d{3})+,)/g, '$1.')}`;
+        }
+        else {
+            newFieldValue = value;            
+        }
+
+        props.returnInput(name, newFieldValue);
+    }
 
     return <input
         type={type}
         name={name}
         placeholder={placeholder}
+        inputMode={inputMode}
         className={`border border-gray-500 rounded w-full ${className}`}
-        onInput={(e: any) => props.returnInput(e.target.name, e.target.value)}
+        onInput={(e: any) => checkField(e.target.name, e.target.value)}
         required={required}
         value={value}
     />

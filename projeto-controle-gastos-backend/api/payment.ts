@@ -32,7 +32,7 @@ module.exports = ((app: any) => {
                         description,
                         paymentMethod,
                         title,
-                        value
+                        value: parseFloat(value.replace(/[^\d.,]/g, '').replace(',', '.'))
                     })
                     .transacting(trx)
 

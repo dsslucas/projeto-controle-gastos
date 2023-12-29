@@ -20,7 +20,7 @@ const ModalRegister = (props: any) => {
                 console.log(error)
             })
 
-        //props.returnClick();
+        props.returnClick();
     }
 
     const selectOptions = ["Contas", "Investimentos", "Lazer", "Alimentação", "Compras", "Saúde", "Viagens", "Outros"];
@@ -57,6 +57,7 @@ const ModalRegister = (props: any) => {
                                         type="text"
                                         name="title"
                                         placeholder="Insira o título"
+                                        value={dadosForm.title}
                                         returnInput={(name: string, value: string) => changeData(name, value)}
                                         required
                                     />
@@ -67,6 +68,7 @@ const ModalRegister = (props: any) => {
                                         type="date"
                                         name="date"
                                         placeholder="Insira a data"
+                                        //value={dadosForm.date}
                                         returnInput={(name: string, value: string) => changeData(name, value)}
                                         required
                                     />
@@ -85,6 +87,7 @@ const ModalRegister = (props: any) => {
                                         type="text"
                                         name="description"
                                         placeholder="Descreva este gasto"
+                                        value={dadosForm.description}
                                         returnInput={(name: string, value: string) => changeData(name, value)}
                                     />
                                 </div>
@@ -102,7 +105,10 @@ const ModalRegister = (props: any) => {
                                         type="text"
                                         name="value"
                                         placeholder="Insira o valor"
+                                        inputMode="numeric"
+                                        mask="money"
                                         returnInput={(name: string, value: string) => changeData(name, value)}
+                                        value={dadosForm.value}
                                         required
                                     />
                                 </div>
