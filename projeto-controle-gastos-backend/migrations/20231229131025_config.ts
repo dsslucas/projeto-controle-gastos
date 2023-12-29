@@ -1,10 +1,13 @@
 import { Knex } from "knex";
 
+exports.up = function (knex: any) {
+    return knex.schema.createTable('config', (table: any) => {
+        table.increments('id').primary()
+        table.datetime("date").notNull()  
+    })
+};
 
-export async function up(knex: Knex): Promise<void> {
-}
-
-
-export async function down(knex: Knex): Promise<void> {
-}
+exports.down = function (knex: any) {
+    return knex.schema.dropTable('config')
+};
 
