@@ -10,6 +10,8 @@ const ModalRegister = (props: any) => {
         event.preventDefault();
         console.log("enviei")
         console.log(dadosForm)
+
+        
         props.returnClick();
     }
 
