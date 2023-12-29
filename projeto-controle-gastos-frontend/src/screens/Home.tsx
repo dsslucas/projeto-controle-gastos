@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import Title from "../components/text/Title";
 import CardDash from "../components/card/Card";
 import Table from "../components/table/Table";
-import Button from "../components/button/Button";
 import Subtitle from "../components/text/Subtitle";
 
 // Dependencies
