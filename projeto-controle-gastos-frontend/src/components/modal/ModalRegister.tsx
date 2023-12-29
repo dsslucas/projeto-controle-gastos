@@ -4,15 +4,23 @@ import Button from "../button/Button";
 import Input from "../input/Input";
 import Label from "../text/Label";
 import Select from "../select/Select";
+import api from "../../api/api";
 
 const ModalRegister = (props: any) => {
-    const handleSubmit = (event: any) => {
+    const handleSubmit = async (event: any) => {
         event.preventDefault();
         console.log("enviei")
         console.log(dadosForm)
 
-        
-        props.returnClick();
+        await api.post("/payment", dadosForm)
+            .then((response: any) => {
+                console.log(response)
+            })
+            .catch((error: any) => {
+                console.log(error)
+            })
+
+        //props.returnClick();
     }
 
     const selectOptions = ["Contas", "Investimentos", "Lazer", "Alimentação", "Compras", "Saúde", "Viagens", "Outros"];
@@ -78,7 +86,6 @@ const ModalRegister = (props: any) => {
                                         name="description"
                                         placeholder="Descreva este gasto"
                                         returnInput={(name: string, value: string) => changeData(name, value)}
-                                        required
                                     />
                                 </div>
                                 <div className="flex">
@@ -103,7 +110,7 @@ const ModalRegister = (props: any) => {
                             {/*footer*/}
                             <div className="flex items-center justify-end p-6 border-t border-solid border-blueGray-200 rounded-b">
                                 <Button type="button" content="Sair" color="bg-red-500" returnClick={() => props.returnClick()} />
-                                <Button type="submit" content="Salvar" color="bg-green-500" returnClick={() => null}/>
+                                <Button type="submit" content="Salvar" color="bg-green-500" returnClick={() => null} />
                             </div>
                         </form>
                     </div>

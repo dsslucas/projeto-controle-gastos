@@ -19,7 +19,7 @@ consign()
     .into(app) // Passa o App como padrão para todos os Then
 
 // Permite fazer inserções junto ao Knex
-app.db = db
+app.database = db
 
 app.listen(port, () => {
     console.log(`Backend executando na porta ${port}.`)
