@@ -15,8 +15,9 @@ module.exports = (app: any) => {
     
     app.route("/payment")
         .post(payment.registerPayment)
-        .get(payment.getPayment)
+        .get(payment.getPayments)
     
     app.route("/payment/:id")
+        .get(payment.getPayment)
         .patch(payment.editPayment)
 }

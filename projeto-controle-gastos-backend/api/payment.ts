@@ -25,6 +25,9 @@ module.exports = ((app: any) => {
 
                 const {category, date, description, paymentMethod, title, value} = req.body;
 
+                const currentTime = new Date();
+                //.setHours(currentTime.getHours()).setMinutes(currentTime.getMinutes()).setSeconds(currentTime.getSeconds())
+
                 await app.database("payment")
                     .insert({
                         category,
@@ -48,29 +51,48 @@ module.exports = ((app: any) => {
         }
     }
 
-    const getPayment = async (req: any, res: any) => {
+    const getPayments = async (req: any, res: any) => {
         try {
             await app.database.transaction(async (trx: any) => {
                 const data = await app.database("payment")
                     .transacting(trx)
                     .then((response: any) => {
-                        console.log(response)
                         response.forEach((element: any) => {
                             element.date = element.date.toLocaleString("pt-BR");
                             element.value = element.value.toLocaleString("pt-BR", {style: 'currency', currency: 'BRL'});
                         })
                         return response;
                     });
-
-                    console.log(data)
-
                 return data;
             })
             .then((response: any) => res.status(200).send(response));
         }
         catch(error: any){
-            console.error(error)
-            res.status(500).send("Erro interno. Contate o administrador do sistema.")
+            res.status(500).send("Erro interno. Contate o administrador do sistema.");
+        }
+    }
+
+    const getPayment = async (req: any, res: any) => {
+        const id = req.params.id;
+
+        try {
+            await app.database.transaction(async (trx: any) => {
+                const data = await app.database("payment")
+                    .where({id})
+                    .first()                    
+                    .transacting(trx)
+                    .then((response: any) => {
+                        if(response.description === "") response.description = "-";
+                        response.date = new Date(response.date).toISOString().split('T')[0];
+                        return response;
+                    });
+
+                return data;
+            })
+            .then((response: any) => res.status(200).send(response))
+        }
+        catch(error: any){
+            res.status(500).send("Erro interno. Contate o administrador do sistema.");
         }
     }
 
@@ -78,5 +100,5 @@ module.exports = ((app: any) => {
         res.status(200).send("Opa joia")
     }
 
-    return { registerPayment, getPayment, editPayment }
+    return { registerPayment, getPayments, getPayment, editPayment }
 })

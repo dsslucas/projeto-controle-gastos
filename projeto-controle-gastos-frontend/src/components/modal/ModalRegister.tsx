@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import Subtitle from "../text/Subtitle";
 import Button from "../button/Button";
 import Input from "../input/Input";
@@ -7,6 +7,23 @@ import Select from "../select/Select";
 import api from "../../api/api";
 
 const ModalRegister = (props: any) => {
+    useEffect(() => {
+        console.log(props.id)
+        if (props.id !== undefined) {
+            getData(props.id);
+        }
+    }, []);
+
+    const getData = async (id: number) => {
+        await api.get(`/payment/${id}`)
+            .then((response: any) => {
+                setDadosForm(response.data);
+            })
+            .catch((error: any) => {
+                console.error(error);
+            })
+    }
+
     const handleSubmit = async (event: any) => {
         event.preventDefault();
         console.log("enviei")
@@ -26,9 +43,29 @@ const ModalRegister = (props: any) => {
     const selectOptions = ["Contas", "Investimentos", "Lazer", "Alimentação", "Compras", "Saúde", "Viagens", "Outros"];
     const optionsPayment = ["Débito", "Crédito", "Espécie"];
 
+    function generateDate() {
+        // Cria um novo objeto de data
+        let data = new Date();
+
+        // Obtém os valores de ano, mês, dia, hora e minuto
+        let ano = data.getFullYear();
+        let mes = String(data.getMonth() + 1).padStart(2, '0'); // Adiciona zero à esquerda se for necessário
+        let dia = String(data.getDate()).padStart(2, '0'); // Adiciona zero à esquerda se for necessário
+        let hora = String(data.getHours()).padStart(2, '0'); // Adiciona zero à esquerda se for necessário
+        let minuto = String(data.getMinutes()).padStart(2, '0'); // Adiciona zero à esquerda se for necessário
+
+        // Constrói a string no formato desejado (yyyy-MM-ddThh:mm)
+        let formatoDesejado = `${ano}-${mes}-${dia}T${hora}:${minuto}`;
+
+        // Exibe o atributo no formato desejado
+        console.log(formatoDesejado);
+
+        return formatoDesejado;
+    }
+
     const [dadosForm, setDadosForm] = useState({
         title: "",
-        date: new Date(),
+        date: generateDate(),
         category: selectOptions[0],
         description: "",
         paymentMethod: optionsPayment[0],
@@ -65,10 +102,10 @@ const ModalRegister = (props: any) => {
                                 <div className="flex">
                                     <Label label="Data" />
                                     <Input
-                                        type="date"
+                                        type="datetime-local"
                                         name="date"
                                         placeholder="Insira a data"
-                                        //value={dadosForm.date}
+                                        value={dadosForm.date}
                                         returnInput={(name: string, value: string) => changeData(name, value)}
                                         required
                                     />

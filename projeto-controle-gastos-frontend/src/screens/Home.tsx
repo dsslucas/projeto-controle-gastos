@@ -27,7 +27,7 @@ const Home = (props: any) => {
     const [currentMonth, setCurrentMonth] = useState<String>();
     const [currentYear, setCurrentYear] = useState<String>();
 
-    const [idSelected, setIdSelected] = useState(0);
+    const [idSelected, setIdSelected] = useState<number>();
     const [searchString, setSearchString] = useState("");
 
     const [dataApiPayment, setDataApiPayment] = useState<any>();
@@ -94,7 +94,10 @@ const Home = (props: any) => {
         <main className="flex flex-col xs:overflow-x-hidden xl:h-screen xl:overflow-hidden p-1">
             {showModalConfig && (
                 <ModalConfig
-                    returnClick={() => setShowModalConfig(false)}
+                    returnClick={() => {
+                        setShowModalConfig(false);
+                        
+                    }}
                     currentMonth={currentMonth}
                     currentYear={currentYear}
                     returnNewDate={changeDate}
@@ -103,7 +106,11 @@ const Home = (props: any) => {
 
             {showModalRegister && (
                 <ModalRegister
-                    returnClick={() => setShowModalRegister(false)}
+                    id={idSelected}
+                    returnClick={() => {
+                        setShowModalRegister(false);
+                        setIdSelected(undefined);
+                    }}
                 />
             )}
 
@@ -153,7 +160,7 @@ const Home = (props: any) => {
                         <Table
                             returnClick={(id: number) => {
                                 setIdSelected(id);
-                                setShowModalView(true)
+                                setShowModalRegister(true);
                             }}
                             data={dataApiPayment}
                         />

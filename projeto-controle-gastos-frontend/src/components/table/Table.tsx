@@ -30,11 +30,17 @@ const Table = (props: any) => {
                             <td>{element.paymentMethod}</td>
                             <td>{element.value}</td>
                             <td className='gap-2'>
-                                <Button type="button" iconTable content={<FontAwesomeIcon icon={faEye} />} color="bg-blue-500" returnClick={() => props.returnClick(1)} />
+                                <Button
+                                    type="button"
+                                    iconTable
+                                    content={<FontAwesomeIcon icon={faEye} />}
+                                    color="bg-blue-500"
+                                    returnClick={() => props.returnClick(element.id)}
+                                />
                             </td>
                         </tr>
                     )
-                })}                
+                })}
             </tbody>
         </table>
     )
