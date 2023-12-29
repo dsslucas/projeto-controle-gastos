@@ -13,46 +13,28 @@ const Table = (props: any) => {
                     <th>Título</th>
                     <th>Data</th>
                     <th>Categoria</th>
-                    <th className="xs:hidden sm:flex">Descrição</th>
+                    <th className="xs:hidden sm:table-cell">Descrição</th>
                     <th>Forma</th>
                     <th>Valor</th>
                     <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>Translado</td>
-                    <td>10/04/2023</td>
-                    <td>Lazer</td>
-                    <td className="xs:hidden sm:flex">Viagem São Paulo x Campinas</td>
-                    <td>Débito</td>
-                    <td>R$ 350,00</td>
-                    <td className='gap-2'>
-                        <Button type="button" iconTable content={<FontAwesomeIcon icon={faEye} />} color="bg-blue-500" returnClick={() => props.returnClick(1)}/>
-                    </td>
-                </tr>
-                <tr className='bg-blue-300 bg-opacity-40'>
-                    <td>Viagem</td>
-                    <td>10/04/2023</td>
-                    <td>Lazer</td>
-                    <td className="xs:hidden sm:flex">Campo Grande/MS a Cuiabá/MT</td>
-                    <td>Crédito</td>
-                    <td>R$ 350,00</td>
-                    <td className='gap-2'>
-                        <Button type="button" iconTable content={<FontAwesomeIcon icon={faEye} />} color="bg-blue-500" returnClick={() => props.returnClick(1)}/>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Translado</td>
-                    <td>10/04/2023</td>
-                    <td>Lazer</td>
-                    <td className="xs:hidden sm:flex">Viagem São Paulo x Campinas</td>
-                    <td>Espécie</td>
-                    <td>R$ 350,00</td>
-                    <td className='gap-2'>
-                        <Button type="button" iconTable content={<FontAwesomeIcon icon={faEye} />} color="bg-blue-500" returnClick={() => props.returnClick(1)}/>
-                    </td>
-                </tr> 
+                {props.data && props.data.map((element: any, index: number) => {
+                    return (
+                        <tr key={index} className={`${index % 2 !== 0 ? "bg-blue-300 bg-opacity-40" : ""}`}>
+                            <td>{element.title}</td>
+                            <td>{element.date}</td>
+                            <td>{element.category}</td>
+                            <td className="xs:hidden sm:table-cell">{element.description}</td>
+                            <td>{element.paymentMethod}</td>
+                            <td>{element.value}</td>
+                            <td className='gap-2'>
+                                <Button type="button" iconTable content={<FontAwesomeIcon icon={faEye} />} color="bg-blue-500" returnClick={() => props.returnClick(1)} />
+                            </td>
+                        </tr>
+                    )
+                })}                
             </tbody>
         </table>
     )

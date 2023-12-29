@@ -15,6 +15,7 @@ import ModalView from "../components/modal/ModalView";
 import Input from "../components/input/Input";
 import Navbar from "../components/navbar/Navbar";
 import ModalDashboard from "../components/modal/ModalDashboard";
+import api from "../api/api";
 
 const Home = (props: any) => {
     const [showModalConfig, setShowModalConfig] = useState(false);
@@ -29,6 +30,8 @@ const Home = (props: any) => {
     const [idSelected, setIdSelected] = useState(0);
     const [searchString, setSearchString] = useState("");
 
+    const [dataApiPayment, setDataApiPayment] = useState<any>();
+
     useEffect(() => {
         const date = new Date().toLocaleDateString("pt-BR", {
             timeZone: "America/Sao_Paulo"
@@ -36,10 +39,15 @@ const Home = (props: any) => {
         setCurrentDay(date.substring(0, 2));
         setCurrentMonth(date.substring(3, 5));
         setCurrentYear(date.substring(6));
+
+        // Renderize API info
+        getData();
     }, [])
 
-    const consultaDados = () => {
-
+    const getData = async () => {
+        await api.get("/payment")
+            .then((response: any) => setDataApiPayment(response.data))
+            .catch((error: any) => console.error(error))
     }
 
     const changeDate = (value: string) => {
@@ -147,6 +155,7 @@ const Home = (props: any) => {
                                 setIdSelected(id);
                                 setShowModalView(true)
                             }}
+                            data={dataApiPayment}
                         />
                     </div>
                 </div>

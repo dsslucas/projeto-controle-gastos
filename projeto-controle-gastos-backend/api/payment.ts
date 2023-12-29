@@ -48,8 +48,30 @@ module.exports = ((app: any) => {
         }
     }
 
-    const getPayment = (req: any, res: any) => {
-        res.status(200).send("Opa bao")
+    const getPayment = async (req: any, res: any) => {
+        try {
+            await app.database.transaction(async (trx: any) => {
+                const data = await app.database("payment")
+                    .transacting(trx)
+                    .then((response: any) => {
+                        console.log(response)
+                        response.forEach((element: any) => {
+                            element.date = element.date.toLocaleString("pt-BR");
+                            element.value = element.value.toLocaleString("pt-BR", {style: 'currency', currency: 'BRL'});
+                        })
+                        return response;
+                    });
+
+                    console.log(data)
+
+                return data;
+            })
+            .then((response: any) => res.status(200).send(response));
+        }
+        catch(error: any){
+            console.error(error)
+            res.status(500).send("Erro interno. Contate o administrador do sistema.")
+        }
     }
 
     const editPayment = (req: any, res: any) => {
