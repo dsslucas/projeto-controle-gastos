@@ -23,7 +23,7 @@ module.exports = ((app: any) => {
                     }
                 }
 
-                const {category, date, description, paymentMethod, title, value} = req.body;
+                const { category, date, description, paymentMethod, title, value } = req.body;
 
                 const currentTime = new Date();
                 //.setHours(currentTime.getHours()).setMinutes(currentTime.getMinutes()).setSeconds(currentTime.getSeconds())
@@ -55,19 +55,26 @@ module.exports = ((app: any) => {
         try {
             await app.database.transaction(async (trx: any) => {
                 const data = await app.database("payment")
+                    .orderBy("date", "asc")
                     .transacting(trx)
                     .then((response: any) => {
                         response.forEach((element: any) => {
-                            element.date = element.date.toLocaleString("pt-BR");
-                            element.value = element.value.toLocaleString("pt-BR", {style: 'currency', currency: 'BRL'});
+                            let year = element.date.getFullYear();
+                            let month = String(element.date.getMonth() + 1).padStart(2, '0');
+                            let day = String(element.date.getDate()).padStart(2, '0');
+                            let hour = String(element.date.getHours()).padStart(2, '0');
+                            let minute = String(element.date.getMinutes()).padStart(2, '0');
+
+                            element.date = `${day}/${month}/${year} ${hour}:${minute}`;
+                            element.value = element.value.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' });
                         })
                         return response;
                     });
                 return data;
             })
-            .then((response: any) => res.status(200).send(response));
+                .then((response: any) => res.status(200).send(response));
         }
-        catch(error: any){
+        catch (error: any) {
             res.status(500).send("Erro interno. Contate o administrador do sistema.");
         }
     }
@@ -78,20 +85,26 @@ module.exports = ((app: any) => {
         try {
             await app.database.transaction(async (trx: any) => {
                 const data = await app.database("payment")
-                    .where({id})
-                    .first()                    
+                    .where({ id })
+                    .first()
                     .transacting(trx)
                     .then((response: any) => {
-                        if(response.description === "") response.description = "-";
-                        response.date = new Date(response.date).toISOString().split('T')[0];
+                        let year = response.date.getFullYear();
+                        let month = String(response.date.getMonth() + 1).padStart(2, '0');
+                        let day = String(response.date.getDate()).padStart(2, '0');
+                        let hour = String(response.date.getHours()).padStart(2, '0');
+                        let minute = String(response.date.getMinutes()).padStart(2, '0');
+
+                        if (response.description === "") response.description = "-";
+                        response.date = `${year}-${month}-${day}T${hour}:${minute}`;
                         return response;
                     });
 
                 return data;
             })
-            .then((response: any) => res.status(200).send(response))
+                .then((response: any) => res.status(200).send(response))
         }
-        catch(error: any){
+        catch (error: any) {
             res.status(500).send("Erro interno. Contate o administrador do sistema.");
         }
     }
