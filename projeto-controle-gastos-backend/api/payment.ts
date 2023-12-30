@@ -25,9 +25,6 @@ module.exports = ((app: any) => {
 
                 const { category, date, description, paymentMethod, title, value } = req.body;
 
-                const currentTime = new Date();
-                //.setHours(currentTime.getHours()).setMinutes(currentTime.getMinutes()).setSeconds(currentTime.getSeconds())
-
                 await app.database("payment")
                     .insert({
                         category,
@@ -40,7 +37,10 @@ module.exports = ((app: any) => {
                     .transacting(trx)
 
             })
-                .then(() => res.status(200).send("Registro salvo!"))
+                .then(() => {
+                    app.io.emit("NEW_PAYMENT_REGISTED");
+                    res.status(200).send("Registro salvo!");
+                })
         }
         catch (error: any) {
             if (error === "NO_CATEGORY") return res.status(404).send("Erro: está faltando um parâmetro para envio deste registro.");

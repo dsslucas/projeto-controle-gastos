@@ -16,6 +16,7 @@ import Input from "../components/input/Input";
 import Navbar from "../components/navbar/Navbar";
 import ModalDashboard from "../components/modal/ModalDashboard";
 import api from "../api/api";
+import { io } from "socket.io-client";
 
 const Home = (props: any) => {
     const [showModalConfig, setShowModalConfig] = useState(false);
@@ -42,7 +43,19 @@ const Home = (props: any) => {
 
         // Renderize API info
         getData();
+
+
+        // const socket = io(`ws://${window.location.hostname}:3003`, {
+        //     reconnectionDelayMax: 10000
+        // });
+
+        // socket.on("NEW_PAYMENT_REGISTED", () => {
+        //     console.log("executed")
+        //     getData();
+        // });
     }, [])
+
+    // NEW_PAYMENT_REGISTED
 
     const getData = async () => {
         await api.get("/payment")

@@ -1,26 +1,34 @@
 const express = require('express')
 const app = express()
 
-// Banco de dados
 const db = require('./config/database')
 
-// Consign, que carrega todos os módulos
 const consign = require('consign')
 
-// Porta
 const port = 3003
 
-// Inicia o sistema
+const server = require('http').createServer(app);
+const io = require('socket.io')(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+});
+
 consign()
-    // .include('./config/passaporte.js')
     .include('./config/middleware.ts')
     .then('./api')
     .then('./config/routes.ts')
-    .into(app) // Passa o App como padrão para todos os Then
+    .into(app)
 
-// Permite fazer inserções junto ao Knex
-app.database = db
+io.on('connection', (socket: any) => {
+    console.log("New socket: ", socket.id)
+})
+
+app.database = db;
+
+app.io = io;
 
 app.listen(port, () => {
-    console.log(`Backend executando na porta ${port}.`)
+    console.log(`Backend running at port ${port}.`)
 })
