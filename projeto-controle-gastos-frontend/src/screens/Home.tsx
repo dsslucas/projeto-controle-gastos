@@ -103,6 +103,7 @@ const Home = (props: any) => {
                     <CardDash title="Crédito" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData("", value)}/>
                     <CardDash title="Débito" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData("", value)}/>
                     <CardDash title="Espécie" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData("", value)}/>
+                    <CardDash title="PIX" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData("", value)}/>
                 </div>
             </>
         )

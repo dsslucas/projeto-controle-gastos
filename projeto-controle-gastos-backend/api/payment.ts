@@ -29,7 +29,7 @@ module.exports = ((app: any) => {
                         throw "INVALID_CATEGORY";
                     }
 
-                    if (key === "paymentMethod" && (value != "Débito" && value != "Crédito" && value != "Espécie")) {
+                    if (key === "paymentMethod" && (value != "Débito" && value != "Crédito" && value != "Espécie" && value != "PIX")) {
                         console.log("forma de pagamento invalida ", key, value)
                         throw "INVALID_PAYMENT";
                     }
@@ -151,7 +151,7 @@ module.exports = ((app: any) => {
                         throw "INVALID_CATEGORY";
                     }
 
-                    if (key === "paymentMethod" && (value != "Débito" && value != "Crédito" && value != "Espécie")) {
+                    if (key === "paymentMethod" && (value != "Débito" && value != "Crédito" && value != "Espécie" && value != "PIX")) {
                         console.log("forma de pagamento invalida ", key, value)
                         throw "INVALID_PAYMENT";
                     }

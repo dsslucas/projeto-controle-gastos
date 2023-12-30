@@ -54,7 +54,7 @@ const ModalRegister = (props: any) => {
     }
 
     const selectOptions = ["Contas", "Investimentos", "Lazer", "Alimentação", "Compras", "Saúde", "Viagens", "Outros"];
-    const optionsPayment = ["Débito", "Crédito", "Espécie"];
+    const optionsPayment = ["Débito", "Crédito", "Espécie", "PIX"];
 
     function generateDate() {
         // Cria um novo objeto de data
