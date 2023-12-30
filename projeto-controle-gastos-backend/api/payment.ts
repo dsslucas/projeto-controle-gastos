@@ -64,9 +64,17 @@ module.exports = ((app: any) => {
     }
 
     const getPayments = async (req: any, res: any) => {
+        const {category} = req.query;
+
+        console.log(category)
+
         try {
             await app.database.transaction(async (trx: any) => {
                 const data = await app.database("payment")
+                    .where((builder: any) => {
+                        if(category) builder.where("category", category);
+                        else builder.whereNotNull('category')
+                    })
                     .orderBy("date", "asc")
                     .transacting(trx)
                     .then((response: any) => {
