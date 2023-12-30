@@ -11,29 +11,30 @@ module.exports = ((app: any) => {
         return parseFloat(numberFormatted);
     }
 
+    function checkConditions(requestBody: object) {
+        if (!("category" in requestBody) || !("date" in requestBody) || !("paymentMethod" in requestBody) || !("title" in requestBody) || !("value" in requestBody)) {
+            throw "NO_CATEGORY";
+        }
+
+        for (const [key, value] of Object.entries(requestBody)) {
+            if (key !== "description" && (value === "" || value === null || value === undefined)) {
+                throw "EMPTY_FIELD";
+            }
+
+            if (key === "category" && (value != "Contas" && value != "Investimentos" && value != "Lazer" && value != "Alimentação" && value != "Compras" && value != "Saúde" && value != "Viagens" && value != "Outros")) {
+                throw "INVALID_CATEGORY";
+            }
+
+            if (key === "paymentMethod" && (value != "Débito" && value != "Crédito" && value != "Espécie" && value != "PIX")) {
+                throw "INVALID_PAYMENT";
+            }
+        }
+    }
+
     const registerPayment = async (req: any, res: any) => {
         try {
             await app.database.transaction(async (trx: any) => {
-                if (!("category" in req.body) || !("date" in req.body) || !("paymentMethod" in req.body) || !("title" in req.body) || !("value" in req.body)) {
-                    throw "NO_CATEGORY";
-                }
-
-                for (const [key, value] of Object.entries(req.body)) {
-                    if (key !== "description" && (value === "" || value === null || value === undefined)) {
-                        console.log("campo vazio ", key, value)
-                        throw "EMPTY_FIELD";
-                    }
-
-                    if (key === "category" && (value != "Contas" && value != "Investimentos" && value != "Lazer" && value != "Alimentação" && value != "Compras" && value != "Saúde" && value != "Viagens" && value != "Outros")) {
-                        console.log("categoria invalida ", key, value)
-                        throw "INVALID_CATEGORY";
-                    }
-
-                    if (key === "paymentMethod" && (value != "Débito" && value != "Crédito" && value != "Espécie" && value != "PIX")) {
-                        console.log("forma de pagamento invalida ", key, value)
-                        throw "INVALID_PAYMENT";
-                    }
-                }
+                checkConditions(req.body);
 
                 const { category, date, description, paymentMethod, title, value } = req.body;
 
@@ -65,9 +66,6 @@ module.exports = ((app: any) => {
 
     const getPayments = async (req: any, res: any) => {
         const {category, paymentMethod} = req.query;
-
-        console.log(category)
-
         try {
             await app.database.transaction(async (trx: any) => {
                 const data = await app.database("payment")
@@ -136,26 +134,7 @@ module.exports = ((app: any) => {
 
         try {
             await app.database.transaction(async (trx: any) => {
-                if (!("category" in req.body) || !("date" in req.body) || !("paymentMethod" in req.body) || !("title" in req.body) || !("value" in req.body)) {
-                    throw "NO_CATEGORY";
-                }
-
-                for (const [key, value] of Object.entries(req.body)) {
-                    if (key !== "description" && (value === "" || value === null || value === undefined)) {
-                        console.log("campo vazio ", key, value)
-                        throw "EMPTY_FIELD";
-                    }
-
-                    if (key === "category" && (value != "Contas" && value != "Investimentos" && value != "Lazer" && value != "Alimentação" && value != "Compras" && value != "Saúde" && value != "Viagens" && value != "Outros")) {
-                        console.log("categoria invalida ", key, value)
-                        throw "INVALID_CATEGORY";
-                    }
-
-                    if (key === "paymentMethod" && (value != "Débito" && value != "Crédito" && value != "Espécie" && value != "PIX")) {
-                        console.log("forma de pagamento invalida ", key, value)
-                        throw "INVALID_PAYMENT";
-                    }
-                }
+                checkConditions(req.body);
 
                 const { category, date, description, paymentMethod, title, value } = req.body;
 
