@@ -42,7 +42,7 @@ const Home = (props: any) => {
         setCurrentYear(date.substring(6));
 
         // Renderize API info
-        getData("");
+        getData("", "");
 
 
         // const socket = io(`ws://${window.location.hostname}:3003`, {
@@ -57,10 +57,11 @@ const Home = (props: any) => {
 
     // NEW_PAYMENT_REGISTED
 
-    const getData = async (category:string) => {
+    const getData = async (category:string, paymentMethod: string) => {
         await api.get("/payment", {
             params: {
-                category: category
+                category: category,
+                paymentMethod: paymentMethod
             }
         })
             .then((response: any) => setDataApiPayment(response.data))
@@ -86,22 +87,22 @@ const Home = (props: any) => {
                 <div className="flex flex-wrap xs:justify-between xl:justify-between gap-2">
                     <Title title="Indicadores" />
 
-                    <CardDash title="Valor bruto" value={3200} fullCard color="bg-gray-300" returnCardSelected={(value: string) => getData("")}/>
-                    <CardDash title="Contas" value={140} color="bg-gray-300" returnCardSelected={(value: string) => getData(value)}/>
-                    <CardDash title="Investimentos" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value)}/>
+                    <CardDash title="Valor bruto" value={3200} fullCard color="bg-gray-300" returnCardSelected={(value: string) => getData("", "")}/>
+                    <CardDash title="Contas" value={140} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "")}/>
+                    <CardDash title="Investimentos" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "")}/>
 
-                    <CardDash title="Lazer" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value)}/>
-                    <CardDash title="Alimentação" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value)}/>
-                    <CardDash title="Compras" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value)}/>
-                    <CardDash title="Saúde" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value)}/>
-                    <CardDash title="Viagens" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value)}/>
-                    <CardDash title="Outros" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value)}/>
+                    <CardDash title="Lazer" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "")}/>
+                    <CardDash title="Alimentação" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "")}/>
+                    <CardDash title="Compras" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "")}/>
+                    <CardDash title="Saúde" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "")}/>
+                    <CardDash title="Viagens" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "")}/>
+                    <CardDash title="Outros" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "")}/>
                 </div>
                 <div className="flex flex-wrap xl:justify-between gap-2">
                     <Title title="Total gasto" />
-                    <CardDash title="Crédito" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => console.log("Valor selecionado: ", value)}/>
-                    <CardDash title="Débito" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => console.log("Valor selecionado: ", value)}/>
-                    <CardDash title="Espécie" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => console.log("Valor selecionado: ", value)}/>
+                    <CardDash title="Crédito" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData("", value)}/>
+                    <CardDash title="Débito" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData("", value)}/>
+                    <CardDash title="Espécie" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData("", value)}/>
                 </div>
             </>
         )

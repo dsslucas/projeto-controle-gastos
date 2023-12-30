@@ -64,7 +64,7 @@ module.exports = ((app: any) => {
     }
 
     const getPayments = async (req: any, res: any) => {
-        const {category} = req.query;
+        const {category, paymentMethod} = req.query;
 
         console.log(category)
 
@@ -73,6 +73,7 @@ module.exports = ((app: any) => {
                 const data = await app.database("payment")
                     .where((builder: any) => {
                         if(category) builder.where("category", category);
+                        else if(paymentMethod) builder.where("paymentMethod", paymentMethod);
                         else builder.whereNotNull('category')
                     })
                     .orderBy("date", "asc")
