@@ -1,4 +1,16 @@
 module.exports = ((app: any) => {
+    function formatMoney(value: string){
+        // Remove "R$" and format decimal
+        const formattedValue = value.replace(/[^\d.,]/g, '').replace(',', '.');
+
+        // Remove only pointers, except the last
+        const removePointers = formattedValue.replace(/\.(?=[^.]*\.)/g, '');
+
+        const numberFormatted = parseFloat(removePointers).toFixed(2);
+
+        return parseFloat(numberFormatted);
+    }
+
     const registerPayment = async (req: any, res: any) => {
         try {
             await app.database.transaction(async (trx: any) => {
@@ -32,7 +44,7 @@ module.exports = ((app: any) => {
                         description,
                         paymentMethod,
                         title,
-                        value: parseFloat(value.replace(/[^\d.,]/g, '').replace(',', '.'))
+                        value: formatMoney(value)
                     })
                     .transacting(trx)
 
@@ -110,8 +122,59 @@ module.exports = ((app: any) => {
         }
     }
 
-    const editPayment = (req: any, res: any) => {
-        res.status(200).send("Opa joia")
+    const editPayment = async (req: any, res: any) => {
+        const idPayment = req.params.id;
+
+        try {
+            await app.database.transaction(async (trx: any) => {
+                if (!("category" in req.body) || !("date" in req.body) || !("paymentMethod" in req.body) || !("title" in req.body) || !("value" in req.body)) {
+                    throw "NO_CATEGORY";
+                }
+
+                for (const [key, value] of Object.entries(req.body)) {
+                    if (key !== "description" && (value === "" || value === null || value === undefined)) {
+                        console.log("campo vazio ", key, value)
+                        throw "EMPTY_FIELD";
+                    }
+
+                    if (key === "category" && (value != "Contas" && value != "Investimentos" && value != "Lazer" && value != "Alimentação" && value != "Compras" && value != "Saúde" && value != "Viagens" && value != "Outros")) {
+                        console.log("categoria invalida ", key, value)
+                        throw "INVALID_CATEGORY";
+                    }
+
+                    if (key === "paymentMethod" && (value != "Débito" && value != "Crédito" && value != "Espécie")) {
+                        console.log("forma de pagamento invalida ", key, value)
+                        throw "INVALID_PAYMENT";
+                    }
+                }
+
+                const { category, date, description, paymentMethod, title, value } = req.body;
+
+                await app.database("payment")
+                    .where({ id: idPayment })
+                    .first()
+                    .update({
+                        category,
+                        date: new Date(date),
+                        description,
+                        paymentMethod,
+                        title,
+                        value: formatMoney(value)
+                    })
+                    .transacting(trx)
+            })
+            .then(() => {
+                app.io.emit("NEW_PAYMENT_REGISTED");
+                res.status(200).send("Registro atualizado!");
+            })
+        }
+        catch (error: any) {
+            if (error === "NO_CATEGORY") return res.status(404).send("Erro: está faltando um parâmetro para atualização deste registro.");
+            else if (error === "EMPTY_FIELD") return res.status(404).send("Erro: é necessário preencher os campos obrigatórios para atualizar este registro.");
+            else if (error === "INVALID_CATEGORY") return res.status(404).send("Erro: categoria inválida.");
+            else if (error === "INVALID_PAYMENT") return res.status(404).send("Erro: forma de pagamento inválida.");
+            else return res.status(500).send("Erro interno: contate o administrador do sistema.");
+        }
     }
 
     return { registerPayment, getPayments, getPayment, editPayment }

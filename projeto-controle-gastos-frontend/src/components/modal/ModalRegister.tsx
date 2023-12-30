@@ -29,15 +29,28 @@ const ModalRegister = (props: any) => {
         console.log("enviei")
         console.log(dadosForm)
 
-        await api.post("/payment", dadosForm)
-            .then((response: any) => {
-                console.log(response)
-            })
-            .catch((error: any) => {
-                console.log(error)
-            })
-
-        props.returnClick();
+        if (props.id) {
+            console.log("tem id")
+            await api.patch(`/payment/${props.id}`, dadosForm)
+                .then((response: any) => {
+                    console.log(response);
+                    props.returnClick();
+                })
+                .catch((error: any) => {
+                    console.log(error)
+                })
+        }
+        else {
+            console.log("não tem id")
+            await api.post("/payment", dadosForm)
+                .then((response: any) => {
+                    console.log(response);
+                    props.returnClick();
+                })
+                .catch((error: any) => {
+                    console.log(error)
+                })
+        }
     }
 
     const selectOptions = ["Contas", "Investimentos", "Lazer", "Alimentação", "Compras", "Saúde", "Viagens", "Outros"];
