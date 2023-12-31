@@ -69,49 +69,53 @@ module.exports = ((app: any) => {
                             total: totalEntries.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' }),
                             indicators: {
                                 billing: {
-                                    value: totalContas,
+                                    value: totalContas.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
                                     percentage: totalContas / totalEntries
                                 },
                                 investments: {
-                                    value: totalInvestimentos,
+                                    value: totalInvestimentos.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
                                     percentage: totalInvestimentos / totalEntries
                                 },
                                 leisure: {
-                                    value: totalLazer,
+                                    value: totalLazer.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
                                     percentage: totalLazer / totalEntries
                                 },
                                 food: {
-                                    value: totalAlimentacao,
+                                    value: totalAlimentacao.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
                                     percentage: totalAlimentacao / totalEntries
                                 },
                                 purcharse: {
-                                    value: totalCompras,
+                                    value: totalCompras.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
                                     percentage: totalCompras / totalEntries
                                 },
+                                health: {
+                                    value: totalSaude.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+                                    percentage: totalSaude / totalEntries
+                                },
                                 travel: {
-                                    value: totalViagens,
+                                    value: totalViagens.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
                                     percentage: totalViagens / totalEntries
                                 },
                                 other: {
-                                    value: totalOutros,
+                                    value: totalOutros.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
                                     percentage: totalOutros/ totalEntries
                                 }
                             },
                             paymentMethod: {
                                 debit: {
-                                    value: valorDebito,
+                                    value: valorDebito.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
                                     percentage: valorDebito / totalEntries
                                 },
                                 credit: {
-                                    value: valorCredito,
+                                    value: valorCredito.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
                                     percentage: valorCredito / totalEntries 
                                 },
                                 pix: {
-                                    value: valorPix,
+                                    value: valorPix.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
                                     percentage: valorPix / totalEntries
                                 },
                                 cash: {
-                                    value: valorEspecie,
+                                    value: valorEspecie.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
                                     percentage: valorEspecie / totalEntries
                                 }
                             }

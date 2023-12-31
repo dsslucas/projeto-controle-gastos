@@ -35,21 +35,22 @@ const Home = (props: any) => {
     const [searchString, setSearchString] = useState("");
 
     const [dataApiPayment, setDataApiPayment] = useState<any>();
+    const [dataApiDashboard, setDataApiDashboard] = useState<any>();
 
     useEffect(() => {
         const date = new Date().toISOString();
 
-        const year = date.substring(0,4);
-        const month = date.substring(5,7);
-        const day = date.substring(8,10);
+        const year = date.substring(0, 4);
+        const month = date.substring(5, 7);
+        const day = date.substring(8, 10);
 
         const time = new Date().toLocaleTimeString("pt-BR", {
             timeZone: "America/Sao_Paulo"
         });
-        
-        setCurrentHour(time.substring(0,2));
-        setCurrentMinutes(time.substring(3,5));
-        setCurrentSeconds(time.substring(6,8));
+
+        setCurrentHour(time.substring(0, 2));
+        setCurrentMinutes(time.substring(3, 5));
+        setCurrentSeconds(time.substring(6, 8));
 
         setCurrentYear(year);
         setCurrentMonth(month);
@@ -59,6 +60,7 @@ const Home = (props: any) => {
 
         // Renderize API info
         getData("", "", `${year}-${month}`);
+        getDashboardData(`${year}-${month}`);
 
         // const socket = io(`ws://${window.location.hostname}:3003`, {
         //     reconnectionDelayMax: 10000
@@ -72,7 +74,7 @@ const Home = (props: any) => {
 
     // NEW_PAYMENT_REGISTED
 
-    const getData = async (category:string, paymentMethod: string, date: string) => {
+    const getData = async (category: string, paymentMethod: string, date: string) => {
         console.log("O QUE ESTOU RECEBENDO: ", date)
         await api.get("/payment", {
             params: {
@@ -85,26 +87,43 @@ const Home = (props: any) => {
             .catch((error: any) => console.error(error))
     }
 
+    const getDashboardData = async (date: string) => {
+        await api.get("/dashboard", {
+            params: {
+                date: date
+            }
+        })
+            .then((response: any) => setDataApiDashboard(response.data))
+            .catch((error: any) => console.error(error))
+    }
+
     const changeDate = (value: string) => {
         console.log("VALOR RECEBIDO: ", value);
 
-        const month = value.substring(5,7);
-        const year = value.substring(0,4);
+        const month = value.substring(5, 7);
+        const year = value.substring(0, 4);
 
         const date = new Date(value).toISOString();
-        setCurrentYear(date.substring(0,4));
-        setCurrentMonth(date.substring(5,7));
-        setCurrentDay(date.substring(8,10));
+        setCurrentYear(date.substring(0, 4));
+        setCurrentMonth(date.substring(5, 7));
+        setCurrentDay(date.substring(8, 10));
 
         const time = new Date().toLocaleTimeString("pt-BR", {
             timeZone: "America/Sao_Paulo"
         });
 
-        setCurrentHour(time.substring(0,2));
-        setCurrentMinutes(time.substring(3,5));
-        setCurrentSeconds(time.substring(6,8));
+        setCurrentHour(time.substring(0, 2));
+        setCurrentMinutes(time.substring(3, 5));
+        setCurrentSeconds(time.substring(6, 8));
 
         getData("", "", `${year}-${month}`);
+        getDashboardData(`${year}-${month}`);
+    }
+
+    const selectDashboardElement = (category: string, paymentMethod: string) => {
+        const date = `${currentYear}-${currentMonth}`;
+        getData(category, paymentMethod, date);
+        getDashboardData(date);
     }
 
     const dashboardData = () => {
@@ -113,23 +132,101 @@ const Home = (props: any) => {
                 <div className="flex flex-wrap xs:justify-between xl:justify-between gap-2">
                     <Title title="Indicadores" />
 
-                    <CardDash title="Valor bruto" value={3200} fullCard color="bg-gray-300" returnCardSelected={(value: string) => getData("", "", `${currentYear}-${currentMonth}`)}/>
-                    <CardDash title="Contas" value={140} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "", `${currentYear}-${currentMonth}`)}/>
-                    <CardDash title="Investimentos" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "", `${currentYear}-${currentMonth}`)}/>
+                    <CardDash
+                        title="Valor bruto"
+                        value={dataApiDashboard && dataApiDashboard.total}
+                        fullCard
+                        color="bg-gray-300"
+                        returnCardSelected={(value: string) => selectDashboardElement("", "")}
+                    />
+                    <CardDash
+                        title="Contas"
+                        value={dataApiDashboard && dataApiDashboard.indicators.billing.value}
+                        percentage={dataApiDashboard && dataApiDashboard.indicators.billing.percentage}
+                        color="bg-gray-300"
+                        returnCardSelected={(value: string) => selectDashboardElement(value, "")}
+                    />
+                    <CardDash
+                        title="Investimentos"
+                        value={dataApiDashboard && dataApiDashboard.indicators.investments.value}
+                        percentage={dataApiDashboard && dataApiDashboard.indicators.investments.percentage}
+                        color="bg-gray-300"
+                        returnCardSelected={(value: string) => selectDashboardElement(value, "")}
+                    />
 
-                    <CardDash title="Lazer" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "", `${currentYear}-${currentMonth}`)}/>
-                    <CardDash title="Alimentação" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "", `${currentYear}-${currentMonth}`)}/>
-                    <CardDash title="Compras" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "", `${currentYear}-${currentMonth}`)}/>
-                    <CardDash title="Saúde" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "", `${currentYear}-${currentMonth}`)}/>
-                    <CardDash title="Viagens" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "", `${currentYear}-${currentMonth}`)}/>
-                    <CardDash title="Outros" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "", `${currentYear}-${currentMonth}`)}/>
+                    <CardDash
+                        title="Lazer"
+                        value={dataApiDashboard && dataApiDashboard.indicators.leisure.value}
+                        percentage={dataApiDashboard && dataApiDashboard.indicators.leisure.percentage}
+                        color="bg-gray-300"
+                        returnCardSelected={(value: string) => selectDashboardElement(value, "")}
+                    />
+                    <CardDash
+                        title="Alimentação"
+                        value={dataApiDashboard && dataApiDashboard.indicators.food.value}
+                        percentage={dataApiDashboard && dataApiDashboard.indicators.food.percentage}
+                        color="bg-gray-300"
+                        returnCardSelected={(value: string) => selectDashboardElement(value, "")}
+                    />
+                    <CardDash
+                        title="Compras"
+                        value={dataApiDashboard && dataApiDashboard.indicators.purcharse.value}
+                        percentage={dataApiDashboard && dataApiDashboard.indicators.purcharse.percentage}
+                        color="bg-gray-300"
+                        returnCardSelected={(value: string) => selectDashboardElement(value, "")}
+                    />
+                    <CardDash
+                        title="Saúde"
+                        value={dataApiDashboard && dataApiDashboard.indicators.health.value}
+                        percentage={dataApiDashboard && dataApiDashboard.indicators.health.percentage}
+                        color="bg-gray-300"
+                        returnCardSelected={(value: string) => selectDashboardElement(value, "")}
+                    />
+                    <CardDash
+                        title="Viagens"
+                        value={dataApiDashboard && dataApiDashboard.indicators.travel.value}
+                        percentage={dataApiDashboard && dataApiDashboard.indicators.travel.percentage}
+                        color="bg-gray-300"
+                        returnCardSelected={(value: string) => selectDashboardElement(value, "")}
+                    />
+                    <CardDash
+                        title="Outros"
+                        value={dataApiDashboard && dataApiDashboard.indicators.other.value}
+                        percentage={dataApiDashboard && dataApiDashboard.indicators.other.percentage}
+                        color="bg-gray-300"
+                        returnCardSelected={(value: string) => selectDashboardElement(value, "")}
+                    />
                 </div>
                 <div className="flex flex-wrap xl:justify-between gap-2">
                     <Title title="Total gasto" />
-                    <CardDash title="Crédito" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData("", value, `${currentYear}-${currentMonth}`)}/>
-                    <CardDash title="Débito" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData("", value, `${currentYear}-${currentMonth}`)}/>
-                    <CardDash title="Espécie" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData("", value, `${currentYear}-${currentMonth}`)}/>
-                    <CardDash title="PIX" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData("", value, `${currentYear}-${currentMonth}`)}/>
+                    <CardDash
+                        title="Crédito"
+                        value={dataApiDashboard && dataApiDashboard.paymentMethod.credit.value}
+                        percentage={dataApiDashboard && dataApiDashboard.paymentMethod.credit.percentage}
+                        color="bg-gray-300"
+                        returnCardSelected={(value: string) => selectDashboardElement("", value)}
+                    />
+                    <CardDash
+                        title="Débito"
+                        value={dataApiDashboard && dataApiDashboard.paymentMethod.debit.value}
+                        percentage={dataApiDashboard && dataApiDashboard.paymentMethod.debit.percentage}
+                        color="bg-gray-300"
+                        returnCardSelected={(value: string) => selectDashboardElement("", value)}
+                    />
+                    <CardDash
+                        title="Espécie"
+                        value={dataApiDashboard && dataApiDashboard.paymentMethod.cash.value}
+                        percentage={dataApiDashboard && dataApiDashboard.paymentMethod.cash.percentage}
+                        color="bg-gray-300"
+                        returnCardSelected={(value: string) => selectDashboardElement("", value)}
+                    />
+                    <CardDash
+                        title="PIX"
+                        value={dataApiDashboard && dataApiDashboard.paymentMethod.pix.value}
+                        percentage={dataApiDashboard && dataApiDashboard.paymentMethod.pix.percentage}
+                        color="bg-gray-300"
+                        returnCardSelected={(value: string) => selectDashboardElement("", value)}
+                    />
                 </div>
             </>
         )
@@ -141,7 +238,7 @@ const Home = (props: any) => {
                 <ModalConfig
                     returnClick={() => {
                         setShowModalConfig(false);
-                        
+
                     }}
                     currentDay={currentDay}
                     currentMonth={currentMonth}
@@ -165,6 +262,7 @@ const Home = (props: any) => {
                         setShowModalRegister(false);
                         setIdSelected(undefined);
                         getData("", "", `${currentYear}-${currentMonth}`);
+                        getDashboardData(`${currentYear}-${currentMonth}`);
                     }}
                 />
             )}
