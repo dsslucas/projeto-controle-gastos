@@ -55,7 +55,18 @@ module.exports = ((app: any) => {
     }
 
     const getPayments = async (req: any, res: any) => {
-        const {category, paymentMethod} = req.query;
+        const {category, paymentMethod, date} = req.query;
+        console.log(date)
+
+        const month = date.substring(5,7);
+        const year = date.substring(0,4);
+        const initialDate = new Date(Date.UTC(year, month - 1, 1));
+        const nextMonth = new Date(Date.UTC(year, month, 0));
+        const finalDate = new Date(nextMonth);
+        finalDate.setUTCHours(23);
+        finalDate.setUTCMinutes(59);
+        finalDate.setUTCSeconds(59);
+
         try {
             await app.database.transaction(async (trx: any) => {
                 const data = await app.database("payment")
@@ -64,6 +75,8 @@ module.exports = ((app: any) => {
                         else if(paymentMethod) builder.where("paymentMethod", paymentMethod);
                         else builder.whereNotNull('category')
                     })
+                    .where("date", ">=", initialDate)
+                    .where("date", "<", finalDate)
                     .orderBy("date", "asc")
                     .transacting(trx)
                     .then((response: any) => {
@@ -90,7 +103,6 @@ module.exports = ((app: any) => {
 
     const getPayment = async (req: any, res: any) => {
         const id = req.params.id;
-
         try {
             await app.database.transaction(async (trx: any) => {
                 const data = await app.database("payment")

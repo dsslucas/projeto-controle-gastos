@@ -37,24 +37,20 @@ const Home = (props: any) => {
     const [dataApiPayment, setDataApiPayment] = useState<any>();
 
     useEffect(() => {
-        const date = new Date().toLocaleDateString("pt-BR", {
-            timeZone: "America/Sao_Paulo"
-        });
-        setCurrentDay(date.substring(0, 2));
-        setCurrentMonth(date.substring(3, 5));
-        setCurrentYear(date.substring(6));
+        const date = new Date().toISOString();
 
-        const time = new Date().toLocaleTimeString("pt-BR", {
-            timeZone: "America/Sao_Paulo"
-        });
+        const year = date.substring(0,4);
+        const month = date.substring(5,7);
+        const day = date.substring(8,10);
 
-        setCurrentHour(time.substring(0,2));
-        setCurrentMinutes(time.substring(3,5));
-        setCurrentSeconds(time.substring(6,8));
+        setCurrentYear(year);
+        setCurrentMonth(month);
+        setCurrentDay(day);
+
+        console.log(`${year}-${month}`)
 
         // Renderize API info
-        getData("", "");
-
+        getData("", "", `${year}-${month}`);
 
         // const socket = io(`ws://${window.location.hostname}:3003`, {
         //     reconnectionDelayMax: 10000
@@ -68,11 +64,13 @@ const Home = (props: any) => {
 
     // NEW_PAYMENT_REGISTED
 
-    const getData = async (category:string, paymentMethod: string) => {
+    const getData = async (category:string, paymentMethod: string, date: string) => {
+        console.log("O QUE ESTOU RECEBENDO: ", date)
         await api.get("/payment", {
             params: {
                 category: category,
-                paymentMethod: paymentMethod
+                paymentMethod: paymentMethod,
+                date: date
             }
         })
             .then((response: any) => setDataApiPayment(response.data))
@@ -82,9 +80,15 @@ const Home = (props: any) => {
     const changeDate = (value: string) => {
         console.log("VALOR RECEBIDO: ", value);
 
+        const month = value.substring(5,7);
+        const year = value.substring(0,4);
+
         const date = new Date(value).toISOString();
         setCurrentYear(date.substring(0,4));
         setCurrentMonth(date.substring(5,7));
+        setCurrentDay(date.substring(8,10));
+
+        getData("", "", `${year}-${month}`)
     }
 
     const dashboardData = () => {
@@ -93,23 +97,23 @@ const Home = (props: any) => {
                 <div className="flex flex-wrap xs:justify-between xl:justify-between gap-2">
                     <Title title="Indicadores" />
 
-                    <CardDash title="Valor bruto" value={3200} fullCard color="bg-gray-300" returnCardSelected={(value: string) => getData("", "")}/>
-                    <CardDash title="Contas" value={140} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "")}/>
-                    <CardDash title="Investimentos" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "")}/>
+                    <CardDash title="Valor bruto" value={3200} fullCard color="bg-gray-300" returnCardSelected={(value: string) => getData("", "", `${currentYear}-${currentMonth}`)}/>
+                    <CardDash title="Contas" value={140} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "", `${currentYear}-${currentMonth}`)}/>
+                    <CardDash title="Investimentos" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "", `${currentYear}-${currentMonth}`)}/>
 
-                    <CardDash title="Lazer" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "")}/>
-                    <CardDash title="Alimentação" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "")}/>
-                    <CardDash title="Compras" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "")}/>
-                    <CardDash title="Saúde" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "")}/>
-                    <CardDash title="Viagens" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "")}/>
-                    <CardDash title="Outros" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "")}/>
+                    <CardDash title="Lazer" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "", `${currentYear}-${currentMonth}`)}/>
+                    <CardDash title="Alimentação" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "", `${currentYear}-${currentMonth}`)}/>
+                    <CardDash title="Compras" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "", `${currentYear}-${currentMonth}`)}/>
+                    <CardDash title="Saúde" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "", `${currentYear}-${currentMonth}`)}/>
+                    <CardDash title="Viagens" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "", `${currentYear}-${currentMonth}`)}/>
+                    <CardDash title="Outros" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData(value, "", `${currentYear}-${currentMonth}`)}/>
                 </div>
                 <div className="flex flex-wrap xl:justify-between gap-2">
                     <Title title="Total gasto" />
-                    <CardDash title="Crédito" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData("", value)}/>
-                    <CardDash title="Débito" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData("", value)}/>
-                    <CardDash title="Espécie" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData("", value)}/>
-                    <CardDash title="PIX" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData("", value)}/>
+                    <CardDash title="Crédito" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData("", value, `${currentYear}-${currentMonth}`)}/>
+                    <CardDash title="Débito" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData("", value, `${currentYear}-${currentMonth}`)}/>
+                    <CardDash title="Espécie" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData("", value, `${currentYear}-${currentMonth}`)}/>
+                    <CardDash title="PIX" value={3200} color="bg-gray-300" returnCardSelected={(value: string) => getData("", value, `${currentYear}-${currentMonth}`)}/>
                 </div>
             </>
         )
@@ -136,6 +140,7 @@ const Home = (props: any) => {
             {showModalRegister && (
                 <ModalRegister
                     id={idSelected}
+                    
                     returnClick={() => {
                         setShowModalRegister(false);
                         setIdSelected(undefined);

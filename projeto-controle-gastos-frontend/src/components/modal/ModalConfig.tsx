@@ -18,8 +18,7 @@ const ModalConfig = (props: any) => {
 
     const handleSubmit = async (event: any) => {
         event.preventDefault();
-
-        console.log("opa bao")
+        
         await api.post("/config", {
             date: new Date(currentDate),
             values: inputFields
