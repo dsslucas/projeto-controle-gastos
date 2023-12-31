@@ -3,6 +3,8 @@ const app = express()
 
 const db = require('./config/database')
 
+const globalFunctions = require('./config/globalFunctions.ts')
+
 const consign = require('consign')
 
 const port = 3003
@@ -15,10 +17,13 @@ const io = require('socket.io')(server, {
     }
 });
 
+app.globalFunctions = globalFunctions;
+
 consign()
     .include('./config/middleware.ts')
     .then('./api')
     .then('./config/routes.ts')
+    //.then('./config/globalFunctions.ts')
     .into(app)
 
 io.on('connection', (socket: any) => {
@@ -28,6 +33,8 @@ io.on('connection', (socket: any) => {
 app.database = db;
 
 app.io = io;
+
+
 
 app.listen(port, () => {
     console.log(`Backend running at port ${port}.`)

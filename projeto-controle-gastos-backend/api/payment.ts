@@ -1,15 +1,5 @@
 module.exports = ((app: any) => {
-    function formatMoney(value: string){
-        // Remove "R$" and format decimal
-        const formattedValue = value.replace(/[^\d.,]/g, '').replace(',', '.');
-
-        // Remove only pointers, except the last
-        const removePointers = formattedValue.replace(/\.(?=[^.]*\.)/g, '');
-
-        const numberFormatted = parseFloat(removePointers).toFixed(2);
-
-        return parseFloat(numberFormatted);
-    }
+    const globalFunctions = app.globalFunctions();
 
     function checkConditions(requestBody: object) {
         if (!("category" in requestBody) || !("date" in requestBody) || !("paymentMethod" in requestBody) || !("title" in requestBody) || !("value" in requestBody)) {
@@ -45,7 +35,7 @@ module.exports = ((app: any) => {
                         description,
                         paymentMethod,
                         title,
-                        value: formatMoney(value)
+                        value: globalFunctions.formatMoney(value)
                     })
                     .transacting(trx)
 
@@ -147,7 +137,7 @@ module.exports = ((app: any) => {
                         description,
                         paymentMethod,
                         title,
-                        value: formatMoney(value)
+                        value: globalFunctions.formatMoney(value)
                     })
                     .transacting(trx)
             })
