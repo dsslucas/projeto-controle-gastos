@@ -3,6 +3,8 @@ module.exports = (app: any) => {
 
     const registerConfig = async (req: any, res: any) => {
         const { date, values } = req.body;
+        console.log("date: ", date)
+        console.log(req.body)
         try {
             await app.database.transaction(async (trx: any) => {
                 const existsMonthConfig = await app.database("config")
@@ -43,15 +45,36 @@ module.exports = (app: any) => {
     }
 
     const getConfig = async (req: any, res: any) => {
+        const {date} = req.query;
+        console.log(date)
         try {
             await app.database.transaction(async (trx: any) => {
                 return await app.database("config as c")
                     .join("config_entries as ce", "c.id", "ce.idConfig")
                     .transacting(trx)
+                    .then((response: any) => {
+                        const inputValues = []
+                        var value = 0;
+
+                        response.forEach((element: any) => {
+                            value += element.value;
+
+                            inputValues.push({
+                                description: element.description,
+                                value: element.value.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' })
+                            })
+                        })
+
+                        return {
+                            value: value.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' }),
+                            inputValues
+                        }
+                    })
             })
                 .then((response: any) => res.status(200).send(response));
         }
         catch (error: any) {
+            console.error(error)
             res.status(500).send("Não foi possível realizar a consulta. Tente novamente mais tarde.");
         }
     }

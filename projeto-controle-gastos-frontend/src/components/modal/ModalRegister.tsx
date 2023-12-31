@@ -8,7 +8,6 @@ import api from "../../api/api";
 
 const ModalRegister = (props: any) => {
     useEffect(() => {
-        console.log(props.id)
         if (props.id !== undefined) {
             getData(props.id);
         }
@@ -26,11 +25,8 @@ const ModalRegister = (props: any) => {
 
     const handleSubmit = async (event: any) => {
         event.preventDefault();
-        console.log("enviei")
-        console.log(dadosForm)
 
         if (props.id) {
-            console.log("tem id")
             await api.patch(`/payment/${props.id}`, dadosForm)
                 .then((response: any) => {
                     console.log(response);
@@ -41,7 +37,6 @@ const ModalRegister = (props: any) => {
                 })
         }
         else {
-            console.log("não tem id")
             await api.post("/payment", dadosForm)
                 .then((response: any) => {
                     console.log(response);
@@ -69,9 +64,6 @@ const ModalRegister = (props: any) => {
 
         // Constrói a string no formato desejado (yyyy-MM-ddThh:mm)
         let formatoDesejado = `${ano}-${mes}-${dia}T${hora}:${minuto}`;
-
-        // Exibe o atributo no formato desejado
-        console.log(formatoDesejado);
 
         return formatoDesejado;
     }

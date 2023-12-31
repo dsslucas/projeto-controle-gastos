@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import Button from "../button/Button";
 import Subtitle from "../text/Subtitle";
 import Input from "../input/Input";
@@ -46,6 +46,20 @@ const ModalConfig = (props: any) => {
         data.splice(index, 1);
         setInputFields(data);
     }
+
+    const getData = async () => {
+        await api.get("/config", {
+            params: {
+                date: `${props.currentYear}-${props.currentMonth}-${props.currentDay}T${props.currentHour}:${props.currentMinutes}:${props.currentSeconds}`
+            }
+        })
+        .then((response: any) => console.log(response))
+        .catch((error: any) => console.error(error))
+    }
+
+    useEffect(() => {
+        getData()
+    }, [])
 
     return (
         <>

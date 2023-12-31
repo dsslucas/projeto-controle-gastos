@@ -16,7 +16,7 @@ import Input from "../components/input/Input";
 import Navbar from "../components/navbar/Navbar";
 import ModalDashboard from "../components/modal/ModalDashboard";
 import api from "../api/api";
-import { io } from "socket.io-client";
+//import { io } from "socket.io-client";
 
 const Home = (props: any) => {
     const [showModalConfig, setShowModalConfig] = useState(false);
@@ -27,6 +27,9 @@ const Home = (props: any) => {
     const [currentDay, setCurrentDay] = useState<String>();
     const [currentMonth, setCurrentMonth] = useState<String>();
     const [currentYear, setCurrentYear] = useState<String>();
+    const [currentHour, setCurrentHour] = useState<String>();
+    const [currentMinutes, setCurrentMinutes] = useState<String>();
+    const [currentSeconds, setCurrentSeconds] = useState<String>();
 
     const [idSelected, setIdSelected] = useState<number>();
     const [searchString, setSearchString] = useState("");
@@ -40,6 +43,14 @@ const Home = (props: any) => {
         setCurrentDay(date.substring(0, 2));
         setCurrentMonth(date.substring(3, 5));
         setCurrentYear(date.substring(6));
+
+        const time = new Date().toLocaleTimeString("pt-BR", {
+            timeZone: "America/Sao_Paulo"
+        });
+
+        setCurrentHour(time.substring(0,2));
+        setCurrentMinutes(time.substring(3,5));
+        setCurrentSeconds(time.substring(6,8));
 
         // Renderize API info
         getData("", "");
@@ -76,9 +87,18 @@ const Home = (props: any) => {
         const date = new Date(`${year}-${month}-${currentDay}`).toLocaleDateString("pt-BR", {
             timeZone: "America/Sao_Paulo"
         });
+
+        const time = new Date().toLocaleTimeString("pt-BR", {
+            timeZone: "America/Sao_Paulo"
+        });
+
         setCurrentDay(date.substring(0, 2));
         setCurrentMonth(date.substring(3, 5));
         setCurrentYear(date.substring(6));
+
+        setCurrentHour(time.substring(0,2));
+        setCurrentMinutes(time.substring(3,5));
+        setCurrentSeconds(time.substring(6,8));
     }
 
     const dashboardData = () => {
@@ -117,8 +137,12 @@ const Home = (props: any) => {
                         setShowModalConfig(false);
                         
                     }}
+                    currentDay={currentDay}
                     currentMonth={currentMonth}
                     currentYear={currentYear}
+                    currentHour={currentHour}
+                    currentMinutes={currentMinutes}
+                    currentSeconds={currentSeconds}
                     returnNewDate={changeDate}
                 />
             )}
