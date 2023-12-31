@@ -9,9 +9,22 @@ import Title from "../text/Title";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import Label from "../text/Label";
+import api from "../../api/api";
 
 const ModalConfig = (props: any) => {
     var currentDate = `${props.currentYear}-${props.currentMonth}`;
+
+    const handleSubmit = async (event: any) => {
+        event.preventDefault();
+
+        console.log("opa bao")
+        await api.post("/config", {
+            date: new Date(currentDate),
+            values: inputFields
+        })
+        .then((response:any) => alert(response))
+        .catch((error: any) => console.error(error))
+    }
 
     const [inputFields, setInputFields] = useState<any>([
         //{ description: '', value: 0.0 }
@@ -24,7 +37,7 @@ const ModalConfig = (props: any) => {
     }
 
     const addFields = () => {
-        let newfield = { description: '', value: '' }
+        let newfield = { description: '', value: 'R$ 0,00' }
         setInputFields([...inputFields, newfield])
     }
 
@@ -40,64 +53,80 @@ const ModalConfig = (props: any) => {
             >
                 <div className="relative w-auto my-6 mx-auto max-w-3xl xs:flex xs:justify-center">
                     <div className="border-0 rounded-lg shadow-lg relative flex flex-col xs:w-[90%] xl:w-[500px] bg-white outline-none focus:outline-none">
-                        {/*header*/}
-                        <div className="flex items-start justify-between p-5 border-b border-solid border-blueGray-200 rounded-t">
-                            <Subtitle {...props} modal subtitle="Configurações" />
-                        </div>
-                        {/*body*/}
-                        <div className="relative p-6 flex-auto">
-                            <div>
-                                <Title title="Exibição da página" />
+                        <form onSubmit={handleSubmit}>
+                            {/*header*/}
+                            <div className="flex items-start justify-between p-5 border-b border-solid border-blueGray-200 rounded-t">
+                                <Subtitle {...props} modal subtitle="Configurações" />
+                            </div>
+                            {/*body*/}
+                            <div className="relative p-6 flex-auto">
+                                <div>
+                                    <Title title="Exibição da página" />
 
-                                <div className="flex">
-                                    <Label label="Mês de exibição" />
-                                    <Input 
-                                        type="month" 
-                                        name="monthExibition" 
-                                        value={currentDate} 
-                                        returnInput={(name: string, value: string) => props.returnNewDate(value)}
-                                    />
+                                    <div className="flex">
+                                        <Label label="Mês de exibição" />
+                                        <Input
+                                            type="month"
+                                            name="monthExibition"
+                                            value={currentDate}
+                                            returnInput={(name: string, value: string) => props.returnNewDate(value)}
+                                        />
+                                    </div>
                                 </div>
+                                <div>
+                                    <Title title="Receitas" />
+                                    <Text text="Receita informada neste mês: R$ 3.200,00" />
+
+                                    {inputFields.map((input: any, index: number) => {
+                                        return (
+                                            <div key={index} className={`flex mt-1 mb-1 gap-1`}>
+                                                <Input
+                                                    name="description"
+                                                    placeholder='Descrição'
+                                                    value={input.description}
+                                                    returnInput={(name: string, value: string) => handleFormChange(index, {
+                                                        target: {
+                                                            name,
+                                                            value
+                                                        }
+                                                    })}
+                                                    required
+                                                />
+                                                <Input
+                                                    name="value"
+                                                    placeholder='Valor'
+                                                    value={input.value}
+                                                    inputMode="numeric"
+                                                    mask="money"
+                                                    returnInput={(name: string, value: string) => handleFormChange(index, {
+                                                        target: {
+                                                            name,
+                                                            value
+                                                        }
+                                                    })}
+                                                    required
+                                                />
+                                                <Button
+                                                    iconConfig
+                                                    content={<FontAwesomeIcon icon={faTrash} />}
+                                                    returnClick={() => removeField(index)}
+                                                    color="bg-red-500"
+                                                />
+                                            </div>
+                                        )
+                                    })}
+
+                                    <Button content="Adicionar receita" returnClick={addFields} color="bg-blue-500" />
+                                </div>
+
                             </div>
-                            <div>
-                                <Title title="Receitas" />
-                                <Text text="Receita informada neste mês: R$ 3.200,00" />
+                            {/*footer*/}
+                            <div className="flex items-center justify-end p-6 border-t border-solid border-blueGray-200 rounded-b">
+                                <Button type="button" content="Sair" color="bg-red-500" returnClick={() => props.returnClick()} />
+                                <Button type="submit" content="Salvar" color="bg-green-500" returnClick={() => null} />
 
-                                {inputFields.map((input: any, index: number) => {
-                                    return (
-                                        <div key={index} className={`flex mt-1 mb-1 gap-1`}>
-                                            <Input name="description" placeholder='Descrição' value={input.description} returnInput={(name: string, value: string) => handleFormChange(index, {
-                                                target: {
-                                                    name,
-                                                    value
-                                                }
-                                            })} />
-                                            <Input name="value" placeholder='Valor' value={input.value} returnInput={(name: string, value: string) => handleFormChange(index, {
-                                                target: {
-                                                    name,
-                                                    value
-                                                }
-                                            })} />
-                                            <Button 
-                                                iconConfig 
-                                                content={<FontAwesomeIcon icon={faTrash} />} 
-                                                returnClick={() => removeField(index)} 
-                                                color="bg-red-500" 
-                                            />
-                                        </div>
-                                    )
-                                })}
-
-                                <Button content="Adicionar receita" returnClick={addFields} color="bg-blue-500" />
                             </div>
-
-                        </div>
-                        {/*footer*/}
-                        <div className="flex items-center justify-end p-6 border-t border-solid border-blueGray-200 rounded-b">
-                            <Button type="button" content="Sair" color="bg-red-500" returnClick={() => props.returnClick()} />
-                            <Button type="button" content="Salvar" color="bg-green-500" returnClick={() => props.returnClick()} />
-
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>
