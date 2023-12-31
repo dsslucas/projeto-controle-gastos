@@ -64,9 +64,9 @@ const ModalConfig = (props: any) => {
         .catch((error: any) => console.error(error))
     }
 
-    useEffect(() => {
-        getData();
-    }, []);
+    // useEffect(() => {
+    //     getData();
+    // }, []);
 
     useEffect(() => {
         console.log("atualizei a data")
@@ -88,13 +88,14 @@ const ModalConfig = (props: any) => {
                             <div className="relative p-6 flex-auto">
                                 <div>
                                     <Title title="Exibição da página" />
-
+                                    <p>{props.currentYear}-{props.currentMonth}</p>
                                     <div className="flex">
                                         <Label label="Mês de exibição" />
+
                                         <Input
                                             type="month"
                                             name="monthExibition"
-                                            value={currentDate}
+                                            value={`${props.currentYear}-${props.currentMonth}`}
                                             returnInput={(name: string, value: string) => props.returnNewDate(value)}
                                         />
                                     </div>

@@ -67,8 +67,6 @@ module.exports = (app: any) => {
                         const inputValues = []
                         var value = 0;
 
-                        console.log(response)
-
                         response.forEach((element: any) => {
                             value += element.value;
 

@@ -81,24 +81,10 @@ const Home = (props: any) => {
 
     const changeDate = (value: string) => {
         console.log("VALOR RECEBIDO: ", value);
-        const year = value.substring(0, 4);
-        const month = value.substring(5);
 
-        const date = new Date(`${year}-${month}-${currentDay}`).toLocaleDateString("pt-BR", {
-            timeZone: "America/Sao_Paulo"
-        });
-
-        const time = new Date().toLocaleTimeString("pt-BR", {
-            timeZone: "America/Sao_Paulo"
-        });
-
-        setCurrentDay(date.substring(0, 2));
-        setCurrentMonth(date.substring(3, 5));
-        setCurrentYear(date.substring(6));
-
-        setCurrentHour(time.substring(0,2));
-        setCurrentMinutes(time.substring(3,5));
-        setCurrentSeconds(time.substring(6,8));
+        const date = new Date(value).toISOString();
+        setCurrentYear(date.substring(0,4));
+        setCurrentMonth(date.substring(5,7));
     }
 
     const dashboardData = () => {
