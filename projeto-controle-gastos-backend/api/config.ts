@@ -5,28 +5,40 @@ module.exports = (app: any) => {
         const { date, values } = req.body;
         try {
             await app.database.transaction(async (trx: any) => {
-                const idConfig = await app.database("config")
-                    .insert({
-                        date: new Date(date)
-                    })
-                    .returning("id")
+                const existsMonthConfig = await app.database("config")
+                    .where({ date })
                     .transacting(trx)
+                    .then((response: any) => {
+                        if (response.length > 0) return true;
+                        else return false;
+                    })                    
 
-                await values.forEach(async (element: any) => {
-                    await app.database("config_entries")
+                if (existsMonthConfig) throw "EXISTS_CONFIG";
+                else {
+                    const idConfig = await app.database("config")
                         .insert({
-                            idConfig: idConfig[0].id,
-                            description: element.description,
-                            value: globalFunctions.formatMoney(element.value)
+                            date: new Date(date)
                         })
+                        .returning("id")
                         .transacting(trx)
-                })
+
+                    await values.forEach(async (element: any) => {
+                        await app.database("config_entries")
+                            .insert({
+                                idConfig: idConfig[0].id,
+                                description: element.description,
+                                value: globalFunctions.formatMoney(element.value)
+                            })
+                            .transacting(trx)
+                    })
+                }
             })
-            .then((response: any) => res.status(200).send("Enviado!"))
+                .then((response: any) => res.status(200).send("Enviado!"))
         }
         catch (error: any) {
-            console.error(error)
-            res.status(500).send("Não foi possível realizar o registro desta configuração. Contate um administrador.");
+            console.log(error)
+            if (error === "EXISTS_CONFIG") res.status(404).send("Já existe configuração registrada para este mês.");
+            else res.status(500).send("Não foi possível realizar o registro desta configuração. Contate um administrador.");
         }
     }
 

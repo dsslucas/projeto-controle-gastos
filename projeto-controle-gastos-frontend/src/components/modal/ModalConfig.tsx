@@ -22,7 +22,7 @@ const ModalConfig = (props: any) => {
             date: new Date(currentDate),
             values: inputFields
         })
-        .then((response:any) => alert(response))
+        .then((response:any) => console.log(response))
         .catch((error: any) => console.error(error))
     }
 
