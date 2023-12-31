@@ -43,6 +43,14 @@ const Home = (props: any) => {
         const month = date.substring(5,7);
         const day = date.substring(8,10);
 
+        const time = new Date().toLocaleTimeString("pt-BR", {
+            timeZone: "America/Sao_Paulo"
+        });
+        
+        setCurrentHour(time.substring(0,2));
+        setCurrentMinutes(time.substring(3,5));
+        setCurrentSeconds(time.substring(6,8));
+
         setCurrentYear(year);
         setCurrentMonth(month);
         setCurrentDay(day);
@@ -88,7 +96,15 @@ const Home = (props: any) => {
         setCurrentMonth(date.substring(5,7));
         setCurrentDay(date.substring(8,10));
 
-        getData("", "", `${year}-${month}`)
+        const time = new Date().toLocaleTimeString("pt-BR", {
+            timeZone: "America/Sao_Paulo"
+        });
+
+        setCurrentHour(time.substring(0,2));
+        setCurrentMinutes(time.substring(3,5));
+        setCurrentSeconds(time.substring(6,8));
+
+        getData("", "", `${year}-${month}`);
     }
 
     const dashboardData = () => {
@@ -140,10 +156,15 @@ const Home = (props: any) => {
             {showModalRegister && (
                 <ModalRegister
                     id={idSelected}
-                    
+                    currentDay={currentDay}
+                    currentMonth={currentMonth}
+                    currentYear={currentYear}
+                    currentHour={currentHour}
+                    currentMinutes={currentMinutes}
                     returnClick={() => {
                         setShowModalRegister(false);
                         setIdSelected(undefined);
+                        getData("", "", `${currentYear}-${currentMonth}`);
                     }}
                 />
             )}

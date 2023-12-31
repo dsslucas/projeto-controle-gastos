@@ -87,7 +87,6 @@ const ModalConfig = (props: any) => {
                             <div className="relative p-6 flex-auto">
                                 <div>
                                     <Title title="Exibição da página" />
-                                    <p>{props.currentYear}-{props.currentMonth}</p>
                                     <div className="flex">
                                         <Label label="Mês de exibição" />
 

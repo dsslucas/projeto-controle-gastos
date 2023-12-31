@@ -7,10 +7,16 @@ import Select from "../select/Select";
 import api from "../../api/api";
 
 const ModalRegister = (props: any) => {
+    const {currentDay, currentMonth, currentYear, currentHour, currentMinutes} = props;
+
     useEffect(() => {
         if (props.id !== undefined) {
             getData(props.id);
         }
+
+        setDadosForm({...dadosForm, 
+            date: `${currentYear}-${currentMonth}-${currentDay}T${currentHour}:${currentMinutes}`
+        })
     }, []);
 
     const getData = async (id: number) => {
@@ -51,26 +57,9 @@ const ModalRegister = (props: any) => {
     const selectOptions = ["Contas", "Investimentos", "Lazer", "Alimentação", "Compras", "Saúde", "Viagens", "Outros"];
     const optionsPayment = ["Débito", "Crédito", "Espécie", "PIX"];
 
-    function generateDate() {
-        // Cria um novo objeto de data
-        let data = new Date();
-
-        // Obtém os valores de ano, mês, dia, hora e minuto
-        let ano = data.getFullYear();
-        let mes = String(data.getMonth() + 1).padStart(2, '0'); // Adiciona zero à esquerda se for necessário
-        let dia = String(data.getDate()).padStart(2, '0'); // Adiciona zero à esquerda se for necessário
-        let hora = String(data.getHours()).padStart(2, '0'); // Adiciona zero à esquerda se for necessário
-        let minuto = String(data.getMinutes()).padStart(2, '0'); // Adiciona zero à esquerda se for necessário
-
-        // Constrói a string no formato desejado (yyyy-MM-ddThh:mm)
-        let formatoDesejado = `${ano}-${mes}-${dia}T${hora}:${minuto}`;
-
-        return formatoDesejado;
-    }
-
     const [dadosForm, setDadosForm] = useState({
         title: "",
-        date: generateDate(),
+        date: "",
         category: selectOptions[0],
         description: "",
         paymentMethod: optionsPayment[0],
