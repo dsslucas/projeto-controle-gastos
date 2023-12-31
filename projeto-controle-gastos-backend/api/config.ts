@@ -46,15 +46,28 @@ module.exports = (app: any) => {
 
     const getConfig = async (req: any, res: any) => {
         const {date} = req.query;
-        console.log(date)
+
+        const month = date.substring(5,7);
+        const year = date.substring(0,4);
+        const initialDate = new Date(Date.UTC(year, month - 1, 1));
+        const nextMonth = new Date(Date.UTC(year, month, 0));
+        const finalDate = new Date(nextMonth);
+        finalDate.setUTCHours(23);
+        finalDate.setUTCMinutes(59);
+        finalDate.setUTCSeconds(59);
+
         try {
             await app.database.transaction(async (trx: any) => {
                 return await app.database("config as c")
                     .join("config_entries as ce", "c.id", "ce.idConfig")
+                    .where("c.date", ">=", initialDate)
+                    .where("c.date", "<", finalDate)
                     .transacting(trx)
                     .then((response: any) => {
                         const inputValues = []
                         var value = 0;
+
+                        console.log(response)
 
                         response.forEach((element: any) => {
                             value += element.value;

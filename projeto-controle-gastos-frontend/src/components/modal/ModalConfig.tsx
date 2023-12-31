@@ -12,6 +12,8 @@ import Label from "../text/Label";
 import api from "../../api/api";
 
 const ModalConfig = (props: any) => {
+    const [totalMoney, setTotalMoney] = useState<String>();
+
     var currentDate = `${props.currentYear}-${props.currentMonth}`;
 
     const handleSubmit = async (event: any) => {
@@ -50,16 +52,26 @@ const ModalConfig = (props: any) => {
     const getData = async () => {
         await api.get("/config", {
             params: {
-                date: `${props.currentYear}-${props.currentMonth}-${props.currentDay}T${props.currentHour}:${props.currentMinutes}:${props.currentSeconds}`
+                date: `${props.currentYear}-${props.currentMonth}`
             }
         })
-        .then((response: any) => console.log(response))
+        .then((response: any) => {
+            //setData({...data, value: })
+            console.log(response.data)
+            setTotalMoney(response.data.value);
+            setInputFields(response.data.inputValues);
+        })
         .catch((error: any) => console.error(error))
     }
 
     useEffect(() => {
-        getData()
-    }, [])
+        getData();
+    }, []);
+
+    useEffect(() => {
+        console.log("atualizei a data")
+        getData();
+    }, [props.currentMonth, props.currentYear]);
 
     return (
         <>
@@ -89,9 +101,9 @@ const ModalConfig = (props: any) => {
                                 </div>
                                 <div>
                                     <Title title="Receitas" />
-                                    <Text text="Receita informada neste mês: R$ 3.200,00" />
+                                    <Text text={`Receita informada neste mês: ${totalMoney}`}/>
 
-                                    {inputFields.map((input: any, index: number) => {
+                                    {inputFields && inputFields.map((input: any, index: number) => {
                                         return (
                                             <div key={index} className={`flex mt-1 mb-1 gap-1`}>
                                                 <Input
