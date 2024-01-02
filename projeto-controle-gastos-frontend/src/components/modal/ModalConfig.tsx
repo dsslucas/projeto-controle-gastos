@@ -157,6 +157,7 @@ const ModalConfig = (props: any) => {
                                                             }
                                                         })}
                                                         required
+                                                        disabled={input.id}
                                                     />
                                                     <Input
                                                         name="value"
@@ -171,12 +172,14 @@ const ModalConfig = (props: any) => {
                                                             }
                                                         })}
                                                         required
+                                                        disabled={input.id}
                                                     />
                                                     <Button
                                                         iconConfig
                                                         content={<FontAwesomeIcon icon={faTrash} />}
                                                         returnClick={() => removeField(index)}
                                                         color="bg-red-500"
+                                                        disabled={input.id}
                                                     />
                                                 </div>
                                             )

@@ -7,6 +7,7 @@ const Button = (props: any) => {
     const iconTable = props.iconTable;
     const color = props.color;
     const iconConfig = props.iconConfig;
+    const disabled = props.disabled || false;
 
     return (
         <button
@@ -22,6 +23,7 @@ const Button = (props: any) => {
                 hover:transition-all
             `}
             onClick={() => props.returnClick()}
+            disabled={disabled}
         >
             {content}
         </button>

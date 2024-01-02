@@ -9,6 +9,7 @@ const Input = (props: any) => {
     const required = props.required;
     const inputMode = props.inputMode;
     const mask = props.mask;
+    const disabled = props.disabled || false;
 
     function checkField(name: string, value: string){
         var newFieldValue = "";
@@ -33,6 +34,7 @@ const Input = (props: any) => {
         onInput={(e: any) => checkField(e.target.name, e.target.value)}
         required={required}
         value={value}
+        disabled={disabled}
     />
 }
 
