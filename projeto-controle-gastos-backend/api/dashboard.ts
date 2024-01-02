@@ -4,8 +4,7 @@ module.exports = ((app: any) => {
     const getDashboard = async (req: any, res: any) => {
         const { date } = req.query;
 
-        const initialDate = globalFunctions.getBetweenDates(date).initialDate;
-        const finalDate = globalFunctions.getBetweenDates(date).finalDate;
+        const {initialDate, finalDate} = globalFunctions.getBetweenDates(date);
 
         try {
             await app.database.transaction(async (trx: any) => {
@@ -61,8 +60,14 @@ module.exports = ((app: any) => {
                             else if (element.paymentMethod === "Espécie") valorEspecie += value
                         })
 
+                        const expenses = totalContas + totalInvestimentos + totalLazer + totalAlimentacao + totalCompras + totalSaude + totalViagens + totalOutros
+
                         return {
                             total: totalEntries.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' }),
+                            expenses: {
+                                value: expenses.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+                                percentage: expenses / totalEntries
+                            },
                             indicators: {
                                 billing: {
                                     value: totalContas.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),

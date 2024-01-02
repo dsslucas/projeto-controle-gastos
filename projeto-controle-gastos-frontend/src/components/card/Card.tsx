@@ -12,6 +12,7 @@ const CardDash = (props: any) => {
     const value = props.value;
     const color = props.color;
     const percentage = props.percentage;
+    const disableButton = props.disableButton;
 
     const fullCard = props.fullCard;
     //.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
@@ -23,23 +24,29 @@ const CardDash = (props: any) => {
                 xl:max-h-13
             `}
         >
-            <div className="xs:w-[80%] xl:pl-2">
+            <div className={`${disableButton ? "xs:w-full pr-0" : "xs:w-[80%] xl:pr-1"}`}>
                 <Subtitle card subtitle={title} />
 
-                <Text card text={value} />
-                {percentage && (
-                    <Text card text={`(${(percentage * 100).toFixed(0)}%)`} />
-                )}                
+                <div className="flex flex-wrap justify-between w-full pr-1 text-left">
+                    <Text card text={value} />
+                    {percentage && (
+                        <Text card text={`(${(percentage * 100).toFixed(0)}%)`} />
+                    )}
+                </div>
+
             </div>
-            <div className="xs:w-[40px] xl:w-10">
-                <Button 
-                    type="button" 
-                    content={<FontAwesomeIcon icon={faInfo} className="p-1" />} 
-                    color="bg-green-500" iconCard 
-                    returnClick={() => props.returnCardSelected(title)}
-                />
-                    
-            </div>
+            {!disableButton && (
+                <div className="xs:w-[40px] xl:w-10">
+                    <Button
+                        type="button"
+                        content={<FontAwesomeIcon icon={faInfo} className="p-1" />}
+                        color="bg-green-500" iconCard
+                        returnClick={() => props.returnCardSelected(title)}
+                    />
+
+                </div>
+            )}
+
         </div>
     );
 }

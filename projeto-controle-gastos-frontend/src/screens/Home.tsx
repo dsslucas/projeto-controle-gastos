@@ -132,8 +132,8 @@ const Home = (props: any) => {
                 date: `${currentYear}-${currentMonth}`
             }
         })
-        .then(() => setShowModalRegister(true))
-        .catch((error: any) => console.log(error.response.data))
+            .then(() => setShowModalRegister(true))
+            .catch((error: any) => console.log(error.response.data))
     }
 
     const dashboardData = () => {
@@ -205,6 +205,16 @@ const Home = (props: any) => {
                         percentage={dataApiDashboard && dataApiDashboard.indicators.other.percentage}
                         color="bg-gray-300"
                         returnCardSelected={(value: string) => selectDashboardElement(value, "")}
+                    />
+
+                    <CardDash
+                        title="TOTAL DE DESPESAS"
+                        value={dataApiDashboard && dataApiDashboard.expenses.value}
+                        percentage={dataApiDashboard && dataApiDashboard.expenses.percentage}
+                        fullCard
+                        disableButton
+                        color="bg-gray-300"
+                        returnCardSelected={(value: string) => selectDashboardElement("", "")}
                     />
                 </div>
                 <div className="flex flex-wrap xl:justify-between gap-2">
