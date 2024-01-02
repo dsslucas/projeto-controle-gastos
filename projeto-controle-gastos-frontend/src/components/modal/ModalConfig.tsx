@@ -13,6 +13,7 @@ import api from "../../api/api";
 import Alert from "../alert/Alert";
 
 const ModalConfig = (props: any) => {
+    const [idConfig, setIdConfig] = useState<number>();
     const [totalMoney, setTotalMoney] = useState<String>();
 
     var currentDate = `${props.currentYear}-${props.currentMonth}`;
@@ -20,22 +21,44 @@ const ModalConfig = (props: any) => {
     const handleSubmit = async (event: any) => {
         event.preventDefault();
 
-        await api.post("/config", {
-            date: new Date(currentDate),
-            values: inputFields
-        })
-            .then((response: any) => {
-                Alert({
-                    text: response.data,
-                    icon: "success"
-                });
+        if (idConfig === null) {
+            await api.post("/config", {
+                date: new Date(currentDate),
+                values: inputFields
             })
-            .catch((error: any) => {
-                Alert({
-                    text: error.response.data,
-                    icon: "error"
-                });
+                .then((response: any) => {
+                    Alert({
+                        text: response.data,
+                        icon: "success"
+                    });
+                })
+                .catch((error: any) => {
+                    Alert({
+                        text: error.response.data,
+                        icon: "error"
+                    });
+                })
+        }
+        else {
+            console.log("EDICAO")
+            await api.patch(`/config/${idConfig}`, {
+                id: idConfig,
+                date: new Date(currentDate),
+                values: inputFields
             })
+                .then((response: any) => {
+                    Alert({
+                        text: response.data,
+                        icon: "success"
+                    });
+                })
+                .catch((error: any) => {
+                    Alert({
+                        text: error.response.data,
+                        icon: "error"
+                    });
+                })
+        }
     }
 
     const [inputFields, setInputFields] = useState<any>([
@@ -49,7 +72,7 @@ const ModalConfig = (props: any) => {
     }
 
     const addFields = () => {
-        let newfield = { description: '', value: 'R$ 0,00' }
+        let newfield = { id: null, description: '', value: 'R$ 0,00' }
         setInputFields([...inputFields, newfield])
     }
 
@@ -66,7 +89,9 @@ const ModalConfig = (props: any) => {
             }
         })
             .then((response: any) => {
+                console.log(response)
                 //setData({...data, value: })
+                setIdConfig(response.data.id);
                 setTotalMoney(response.data.value);
                 setInputFields(response.data.inputValues);
             })
