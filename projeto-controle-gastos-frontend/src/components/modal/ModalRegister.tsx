@@ -42,9 +42,9 @@ const ModalRegister = (props: any) => {
                 .then((response: any) => {
                     Alert({
                         text: response.data,
-                        icon: "success"
-                    });
-                    props.returnClick();
+                        icon: "success",
+                        callback: props.returnClick()
+                    });                    
                 })
                 .catch((error: any) => {
                     Alert({
@@ -58,9 +58,9 @@ const ModalRegister = (props: any) => {
                 .then((response: any) => {
                     Alert({
                         text: response.data,
-                        icon: "success"
+                        icon: "success",
+                        callback: props.returnClick()
                     });
-                    props.returnClick();
                 })
                 .catch((error: any) => {
                     Alert({

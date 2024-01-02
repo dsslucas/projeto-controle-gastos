@@ -29,18 +29,19 @@ const ModalConfig = (props: any) => {
                 .then((response: any) => {
                     Alert({
                         text: response.data,
-                        icon: "success"
+                        icon: "success",
+                        callback: props.returnClick()
                     });
                 })
                 .catch((error: any) => {
                     Alert({
                         text: error.response.data,
-                        icon: "error"
+                        icon: "error",
+                        callback: props.returnClick()
                     });
                 })
         }
         else {
-            console.log("EDICAO")
             await api.patch(`/config/${idConfig}`, {
                 id: idConfig,
                 date: new Date(currentDate),
@@ -49,13 +50,15 @@ const ModalConfig = (props: any) => {
                 .then((response: any) => {
                     Alert({
                         text: response.data,
-                        icon: "success"
+                        icon: "success",
+                        callback: props.returnClick()
                     });
                 })
                 .catch((error: any) => {
                     Alert({
                         text: error.response.data,
-                        icon: "error"
+                        icon: "error",
+                        callback: props.returnClick()
                     });
                 })
         }

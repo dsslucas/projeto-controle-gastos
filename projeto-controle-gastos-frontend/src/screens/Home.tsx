@@ -273,7 +273,8 @@ const Home = (props: any) => {
                 <ModalConfig
                     returnClick={() => {
                         setShowModalConfig(false);
-
+                        getData("", "", `${currentYear}-${currentMonth}`);
+                        getDashboardData(`${currentYear}-${currentMonth}`);
                     }}
                     currentDay={currentDay}
                     currentMonth={currentMonth}
