@@ -3,8 +3,7 @@ module.exports = (app: any) => {
 
     const registerConfig = async (req: any, res: any) => {
         const { date, values } = req.body;
-        console.log("date: ", date)
-        console.log(req.body)
+
         try {
             await app.database.transaction(async (trx: any) => {
                 const existsMonthConfig = await app.database("config")
@@ -38,7 +37,6 @@ module.exports = (app: any) => {
                 .then((response: any) => res.status(200).send("Enviado!"))
         }
         catch (error: any) {
-            console.log(error)
             if (error === "EXISTS_CONFIG") res.status(404).send("Já existe configuração registrada para este mês.");
             else res.status(500).send("Não foi possível realizar o registro desta configuração. Contate um administrador.");
         }
@@ -78,7 +76,6 @@ module.exports = (app: any) => {
                 .then((response: any) => res.status(200).send(response));
         }
         catch (error: any) {
-            console.error(error)
             res.status(500).send("Não foi possível realizar a consulta. Tente novamente mais tarde.");
         }
     }

@@ -16,6 +16,7 @@ import Input from "../components/input/Input";
 import Navbar from "../components/navbar/Navbar";
 import ModalDashboard from "../components/modal/ModalDashboard";
 import api from "../api/api";
+import Alert from "../components/alert/Alert";
 //import { io } from "socket.io-client";
 
 const Home = (props: any) => {
@@ -56,8 +57,6 @@ const Home = (props: any) => {
         setCurrentMonth(month);
         setCurrentDay(day);
 
-        console.log(`${year}-${month}`)
-
         // Renderize API info
         getData("", "", `${year}-${month}`);
         getDashboardData(`${year}-${month}`);
@@ -84,7 +83,12 @@ const Home = (props: any) => {
             }
         })
             .then((response: any) => setDataApiPayment(response.data))
-            .catch((error: any) => console.error(error))
+            .catch((error: any) => {
+                Alert({
+                    text: error.response.data,
+                    icon: "error"
+                });
+            })
     }
 
     const getDashboardData = async (date: string) => {
@@ -94,7 +98,12 @@ const Home = (props: any) => {
             }
         })
             .then((response: any) => setDataApiDashboard(response.data))
-            .catch((error: any) => console.error(error))
+            .catch((error: any) => {
+                Alert({
+                    text: error.response.data,
+                    icon: "error"
+                });
+            })
     }
 
     const changeDate = (value: string) => {
@@ -133,7 +142,12 @@ const Home = (props: any) => {
             }
         })
             .then(() => setShowModalRegister(true))
-            .catch((error: any) => console.log(error.response.data))
+            .catch((error: any) => {
+                Alert({
+                    text: error.response.data,
+                    icon: "error"
+                });
+            })
     }
 
     const dashboardData = () => {
@@ -254,6 +268,7 @@ const Home = (props: any) => {
 
     return (
         <main className="flex flex-col xs:overflow-x-hidden xl:h-screen xl:overflow-hidden p-1">
+
             {showModalConfig && (
                 <ModalConfig
                     returnClick={() => {
@@ -278,7 +293,7 @@ const Home = (props: any) => {
                     currentYear={currentYear}
                     currentHour={currentHour}
                     currentMinutes={currentMinutes}
-                    returnClick={() => {
+                    returnClick={() => {                        
                         setShowModalRegister(false);
                         setIdSelected(undefined);
                         getData("", "", `${currentYear}-${currentMonth}`);
@@ -299,7 +314,7 @@ const Home = (props: any) => {
                     returnClick={() => setShowModalDashboard(false)}
                 />
             )}
-
+            
             <header className="flex xs:items-center xs:justify-start xs:h-12 xl:flex-row xl:justify-between xl:items-center">
                 <Navbar
                     clickButtonConfig={() => setShowModalConfig(true)}

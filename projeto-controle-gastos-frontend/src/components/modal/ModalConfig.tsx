@@ -10,6 +10,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import Label from "../text/Label";
 import api from "../../api/api";
+import Alert from "../alert/Alert";
 
 const ModalConfig = (props: any) => {
     const [totalMoney, setTotalMoney] = useState<String>();
@@ -23,8 +24,18 @@ const ModalConfig = (props: any) => {
             date: new Date(currentDate),
             values: inputFields
         })
-        .then((response:any) => console.log(response))
-        .catch((error: any) => console.error(error))
+        .then((response:any) => {
+            Alert({
+                text: response.data,
+                icon: "success"
+            });
+        })
+        .catch((error: any) => {
+            Alert({
+                text: error.response.data,
+                icon: "error"
+            });
+        })
     }
 
     const [inputFields, setInputFields] = useState<any>([
@@ -56,11 +67,15 @@ const ModalConfig = (props: any) => {
         })
         .then((response: any) => {
             //setData({...data, value: })
-            console.log(response.data)
             setTotalMoney(response.data.value);
             setInputFields(response.data.inputValues);
         })
-        .catch((error: any) => console.error(error))
+        .catch((error: any) => {
+            Alert({
+                text: error.response.data,
+                icon: "error"
+            });
+        })
     }
 
     // useEffect(() => {
@@ -68,7 +83,6 @@ const ModalConfig = (props: any) => {
     // }, []);
 
     useEffect(() => {
-        console.log("atualizei a data")
         getData();
     }, [props.currentMonth, props.currentYear]);
 

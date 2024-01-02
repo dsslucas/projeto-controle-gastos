@@ -5,16 +5,18 @@ import Input from "../input/Input";
 import Label from "../text/Label";
 import Select from "../select/Select";
 import api from "../../api/api";
+import Alert from "../alert/Alert";
 
 const ModalRegister = (props: any) => {
-    const {currentDay, currentMonth, currentYear, currentHour, currentMinutes} = props;
+    const { currentDay, currentMonth, currentYear, currentHour, currentMinutes } = props;
 
     useEffect(() => {
         if (props.id !== undefined) {
             getData(props.id);
         }
 
-        setDadosForm({...dadosForm, 
+        setDadosForm({
+            ...dadosForm,
             date: `${currentYear}-${currentMonth}-${currentDay}T${currentHour}:${currentMinutes}`
         })
     }, []);
@@ -25,7 +27,10 @@ const ModalRegister = (props: any) => {
                 setDadosForm(response.data);
             })
             .catch((error: any) => {
-                console.error(error);
+                Alert({
+                    text: error.response.data,
+                    icon: "error"
+                });;
             })
     }
 
@@ -35,21 +40,33 @@ const ModalRegister = (props: any) => {
         if (props.id) {
             await api.patch(`/payment/${props.id}`, dadosForm)
                 .then((response: any) => {
-                    console.log(response);
+                    Alert({
+                        text: response.data,
+                        icon: "success"
+                    });
                     props.returnClick();
                 })
                 .catch((error: any) => {
-                    console.log(error)
+                    Alert({
+                        text: error.response.data,
+                        icon: "error"
+                    });
                 })
         }
         else {
             await api.post("/payment", dadosForm)
                 .then((response: any) => {
-                    console.log(response);
+                    Alert({
+                        text: response.data,
+                        icon: "success"
+                    });
                     props.returnClick();
                 })
                 .catch((error: any) => {
-                    console.log(error)
+                    Alert({
+                        text: error.response.data,
+                        icon: "error"
+                    });
                 })
         }
     }

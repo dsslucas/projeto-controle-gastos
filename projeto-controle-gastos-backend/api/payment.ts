@@ -30,8 +30,6 @@ module.exports = ((app: any) => {
 
                 const {initialDate, finalDate} = globalFunctions.getBetweenDates(date.substring(0,7));
 
-                console.log(date)
-
                 const entriesValue = await app.database("config as c")
                     .join("config_entries as ce", "ce.idConfig", "c.id")
                     .where("c.date", ">=", initialDate)
@@ -123,7 +121,6 @@ module.exports = ((app: any) => {
 
     const getPayments = async (req: any, res: any) => {
         const { category, paymentMethod, date } = req.query;
-        console.log(date)
 
         const {initialDate, finalDate} = globalFunctions.getBetweenDates(date.substring(0,7));
 
