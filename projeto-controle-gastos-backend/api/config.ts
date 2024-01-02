@@ -47,8 +47,7 @@ module.exports = (app: any) => {
     const getConfig = async (req: any, res: any) => {
         const {date} = req.query;
 
-        const initialDate = globalFunctions.getBetweenDates(date).initialDate;
-        const finalDate = globalFunctions.getBetweenDates(date).finalDate;
+        const {initialDate, finalDate} = globalFunctions.getBetweenDates(date.substring(0,7));
 
         try {
             await app.database.transaction(async (trx: any) => {

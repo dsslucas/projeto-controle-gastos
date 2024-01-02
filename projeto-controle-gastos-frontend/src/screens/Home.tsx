@@ -133,7 +133,7 @@ const Home = (props: any) => {
             }
         })
         .then(() => setShowModalRegister(true))
-        .catch((error: any) => console.log(error.response.data))        
+        .catch((error: any) => console.log(error.response.data))
     }
 
     const dashboardData = () => {

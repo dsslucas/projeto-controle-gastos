@@ -28,6 +28,46 @@ module.exports = ((app: any) => {
 
                 const { category, date, description, paymentMethod, title, value } = req.body;
 
+                const {initialDate, finalDate} = globalFunctions.getBetweenDates(date.substring(0,7));
+
+                console.log(date)
+
+                const entriesValue = await app.database("config as c")
+                    .join("config_entries as ce", "ce.idConfig", "c.id")
+                    .where("c.date", ">=", initialDate)
+                    .where("c.date", "<", finalDate)
+                    .transacting(trx)
+                    .then((response: any) => {
+                        var entriesValue = 0.0;
+                        // Empty condition
+                        if(response.length === 0) throw "NO_CONFIG_SET"
+                        else {
+                            response.forEach((element: any) => {
+                                entriesValue += element.value;
+                            })
+                        }
+
+                        return entriesValue;
+                    })
+
+                const expenses = await app.database("payment")
+                    .where("date", ">=", initialDate)
+                    .where("date", "<", finalDate)
+                    .transacting(trx)
+                    .then((response: any) => {
+                        var expensesValue = 0;
+
+                        response.forEach((element: any) => {
+                            expensesValue += element.value
+                        })
+                        
+                        return expensesValue;
+                    })
+
+                if(entriesValue < expenses) throw "NO_CASH";
+
+                if(globalFunctions.formatMoney(value) > (entriesValue - expenses)) throw "INSUFFICIENT_FUNDS"
+                
                 await app.database("payment")
                     .insert({
                         category,
@@ -50,6 +90,9 @@ module.exports = ((app: any) => {
             else if (error === "EMPTY_FIELD") return res.status(404).send("Erro: é necessário preencher os campos obrigatórios para salvar este registro.");
             else if (error === "INVALID_CATEGORY") return res.status(404).send("Erro: categoria inválida.");
             else if (error === "INVALID_PAYMENT") return res.status(404).send("Erro: forma de pagamento inválida.");
+            else if(error === "NO_CONFIG_SET") return res.status(404).send("O registro não pôde ser realizado pois Não há configuração setada para este mês.");
+            else if(error === "NO_CASH") return res.status(404).send("Não foi possível registrar este gasto, pois as despesas superam as entradas.");
+            else if(error === "INSUFFICIENT_FUNDS") res.status(404).send("Saldo insuficiente.");
             else return res.status(500).send("Erro interno: contate o administrador do sistema.");
         }
     }
@@ -57,8 +100,7 @@ module.exports = ((app: any) => {
     const checkPaymentPossible = async (req: any, res: any) => {
         const { date } = req.query;
 
-        const initialDate = globalFunctions.getBetweenDates(date).initialDate;
-        const finalDate = globalFunctions.getBetweenDates(date).finalDate;
+        const {initialDate, finalDate} = globalFunctions.getBetweenDates(date.substring(0,7));
 
         try {
             await app.database.transaction(async (trx: any) => {
@@ -83,8 +125,7 @@ module.exports = ((app: any) => {
         const { category, paymentMethod, date } = req.query;
         console.log(date)
 
-        const initialDate = globalFunctions.getBetweenDates(date).initialDate;
-        const finalDate = globalFunctions.getBetweenDates(date).finalDate;
+        const {initialDate, finalDate} = globalFunctions.getBetweenDates(date.substring(0,7));
 
         try {
             await app.database.transaction(async (trx: any) => {
