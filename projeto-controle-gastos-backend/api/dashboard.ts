@@ -1,15 +1,11 @@
 module.exports = ((app: any) => {
+    const globalFunctions = app.globalFunctions();
+
     const getDashboard = async (req: any, res: any) => {
         const { date } = req.query;
 
-        const month = date.substring(5, 7);
-        const year = date.substring(0, 4);
-        const initialDate = new Date(Date.UTC(year, month - 1, 1));
-        const nextMonth = new Date(Date.UTC(year, month, 0));
-        const finalDate = new Date(nextMonth);
-        finalDate.setUTCHours(23);
-        finalDate.setUTCMinutes(59);
-        finalDate.setUTCSeconds(59);
+        const initialDate = globalFunctions.getBetweenDates(date).initialDate;
+        const finalDate = globalFunctions.getBetweenDates(date).finalDate;
 
         try {
             await app.database.transaction(async (trx: any) => {

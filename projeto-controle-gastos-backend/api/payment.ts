@@ -54,25 +54,44 @@ module.exports = ((app: any) => {
         }
     }
 
+    const checkPaymentPossible = async (req: any, res: any) => {
+        const { date } = req.query;
+
+        const initialDate = globalFunctions.getBetweenDates(date).initialDate;
+        const finalDate = globalFunctions.getBetweenDates(date).finalDate;
+
+        try {
+            await app.database.transaction(async (trx: any) => {
+                return await app.database("config as c")
+                    .join("config_entries as ce", "ce.idConfig", "c.id")
+                    .where("c.date", ">=", initialDate)
+                    .where("c.date", "<", finalDate)
+                    .transacting(trx)
+            })
+                .then((response: any) => {
+                    if (response.length > 0) res.status(200).send(true)
+                    else throw "NO_CONFIG";
+                })
+        }
+        catch (error: any) {
+            if (error === "NO_CONFIG") res.status(404).send("Não é possível registrar um gasto sem as receitas serem definidas.")
+            else res.status(500).send("Erro interno. Contate o administrador do sistema.");
+        }
+    }
+
     const getPayments = async (req: any, res: any) => {
-        const {category, paymentMethod, date} = req.query;
+        const { category, paymentMethod, date } = req.query;
         console.log(date)
 
-        const month = date.substring(5,7);
-        const year = date.substring(0,4);
-        const initialDate = new Date(Date.UTC(year, month - 1, 1));
-        const nextMonth = new Date(Date.UTC(year, month, 0));
-        const finalDate = new Date(nextMonth);
-        finalDate.setUTCHours(23);
-        finalDate.setUTCMinutes(59);
-        finalDate.setUTCSeconds(59);
+        const initialDate = globalFunctions.getBetweenDates(date).initialDate;
+        const finalDate = globalFunctions.getBetweenDates(date).finalDate;
 
         try {
             await app.database.transaction(async (trx: any) => {
                 const data = await app.database("payment")
                     .where((builder: any) => {
-                        if(category) builder.where("category", category);
-                        else if(paymentMethod) builder.where("paymentMethod", paymentMethod);
+                        if (category) builder.where("category", category);
+                        else if (paymentMethod) builder.where("paymentMethod", paymentMethod);
                         else builder.whereNotNull('category')
                     })
                     .where("date", ">=", initialDate)
@@ -153,10 +172,10 @@ module.exports = ((app: any) => {
                     })
                     .transacting(trx)
             })
-            .then(() => {
-                app.io.emit("NEW_PAYMENT_REGISTED");
-                res.status(200).send("Registro atualizado!");
-            })
+                .then(() => {
+                    app.io.emit("NEW_PAYMENT_REGISTED");
+                    res.status(200).send("Registro atualizado!");
+                })
         }
         catch (error: any) {
             if (error === "NO_CATEGORY") return res.status(404).send("Erro: está faltando um parâmetro para atualização deste registro.");
@@ -167,5 +186,5 @@ module.exports = ((app: any) => {
         }
     }
 
-    return { registerPayment, getPayments, getPayment, editPayment }
+    return { registerPayment, getPayments, getPayment, editPayment, checkPaymentPossible }
 })

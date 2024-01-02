@@ -28,7 +28,7 @@ const CardDash = (props: any) => {
 
                 <Text card text={value} />
                 {percentage && (
-                    <Text card text={`(${(percentage * 100).toFixed(2)}%)`} />
+                    <Text card text={`(${(percentage * 100).toFixed(0)}%)`} />
                 )}                
             </div>
             <div className="xs:w-[40px] xl:w-10">

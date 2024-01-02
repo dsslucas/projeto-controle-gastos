@@ -126,11 +126,21 @@ const Home = (props: any) => {
         getDashboardData(date);
     }
 
+    const checkRegisterPossible = async () => {
+        await api.get("/payment/check", {
+            params: {
+                date: `${currentYear}-${currentMonth}`
+            }
+        })
+        .then(() => setShowModalRegister(true))
+        .catch((error: any) => console.log(error.response.data))        
+    }
+
     const dashboardData = () => {
         return (
             <>
                 <div className="flex flex-wrap xs:justify-between xl:justify-between gap-2">
-                    <Title title="Indicadores" />
+                    {/* <Title title="Indicadores" /> */}
 
                     <CardDash
                         title="Valor bruto"
@@ -283,7 +293,7 @@ const Home = (props: any) => {
             <header className="flex xs:items-center xs:justify-start xs:h-12 xl:flex-row xl:justify-between xl:items-center">
                 <Navbar
                     clickButtonConfig={() => setShowModalConfig(true)}
-                    clickButtonRegister={() => setShowModalRegister(true)}
+                    clickButtonRegister={checkRegisterPossible}
                     clickButtonDashboard={() => setShowModalDashboard(true)}
                 />
             </header>

@@ -11,5 +11,23 @@ module.exports = ((app: any) => {
         return parseFloat(numberFormatted);
     }
 
-    return {formatMoney}
+    // Date between first and last day of month
+    function getBetweenDates(date: string) {
+        const month = Number(date.substring(5,7));
+        const year = Number(date.substring(0,4));
+
+        const initialDate = new Date(Date.UTC(year, month - 1, 1));
+        const nextMonth = new Date(Date.UTC(year, month, 0));
+        const finalDate = new Date(nextMonth);
+        finalDate.setUTCHours(23);
+        finalDate.setUTCMinutes(59);
+        finalDate.setUTCSeconds(59);
+
+        return {
+            initialDate,
+            finalDate
+        }
+    }
+
+    return {formatMoney, getBetweenDates}
 })
