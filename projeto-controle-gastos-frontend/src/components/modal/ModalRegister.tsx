@@ -32,10 +32,10 @@ const ModalRegister = (props: any) => {
     const [dadosForm, setDadosForm] = useState({
         title: "",
         date: "",
-        category: selectOptions[0],
+        category: "",
         description: "",
-        paymentMethod: optionsPayment[0].value,
-        parcel: parcels[0].value,
+        paymentMethod: "",
+        parcel: "",
         value: ""
     })
 
@@ -56,6 +56,7 @@ const ModalRegister = (props: any) => {
         await api.get(`/payment/${id}`)
             .then((response: any) => {
                 setDadosForm(response.data);
+                console.log(response.data)
             })
             .catch((error: any) => {
                 Alert({
@@ -107,8 +108,10 @@ const ModalRegister = (props: any) => {
         // eslint-disable-next-line
     }, [dadosForm.paymentMethod, dadosForm.value])
 
-    const changeData = (name: string, value: string) => {
-        setDadosForm({ ...dadosForm, [name]: value });
+    const changeData = (name: string, valueChanged: string) => {
+        console.log(valueChanged)
+
+        setDadosForm({ ...dadosForm, [name]: valueChanged });
 
         // if((name === "paymentMethod" && value === "Crédito") || (name === "value" && value !== ""))  defineParcel();
     }
@@ -177,6 +180,7 @@ const ModalRegister = (props: any) => {
                                     <Select
                                         name="category"
                                         options={selectOptions}
+                                        value={dadosForm.category}
                                         returnSelect={(name: string, value: string) => changeData(name, value)}
                                     />
                                 </div>
@@ -208,6 +212,7 @@ const ModalRegister = (props: any) => {
                                     <Select
                                         name="paymentMethod"
                                         options={optionsPayment}
+                                        value={dadosForm.paymentMethod}
                                         returnSelect={(name: string, value: string) => changeData(name, value)}
                                     />
                                 </div>
@@ -217,6 +222,7 @@ const ModalRegister = (props: any) => {
                                         <Select
                                             name="parcel"
                                             options={parcels}
+                                            value={dadosForm.parcel}
                                             returnSelect={(name: string, value: string) => changeData(name, value)}
                                         />
                                     </div>

@@ -9,6 +9,8 @@ exports.up = function (knex: any) {
         table.string("description").default("-")
         table.string("paymentMethod").notNull()
         table.double("value").notNull()
+        table.string("parcel")
+        table.double("parcel_value")
     })
 };
 

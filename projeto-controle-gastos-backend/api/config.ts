@@ -60,8 +60,6 @@ module.exports = (app: any) => {
                         var value = 0;
                         var id = null;
 
-                        console.log(response)
-
                         response.forEach((element: any) => {
                             id = element.id;
                             value += element.value;
@@ -84,8 +82,6 @@ module.exports = (app: any) => {
                 .then((response: any) => res.status(200).send(response));
         }
         catch (error: any) {
-            console.error(error)
-
             res.status(500).send("Não foi possível realizar a consulta. Tente novamente mais tarde.");
         }
     }
@@ -100,7 +96,6 @@ module.exports = (app: any) => {
                 else {
                     await values.forEach(async (element: any) => {
                         if (element.id === null) {
-                            console.log(element)
                             // Register new entry
                             await app.database("config_entries")
                                 .insert({

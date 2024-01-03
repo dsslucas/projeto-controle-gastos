@@ -2,12 +2,13 @@ import React from "react";
 
 const Select = (props: any) => {
     const name = props.name;
+    const value = props.value
     
     return (
         <select 
             name={name} 
             className="border border-gray-500 rounded w-full" 
-            defaultValue={props.options[0]}
+            value={value}
             onChange={(event: any) => props.returnSelect(event.target.name, event.target.value)}
         >
             {props.options.map((element:any, index: number) => {

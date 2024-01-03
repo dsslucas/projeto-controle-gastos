@@ -83,7 +83,9 @@ module.exports = ((app: any) => {
                                     description,
                                     paymentMethod,
                                     title,
-                                    value: valueParcel
+                                    value: globalFunctions.formatMoney(value),
+                                    parcel,
+                                    parcel_value: valueParcel
                                 })
                                 .transacting(trx)
                         }
