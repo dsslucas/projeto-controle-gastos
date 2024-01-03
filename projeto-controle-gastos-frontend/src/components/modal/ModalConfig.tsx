@@ -112,6 +112,8 @@ const ModalConfig = (props: any) => {
 
     useEffect(() => {
         getData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line
     }, [props.currentMonth, props.currentYear]);
 
     return (

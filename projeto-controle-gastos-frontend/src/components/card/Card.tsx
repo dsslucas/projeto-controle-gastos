@@ -22,6 +22,7 @@ const CardDash = (props: any) => {
                 ${fullCard ? 'w-full' : 'xs:w-[48.6%] lg:w-[100%] xl:w-[48.9%]'} 
                 ${color}
                 xl:max-h-13
+                pl-1
             `}
         >
             <div className={`${disableButton ? "xs:w-full pr-0" : "xs:w-[80%] xl:pr-1"}`}>

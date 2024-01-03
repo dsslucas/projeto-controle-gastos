@@ -154,7 +154,7 @@ const Home = (props: any) => {
         return (
             <>
                 <div className="flex flex-wrap xs:justify-between xl:justify-between gap-2">
-                    {/* <Title title="Indicadores" /> */}
+                    <Title title="Indicadores" />
 
                     <CardDash
                         title="Valor bruto"
@@ -267,7 +267,7 @@ const Home = (props: any) => {
     }
 
     return (
-        <main className="flex flex-col xs:overflow-x-hidden xl:h-screen xl:overflow-hidden p-1">
+        <main className="flex flex-col xs:overflow-x-hidden xl:h-screen xl:overflow-hidden p-1 bg-neutral-300">
 
             {showModalConfig && (
                 <ModalConfig
