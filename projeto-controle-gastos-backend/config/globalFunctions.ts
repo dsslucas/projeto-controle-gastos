@@ -28,6 +28,12 @@ module.exports = ((app: any) => {
             finalDate
         }
     }
+
+    // Check if number is infinite or NaN
+    function checkNumber(number: number){
+        if(!isFinite(number)) return 0.0;
+        else return number;
+    }
     
-    return { formatMoney, getBetweenDates }
+    return { formatMoney, getBetweenDates, checkNumber }
 })

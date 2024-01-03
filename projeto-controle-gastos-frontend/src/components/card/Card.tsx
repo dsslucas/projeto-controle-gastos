@@ -31,7 +31,7 @@ const CardDash = (props: any) => {
                 <div className="flex flex-wrap justify-between w-full pr-1 text-left">
                     <Text card text={value} />
                     {percentage && (
-                        <Text card text={`(${(percentage * 100).toFixed(0)}%)`} />
+                        <Text card text={percentage} />
                     )}
                 </div>
 

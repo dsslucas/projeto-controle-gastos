@@ -63,64 +63,70 @@ module.exports = ((app: any) => {
                             else if (element.paymentMethod === "Espécie") valorEspecie += value
                         })
 
-                        const expenses = totalContas + totalInvestimentos + totalLazer + totalAlimentacao + totalCompras + totalSaude + totalViagens + totalOutros
+                        const expenses = totalContas + totalInvestimentos + totalLazer + totalAlimentacao + totalCompras + totalSaude + totalViagens + totalOutros;
+
+                        const valueAvaliable = totalEntries - expenses;
 
                         return {
                             total: totalEntries.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' }),
+                            available: {
+                                value: valueAvaliable.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' }),
+                                percentage: `${globalFunctions.checkNumber(((valueAvaliable / totalEntries)*100).toFixed(0))}%`
+                            },
                             expenses: {
                                 value: expenses.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                percentage: expenses / totalEntries
+                                percentage: `${globalFunctions.checkNumber(((expenses / totalEntries)*100).toFixed(0))}%`
                             },
                             indicators: {
                                 billing: {
                                     value: totalContas.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: totalContas / totalEntries
+                                    percentage: `${globalFunctions.checkNumber(((totalContas / totalEntries)*100).toFixed(0))}%`                           
                                 },
                                 investments: {
                                     value: totalInvestimentos.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: totalInvestimentos / totalEntries
+                                    percentage: `${globalFunctions.checkNumber(((totalInvestimentos / totalEntries)*100).toFixed(0))}%`
                                 },
                                 leisure: {
                                     value: totalLazer.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: totalLazer / totalEntries
+                                    percentage: `${globalFunctions.checkNumber(((totalLazer / totalEntries)*100).toFixed(0))}%`
                                 },
                                 food: {
                                     value: totalAlimentacao.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: totalAlimentacao / totalEntries
+                                    percentage: `${globalFunctions.checkNumber(((totalAlimentacao / totalEntries)*100).toFixed(0))}%`
                                 },
                                 purcharse: {
                                     value: totalCompras.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: totalCompras / totalEntries
+                                    percentage: `${globalFunctions.checkNumber(((totalCompras / totalEntries)*100).toFixed(0))}%`
                                 },
                                 health: {
                                     value: totalSaude.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: totalSaude / totalEntries
+                                    percentage: `${globalFunctions.checkNumber(((totalSaude / totalEntries)*100).toFixed(0))}%`
                                 },
                                 travel: {
                                     value: totalViagens.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: totalViagens / totalEntries
+                                    percentage: `${globalFunctions.checkNumber(((totalViagens / totalEntries)*100).toFixed(0))}%`
                                 },
                                 other: {
                                     value: totalOutros.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: totalOutros/ totalEntries
+                                    percentage: `${globalFunctions.checkNumber(((totalOutros / totalEntries)*100).toFixed(0))}%`
                                 }
                             },
                             paymentMethod: {
                                 debit: {
                                     value: valorDebito.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: valorDebito / totalEntries
+                                    percentage: `${globalFunctions.checkNumber(((valorDebito / totalEntries)*100).toFixed(0))}%`
                                 },
                                 credit: {
                                     value: valorCredito.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: valorCredito / totalEntries 
+                                    percentage: `${globalFunctions.checkNumber(((valorCredito / totalEntries)*100).toFixed(0))}%`
                                 },
                                 pix: {
                                     value: valorPix.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: valorPix / totalEntries
+                                    percentage: `${globalFunctions.checkNumber(((valorPix / totalEntries)*100).toFixed(0))}%`
                                 },
                                 cash: {
                                     value: valorEspecie.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: valorEspecie / totalEntries
+                                    percentage: `${globalFunctions.checkNumber(((valorEspecie / totalEntries)*100).toFixed(0))}%`
                                 }
                             }
                         }

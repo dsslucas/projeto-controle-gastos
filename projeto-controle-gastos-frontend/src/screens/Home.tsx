@@ -225,7 +225,14 @@ const Home = (props: any) => {
                         title="TOTAL DE DESPESAS"
                         value={dataApiDashboard && dataApiDashboard.expenses.value}
                         percentage={dataApiDashboard && dataApiDashboard.expenses.percentage}
-                        fullCard
+                        disableButton
+                        color="bg-gray-300"
+                        returnCardSelected={(value: string) => selectDashboardElement("", "")}
+                    />
+                    <CardDash
+                        title="VALOR DISPONÍVEL"
+                        value={dataApiDashboard && dataApiDashboard.available.value}
+                        percentage={dataApiDashboard && dataApiDashboard.available.percentage}
                         disableButton
                         color="bg-gray-300"
                         returnCardSelected={(value: string) => selectDashboardElement("", "")}
