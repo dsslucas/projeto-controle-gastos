@@ -20,7 +20,7 @@ const ModalRegister = (props: any) => {
             date: `${currentYear}-${currentMonth}-${currentDay}T${currentHour}:${currentMinutes}`
         })
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line
     }, []);
 
     const getData = async (id: number) => {
