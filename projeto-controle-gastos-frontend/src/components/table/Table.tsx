@@ -22,7 +22,7 @@ const Table = (props: any) => {
             <tbody>
                 {props.data && props.data.map((element: any, index: number) => {
                     return (
-                        <tr key={index} className={`${index % 2 !== 0 ? "bg-blue-300 bg-opacity-40" : ""}`}>
+                        <tr key={index} className={`${index % 2 !== 0 ? "bg-blue-300 bg-opacity-40" : "bg-white"}`}>
                             <td>{element.title}</td>
                             <td>{element.date}</td>
                             <td>{element.category}</td>
