@@ -1,28 +1,21 @@
 module.exports = ((app: any) => {
     const globalFunctions = app.globalFunctions();
 
-    const getDashboard = async (req: any, res: any) => {
-        const { date } = req.query;
+    function anoMesAnterior(date) {
+        const [year, month] = date.split('-').map(Number);
 
-        const {initialDate, finalDate} = globalFunctions.getBetweenDates(date);
+        const lastMonth = month === 1 ? 12 : month - 1;
+        const lastYear = month === 1 ? year - 1 : year;
 
+        const lastYearMonth = `${lastYear}-${lastMonth.toString().padStart(2, '0')}`;
+
+        return lastYearMonth;
+    }
+
+    const getDashData = async (entries: number, initialDate: Date, finalDate: Date) => {
+        var data = {};
         try {
             await app.database.transaction(async (trx: any) => {
-                const totalEntries = await app.database("config as c")
-                    .join("config_entries as ce", "c.id", "ce.idConfig")
-                    .where("c.date", ">=", initialDate)
-                    .where("c.date", "<", finalDate)
-                    .transacting(trx)
-                    .then((response: any) => {
-                        var value = 0;
-
-                        response.forEach((element: any) => {
-                            value += element.value;
-                        })
-
-                        return value;
-                    })
-
                 return await app.database("payment")
                     .where("date", ">=", initialDate)
                     .where("date", "<", finalDate)
@@ -42,10 +35,10 @@ module.exports = ((app: any) => {
                         var totalViagens: number = 0.0;
                         var totalOutros: number = 0.0;
 
-                        response.forEach((element: any) => {                            
+                        response.forEach((element: any) => {
                             var value = 0;
 
-                            if(element.parcel) value = element.parcel_value;
+                            if (element.parcel) value = element.parcel_value;
                             else value = element.value
 
                             if (element.category === "Contas") totalContas += value
@@ -65,78 +58,159 @@ module.exports = ((app: any) => {
 
                         const expenses = totalContas + totalInvestimentos + totalLazer + totalAlimentacao + totalCompras + totalSaude + totalViagens + totalOutros;
 
-                        const valueAvaliable = totalEntries - expenses;
+                        const valueAvaliable = entries - expenses;
 
                         return {
-                            total: totalEntries.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' }),
+                            total: entries.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' }),
                             available: {
                                 value: valueAvaliable.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' }),
-                                percentage: `${globalFunctions.checkNumber(((valueAvaliable / totalEntries)*100).toFixed(0))}%`
+                                percentage: `${globalFunctions.checkNumber(((valueAvaliable / entries) * 100).toFixed(0))}%`
                             },
                             expenses: {
                                 value: expenses.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                percentage: `${globalFunctions.checkNumber(((expenses / totalEntries)*100).toFixed(0))}%`
+                                percentage: `${globalFunctions.checkNumber(((expenses / entries) * 100).toFixed(0))}%`
                             },
                             indicators: {
                                 billing: {
                                     value: totalContas.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: `${globalFunctions.checkNumber(((totalContas / totalEntries)*100).toFixed(0))}%`                           
+                                    percentage: `${globalFunctions.checkNumber(((totalContas / entries) * 100).toFixed(0))}%`
                                 },
                                 investments: {
                                     value: totalInvestimentos.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: `${globalFunctions.checkNumber(((totalInvestimentos / totalEntries)*100).toFixed(0))}%`
+                                    percentage: `${globalFunctions.checkNumber(((totalInvestimentos / entries) * 100).toFixed(0))}%`
                                 },
                                 leisure: {
                                     value: totalLazer.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: `${globalFunctions.checkNumber(((totalLazer / totalEntries)*100).toFixed(0))}%`
+                                    percentage: `${globalFunctions.checkNumber(((totalLazer / entries) * 100).toFixed(0))}%`
                                 },
                                 food: {
                                     value: totalAlimentacao.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: `${globalFunctions.checkNumber(((totalAlimentacao / totalEntries)*100).toFixed(0))}%`
+                                    percentage: `${globalFunctions.checkNumber(((totalAlimentacao / entries) * 100).toFixed(0))}%`
                                 },
                                 purcharse: {
                                     value: totalCompras.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: `${globalFunctions.checkNumber(((totalCompras / totalEntries)*100).toFixed(0))}%`
+                                    percentage: `${globalFunctions.checkNumber(((totalCompras / entries) * 100).toFixed(0))}%`
                                 },
                                 health: {
                                     value: totalSaude.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: `${globalFunctions.checkNumber(((totalSaude / totalEntries)*100).toFixed(0))}%`
+                                    percentage: `${globalFunctions.checkNumber(((totalSaude / entries) * 100).toFixed(0))}%`
                                 },
                                 travel: {
                                     value: totalViagens.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: `${globalFunctions.checkNumber(((totalViagens / totalEntries)*100).toFixed(0))}%`
+                                    percentage: `${globalFunctions.checkNumber(((totalViagens / entries) * 100).toFixed(0))}%`
                                 },
                                 other: {
                                     value: totalOutros.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: `${globalFunctions.checkNumber(((totalOutros / totalEntries)*100).toFixed(0))}%`
+                                    percentage: `${globalFunctions.checkNumber(((totalOutros / entries) * 100).toFixed(0))}%`
                                 }
                             },
                             paymentMethod: {
                                 debit: {
                                     value: valorDebito.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: `${globalFunctions.checkNumber(((valorDebito / totalEntries)*100).toFixed(0))}%`
+                                    percentage: `${globalFunctions.checkNumber(((valorDebito / entries) * 100).toFixed(0))}%`
                                 },
                                 credit: {
                                     value: valorCredito.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: `${globalFunctions.checkNumber(((valorCredito / totalEntries)*100).toFixed(0))}%`
+                                    percentage: `${globalFunctions.checkNumber(((valorCredito / entries) * 100).toFixed(0))}%`
                                 },
                                 pix: {
                                     value: valorPix.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: `${globalFunctions.checkNumber(((valorPix / totalEntries)*100).toFixed(0))}%`
+                                    percentage: `${globalFunctions.checkNumber(((valorPix / entries) * 100).toFixed(0))}%`
                                 },
                                 cash: {
                                     value: valorEspecie.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
-                                    percentage: `${globalFunctions.checkNumber(((valorEspecie / totalEntries)*100).toFixed(0))}%`
+                                    percentage: `${globalFunctions.checkNumber(((valorEspecie / entries) * 100).toFixed(0))}%`
                                 }
                             }
                         }
                     })
             })
                 .then((response: any) => {
+                    data = response;
+                })
+        }
+        catch (error: any) {
+            console.error(error)
+            return error
+        }
+
+        return data;
+    }
+
+    const getDashboard = async (req: any, res: any) => {
+        const { date } = req.query;
+
+        const { initialDate, finalDate } = globalFunctions.getBetweenDates(date);
+
+        try {
+            await app.database.transaction(async (trx: any) => {
+                const totalEntries = await app.database("config as c")
+                    .join("config_entries as ce", "c.id", "ce.idConfig")
+                    .where("c.date", ">=", initialDate)
+                    .where("c.date", "<", finalDate)
+                    .transacting(trx)
+                    .then(async (response: any) => {
+                        var value = 0;
+
+                        response.forEach((element: any) => {
+                            value += element.value;
+                        })
+
+                        if (value === 0) {
+                            // Investigate if remains values of last month
+                            const string = anoMesAnterior(date)
+                            const initialDateLastYearMonth = globalFunctions.getBetweenDates(string).initialDate;
+                            const finalDateLastYearMonth = globalFunctions.getBetweenDates(string).finalDate;
+
+                            const remainEntriesLastMonth = await app.database("config as c")
+                                .join("config_entries as ce", "c.id", "ce.idConfig")
+                                .where("c.date", ">=", initialDateLastYearMonth)
+                                .where("c.date", "<", finalDateLastYearMonth)
+                                .transacting(trx)
+                                .then((secondResponse: any) => {
+                                    var entriesLastMonth = 0;
+                                    secondResponse.forEach((element: any) => {
+                                        entriesLastMonth += element.value;
+                                    })
+                                    return entriesLastMonth;
+                                })
+
+                            var dataLastMonth = await getDashData(remainEntriesLastMonth, initialDateLastYearMonth, finalDateLastYearMonth)
+                            
+                            const availableValue = globalFunctions.formatMoney(dataLastMonth.available.value);
+
+                            //Create new config for month
+                            const idConfig = await app.database("config")
+                                .insert({
+                                    date: new Date(date)
+                                })
+                                .returning("id")
+                                .transacting(trx)
+
+                            // // Set remain value
+                            await app.database("config_entries")
+                                .insert({
+                                    idConfig: idConfig[0].id,
+                                    description: "Valor do mês anterior",
+                                    value: availableValue
+                                })
+                                .transacting(trx)
+
+                            return availableValue
+                        }
+                        else return value;
+                    })
+
+                var data = await getDashData(totalEntries, initialDate, finalDate)
+
+                return data;
+            })
+                .then((response: any) => {
                     res.status(200).send(response)
                 })
         }
         catch (error: any) {
+            console.log(error)
             res.status(500).send("Não foi possível consultar os dados do dashboard. Contate o administrador do sistema.")
         }
     }
