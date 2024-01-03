@@ -21,6 +21,7 @@ const Button = (props: any) => {
                 uppercase
                 hover:brightness-[0.90]
                 hover:transition-all
+                active:brightness-[0.50] focus:outline-none
             `}
             onClick={() => props.returnClick()}
             disabled={disabled}
