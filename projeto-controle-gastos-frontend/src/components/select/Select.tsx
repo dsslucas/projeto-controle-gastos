@@ -11,7 +11,7 @@ const Select = (props: any) => {
             onChange={(event: any) => props.returnSelect(event.target.name, event.target.value)}
         >
             {props.options.map((element:any, index: number) => {
-                return <option key={index} value={element.option}>{element.value}</option>
+                return <option key={index} value={element.value}>{element.text}</option>
             })}
         </select>
     )

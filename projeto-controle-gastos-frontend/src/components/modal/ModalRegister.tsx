@@ -11,6 +11,34 @@ import globalFunctions from "../../global/functions";
 const ModalRegister = (props: any) => {
     const { currentDay, currentMonth, currentYear, currentHour, currentMinutes } = props;
 
+    const { selectOptions, optionsPayment } = globalFunctions();
+    var [parcels, setParcels] = useState([
+        {value: 1,text: ""},
+        {value: 2, text: ""},
+        {value: 3, text: ""},
+        {value: 4, text: ""},
+        {value: 5, text: ""},
+        {value: 6, text: ""},
+        {value: 7, text: ""},
+        {value: 8, text: ""},
+        {value: 9, text: ""},
+        {value: 10, text: ""},
+        {value: 11, text: ""},
+        {value: 12,text: ""}
+    ]);
+
+    const [showParcel, setShowParcel] = useState(false);
+
+    const [dadosForm, setDadosForm] = useState({
+        title: "",
+        date: "",
+        category: selectOptions[0],
+        description: "",
+        paymentMethod: optionsPayment[0].value,
+        parcel: parcels[0].value,
+        value: ""
+    })
+
     useEffect(() => {
         if (props.id !== undefined) {
             getData(props.id);
@@ -74,33 +102,40 @@ const ModalRegister = (props: any) => {
         }
     }
 
-    const {selectOptions, optionsPayment} = globalFunctions();
-    const parcels = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-
-    const [dadosForm, setDadosForm] = useState({
-        title: "",
-        date: "",
-        category: selectOptions[0],
-        description: "",
-        paymentMethod: optionsPayment[0],
-        parcel: "",
-        value: ""
-    })
+    useEffect(() => {
+        defineParcel();
+        // eslint-disable-next-line
+    }, [dadosForm.paymentMethod, dadosForm.value])
 
     const changeData = (name: string, value: string) => {
-        if ((name === "paymentMethod" && value === "Crédito") || (name === "value" && value !== "")) defineParcel()
+        setDadosForm({ ...dadosForm, [name]: value });
 
-        setDadosForm({ ...dadosForm, [name]: value })
+        // if((name === "paymentMethod" && value === "Crédito") || (name === "value" && value !== ""))  defineParcel();
     }
 
     const defineParcel = () => {
         const value = dadosForm.value;
 
-        // Capta a quantidade de parcelas informadas
-    }
+        if (dadosForm.paymentMethod === "Crédito") {
+            const formattedValue = globalFunctions().formatMoney(value);
 
-    const parcelPurchase = () => {
+            for (let i: number = 1; i <= parcels.length; i++) {
+                const parcela = parseFloat((formattedValue / i).toFixed(2));
 
+                const array = [...parcels];
+
+                parcels[i - 1].text = `${i}x de ${parcela.toLocaleString("pt-br", { style: "currency", currency: "BRL" })}`;
+
+                setParcels(array);
+            }
+            setShowParcel(true);
+        }
+        else {
+            setShowParcel(false);
+            for (let i: number = 1; i <= parcels.length; i++) {
+                parcels[i - 1].text = ""
+            }
+        }
     }
 
     return (
@@ -156,14 +191,6 @@ const ModalRegister = (props: any) => {
                                     />
                                 </div>
                                 <div className="flex">
-                                    <Label label="Forma de pagamento" />
-                                    <Select
-                                        name="paymentMethod"
-                                        options={optionsPayment}
-                                        returnSelect={(name: string, value: string) => changeData(name, value)}
-                                    />
-                                </div>
-                                <div className="flex">
                                     <Label label="Valor" />
                                     <Input
                                         type="text"
@@ -176,7 +203,15 @@ const ModalRegister = (props: any) => {
                                         required
                                     />
                                 </div>
-                                {/* {dadosForm.paymentMethod === "Crédito" && (
+                                <div className="flex">
+                                    <Label label="Forma de pagamento" />
+                                    <Select
+                                        name="paymentMethod"
+                                        options={optionsPayment}
+                                        returnSelect={(name: string, value: string) => changeData(name, value)}
+                                    />
+                                </div>
+                                {showParcel && (
                                     <div className="flex">
                                         <Label label="Parcelas" />
                                         <Select
@@ -185,7 +220,7 @@ const ModalRegister = (props: any) => {
                                             returnSelect={(name: string, value: string) => changeData(name, value)}
                                         />
                                     </div>
-                                )} */}
+                                )}
                             </div>
                             {/*footer*/}
                             <div className="flex items-center justify-end p-6 border-t border-solid border-blueGray-200 rounded-b">
