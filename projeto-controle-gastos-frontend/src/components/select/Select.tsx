@@ -10,8 +10,8 @@ const Select = (props: any) => {
             defaultValue={props.options[0]}
             onChange={(event: any) => props.returnSelect(event.target.name, event.target.value)}
         >
-            {props.options.map((option:string, index: number) => {
-                return <option key={index} value={option}>{option}</option>
+            {props.options.map((element:any, index: number) => {
+                return <option key={index} value={element.option}>{element.value}</option>
             })}
         </select>
     )

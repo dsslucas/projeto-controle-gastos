@@ -6,6 +6,7 @@ import Label from "../text/Label";
 import Select from "../select/Select";
 import api from "../../api/api";
 import Alert from "../alert/Alert";
+import globalFunctions from "../../global/functions";
 
 const ModalRegister = (props: any) => {
     const { currentDay, currentMonth, currentYear, currentHour, currentMinutes } = props;
@@ -46,7 +47,7 @@ const ModalRegister = (props: any) => {
                         text: response.data,
                         icon: "success",
                         callback: props.returnClick()
-                    });                    
+                    });
                 })
                 .catch((error: any) => {
                     Alert({
@@ -73,8 +74,8 @@ const ModalRegister = (props: any) => {
         }
     }
 
-    const selectOptions = ["Contas", "Investimentos", "Lazer", "Alimentação", "Compras", "Saúde", "Viagens", "Outros"];
-    const optionsPayment = ["Débito", "Crédito", "Espécie", "PIX"];
+    const {selectOptions, optionsPayment} = globalFunctions();
+    const parcels = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
     const [dadosForm, setDadosForm] = useState({
         title: "",
@@ -82,11 +83,24 @@ const ModalRegister = (props: any) => {
         category: selectOptions[0],
         description: "",
         paymentMethod: optionsPayment[0],
+        parcel: "",
         value: ""
     })
 
     const changeData = (name: string, value: string) => {
+        if ((name === "paymentMethod" && value === "Crédito") || (name === "value" && value !== "")) defineParcel()
+
         setDadosForm({ ...dadosForm, [name]: value })
+    }
+
+    const defineParcel = () => {
+        const value = dadosForm.value;
+
+        // Capta a quantidade de parcelas informadas
+    }
+
+    const parcelPurchase = () => {
+
     }
 
     return (
@@ -162,6 +176,16 @@ const ModalRegister = (props: any) => {
                                         required
                                     />
                                 </div>
+                                {/* {dadosForm.paymentMethod === "Crédito" && (
+                                    <div className="flex">
+                                        <Label label="Parcelas" />
+                                        <Select
+                                            name="parcel"
+                                            options={parcels}
+                                            returnSelect={(name: string, value: string) => changeData(name, value)}
+                                        />
+                                    </div>
+                                )} */}
                             </div>
                             {/*footer*/}
                             <div className="flex items-center justify-end p-6 border-t border-solid border-blueGray-200 rounded-b">
