@@ -27,6 +27,7 @@ const ModalRegister = (props: any) => {
         {value: 12,text: ""}
     ]);
 
+    const [editMode, setEditMode] = useState(false);
     const [showParcel, setShowParcel] = useState(false);
 
     const [dadosForm, setDadosForm] = useState({
@@ -55,8 +56,8 @@ const ModalRegister = (props: any) => {
     const getData = async (id: number) => {
         await api.get(`/payment/${id}`)
             .then((response: any) => {
+                setEditMode(true)
                 setDadosForm(response.data);
-                console.log(response.data)
             })
             .catch((error: any) => {
                 Alert({
@@ -173,7 +174,7 @@ const ModalRegister = (props: any) => {
                                         value={dadosForm.date}
                                         returnInput={(name: string, value: string) => changeData(name, value)}
                                         required
-                                        disabled={dadosForm.paymentMethod === "Crédito"}
+                                        disabled={editMode && dadosForm.paymentMethod === "Crédito"}
                                     />
                                 </div>
                                 <div className="flex">
@@ -206,7 +207,7 @@ const ModalRegister = (props: any) => {
                                         returnInput={(name: string, value: string) => changeData(name, value)}
                                         value={dadosForm.value}
                                         required
-                                        disabled={dadosForm.paymentMethod === "Crédito"}
+                                        disabled={editMode && dadosForm.paymentMethod === "Crédito"}
                                     />
                                 </div>
                                 <div className="flex">
@@ -216,7 +217,7 @@ const ModalRegister = (props: any) => {
                                         options={optionsPayment}
                                         value={dadosForm.paymentMethod}
                                         returnSelect={(name: string, value: string) => changeData(name, value)}
-                                        disabled={dadosForm.paymentMethod === "Crédito"}
+                                        disabled={editMode && dadosForm.paymentMethod === "Crédito"}
                                     />
                                 </div>
                                 {showParcel && (
@@ -227,7 +228,7 @@ const ModalRegister = (props: any) => {
                                             options={parcels}
                                             value={dadosForm.parcel}
                                             returnSelect={(name: string, value: string) => changeData(name, value)}
-                                            disabled={dadosForm.paymentMethod === "Crédito"}
+                                            disabled={editMode && dadosForm.paymentMethod === "Crédito"}
                                         />
                                     </div>
                                 )}
