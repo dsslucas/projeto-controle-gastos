@@ -267,7 +267,7 @@ const Home = (props: any) => {
     }
 
     return (
-        <main className="flex flex-col xs:overflow-x-hidden xl:h-screen xl:overflow-hidden p-1 bg-neutral-300">
+        <main className="flex flex-col xs:overflow-x-hidden xl:h-screen xl:overflow-hidden bg-gray-300">
 
             {showModalConfig && (
                 <ModalConfig
@@ -316,7 +316,7 @@ const Home = (props: any) => {
                 />
             )}
             
-            <header className="flex xs:items-center xs:justify-start xs:h-12 xl:flex-row xl:justify-between xl:items-center">
+            <header className="flex xs:items-center xs:justify-start xs:h-12 xl:flex-row xl:justify-between xl:items-center bg-gray-800 text-white p-1">
                 <Navbar
                     clickButtonConfig={() => setShowModalConfig(true)}
                     clickButtonRegister={checkRegisterPossible}
@@ -324,11 +324,11 @@ const Home = (props: any) => {
                 />
             </header>
 
-            <section className="flex xl:flex-row gap-2">
+            <section className="flex xl:flex-row gap-2 px-1 p-1">
                 <Subtitle subtitle={`Mês de atuação: ${currentMonth}/${currentYear}`} />
             </section>
 
-            <section className="flex xl:flex-row gap-2 xl:h-[90%]">
+            <section className="flex xl:flex-row gap-2 xl:h-[90%] px-1 p-1">
                 <div className="lg:w-[20%] xl:w-[30%] flex flex-col gap-2 xs:hidden sm:hidden md:hidden lg:flex lg:h-[100%]">
                     {dashboardData()}
                 </div>
