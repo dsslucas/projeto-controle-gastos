@@ -23,7 +23,6 @@ module.exports = ((app: any) => {
     }
 
     const registerPayment = async (req: any, res: any) => {
-        console.log(req.body)
         try {
             await app.database.transaction(async (trx: any) => {
                 checkConditions(req.body);
@@ -224,6 +223,7 @@ module.exports = ((app: any) => {
 
     const editPayment = async (req: any, res: any) => {
         const idPayment = req.params.id;
+        delete req.body.parcel_value;
 
         try {
             await app.database.transaction(async (trx: any) => {
