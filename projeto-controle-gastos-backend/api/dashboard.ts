@@ -42,8 +42,11 @@ module.exports = ((app: any) => {
                         var totalViagens: number = 0.0;
                         var totalOutros: number = 0.0;
 
-                        response.forEach((element: any) => {
-                            const value = parseFloat(element.value);
+                        response.forEach((element: any) => {                            
+                            var value = 0;
+
+                            if(element.parcel) value = element.parcel_value;
+                            else value = element.value
 
                             if (element.category === "Contas") totalContas += value
                             else if (element.category === "Investimentos") totalInvestimentos += value

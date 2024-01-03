@@ -177,8 +177,9 @@ module.exports = ((app: any) => {
                             let minute = String(element.date.getMinutes()).padStart(2, '0');
 
                             element.date = `${day}/${month}/${year} ${hour}:${minute}`;
-                            console.log(element)
-                            element.value = element.value.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' });
+
+                            if(element.paymentMethod === "Crédito") element.value = element.parcel_value.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' });
+                            else element.value = element.value.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' });
                         })
                         return response;
                     });
