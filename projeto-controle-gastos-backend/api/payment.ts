@@ -275,17 +275,30 @@ module.exports = ((app: any) => {
 
                 if (entriesValue < expenses) throw "NO_CASH";
 
-                await app.database("payment")
-                    .where({ id: idPayment })
-                    .first()
-                    .update({
+                var data = {};
+
+                if(paymentMethod === "Crédito"){
+                    data = {
+                        category,
+                        description,
+                        title,
+                    }
+                }
+                else {
+                    data = {
                         category,
                         date: new Date(date),
                         description,
                         paymentMethod,
                         title,
                         value: globalFunctions.formatMoney(value)
-                    })
+                    }
+                }
+
+                await app.database("payment")
+                    .where({ id: idPayment })
+                    .first()
+                    .update(data)
                     .transacting(trx)
             })
                 .then(() => {

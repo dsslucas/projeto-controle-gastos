@@ -2,7 +2,8 @@ import React from "react";
 
 const Select = (props: any) => {
     const name = props.name;
-    const value = props.value
+    const value = props.value;
+    const disabled = props.disabled;
     
     return (
         <select 
@@ -10,6 +11,7 @@ const Select = (props: any) => {
             className="border border-gray-500 rounded w-full" 
             value={value}
             onChange={(event: any) => props.returnSelect(event.target.name, event.target.value)}
+            disabled={disabled}
         >
             {props.options.map((element:any, index: number) => {
                 return <option key={index} value={element.value}>{element.text}</option>

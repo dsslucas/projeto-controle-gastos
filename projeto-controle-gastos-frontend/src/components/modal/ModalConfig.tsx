@@ -17,6 +17,7 @@ const ModalConfig = (props: any) => {
     const [totalMoney, setTotalMoney] = useState<String>();
 
     var currentDate = `${props.currentYear}-${props.currentMonth}`;
+    const maxYearMonth = props.maxYearMonth
 
     const handleSubmit = async (event: any) => {
         event.preventDefault();
@@ -137,6 +138,7 @@ const ModalConfig = (props: any) => {
                                         <Input
                                             type="month"
                                             name="monthExibition"
+                                            max={maxYearMonth}
                                             value={`${props.currentYear}-${props.currentMonth}`}
                                             returnInput={(name: string, value: string) => props.returnNewDate(value)}
                                         />

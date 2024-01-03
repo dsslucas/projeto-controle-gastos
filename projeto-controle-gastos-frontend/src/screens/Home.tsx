@@ -32,6 +32,9 @@ const Home = (props: any) => {
     const [currentMinutes, setCurrentMinutes] = useState<String>();
     const [currentSeconds, setCurrentSeconds] = useState<String>();
 
+    const [maxYear, setMaxYear] = useState<String>();
+    const [maxMonth, setMaxMonth] = useState<String>();   
+
     const [idSelected, setIdSelected] = useState<number>();
     const [searchString, setSearchString] = useState("");
 
@@ -57,9 +60,12 @@ const Home = (props: any) => {
         setCurrentMonth(month);
         setCurrentDay(day);
 
+        setMaxYear(year);
+        setMaxMonth(month);
+
         // Renderize API info
         getData("", "", `${year}-${month}`);
-        getDashboardData(`${year}-${month}`);
+        getDashboardData(`${year}-${month}`);       
 
         // const socket = io(`ws://${window.location.hostname}:3003`, {
         //     reconnectionDelayMax: 10000
@@ -289,6 +295,7 @@ const Home = (props: any) => {
                     currentHour={currentHour}
                     currentMinutes={currentMinutes}
                     currentSeconds={currentSeconds}
+                    maxYearMonth={`${maxYear}-${maxMonth}`}
                     returnNewDate={changeDate}
                 />
             )}
