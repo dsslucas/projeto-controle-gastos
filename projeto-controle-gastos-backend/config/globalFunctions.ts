@@ -1,5 +1,5 @@
 module.exports = ((app: any) => {
-    function formatMoney(value: string){
+    function formatMoney(value: string) {
         // Remove "R$" and format decimal
         const formattedValue = value.replace(/[^\d.,]/g, '').replace(',', '.');
 
@@ -13,8 +13,8 @@ module.exports = ((app: any) => {
 
     // Date between first and last day of month
     function getBetweenDates(date: string) {
-        const month = Number(date.substring(5,7));
-        const year = Number(date.substring(0,4));
+        const month = Number(date.substring(5, 7));
+        const year = Number(date.substring(0, 4));
 
         const initialDate = new Date(Date.UTC(year, month - 1, 1));
         const nextMonth = new Date(Date.UTC(year, month, 0));
@@ -28,6 +28,6 @@ module.exports = ((app: any) => {
             finalDate
         }
     }
-
-    return {formatMoney, getBetweenDates}
+    
+    return { formatMoney, getBetweenDates }
 })

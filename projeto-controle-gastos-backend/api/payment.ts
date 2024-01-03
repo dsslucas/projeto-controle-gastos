@@ -57,7 +57,8 @@ module.exports = ((app: any) => {
                         var expensesValue = 0;
 
                         response.forEach((element: any) => {
-                            expensesValue += element.value
+                            if(element.parcel) expensesValue += element.parcel_value;
+                            else expensesValue += element.value
                         })
 
                         return expensesValue;
@@ -70,10 +71,16 @@ module.exports = ((app: any) => {
                         const valueParcel = parseFloat((globalFunctions.formatMoney(value) / parcel).toFixed(2));
                         const datePayment = new Date(date);
 
-                        for (let i = 1; i <= parcel; i++) {
+                        console.log("QTD PARCELAS: ", parcel)
+
+                        console.log("DATE PAYMENT: ", datePayment)
+
+                        for (let i = 0; i < parcel; i++) {
                             const dateParcel = new Date(datePayment.getFullYear(), datePayment.getMonth() + i + 1, 1);
                             dateParcel.setHours(datePayment.getHours());
                             dateParcel.setMinutes(datePayment.getMinutes());
+
+                            console.log("DATA PARCELA: ", dateParcel)
 
                             await app.database("payment")
                                 .insert({
@@ -231,6 +238,43 @@ module.exports = ((app: any) => {
 
                 const { category, date, description, paymentMethod, title, value } = req.body;
 
+                const { initialDate, finalDate } = globalFunctions.getBetweenDates(date.substring(0, 7));
+
+                const entriesValue = await app.database("config as c")
+                    .join("config_entries as ce", "ce.idConfig", "c.id")
+                    .where("c.date", ">=", initialDate)
+                    .where("c.date", "<", finalDate)
+                    .transacting(trx)
+                    .then((response: any) => {
+                        var entriesValue = 0.0;
+                        // Empty condition
+                        if (response.length === 0) throw "NO_CONFIG_SET"
+                        else {
+                            response.forEach((element: any) => {
+                                entriesValue += element.value;
+                            })
+                        }
+
+                        return entriesValue;
+                    })
+
+                const expenses = await app.database("payment")
+                    .where("date", ">=", initialDate)
+                    .where("date", "<", finalDate)
+                    .transacting(trx)
+                    .then((response: any) => {
+                        var expensesValue = 0;
+
+                        response.forEach((element: any) => {
+                            if(element.parcel) expensesValue += element.parcel_value;
+                            else expensesValue += element.value
+                        })
+
+                        return expensesValue;
+                    })
+
+                if (entriesValue < expenses) throw "NO_CASH";
+
                 await app.database("payment")
                     .where({ id: idPayment })
                     .first()
@@ -254,6 +298,7 @@ module.exports = ((app: any) => {
             else if (error === "EMPTY_FIELD") return res.status(404).send("Erro: é necessário preencher os campos obrigatórios para atualizar este registro.");
             else if (error === "INVALID_CATEGORY") return res.status(404).send("Erro: categoria inválida.");
             else if (error === "INVALID_PAYMENT") return res.status(404).send("Erro: forma de pagamento inválida.");
+            else if (error === "NO_CASH") return res.status(404).send("Não foi possível registrar este gasto, pois as despesas superam as entradas.");
             else return res.status(500).send("Erro interno: contate o administrador do sistema.");
         }
     }
