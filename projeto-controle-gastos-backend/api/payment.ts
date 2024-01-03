@@ -65,8 +65,6 @@ module.exports = ((app: any) => {
 
                 if (entriesValue < expenses) throw "NO_CASH";
 
-                if (globalFunctions.formatMoney(value) > (entriesValue - expenses)) throw "INSUFFICIENT_FUNDS";
-
                 if (paymentMethod === "Crédito") {
                     if (parcel) {
                         const valueParcel = parseFloat((globalFunctions.formatMoney(value) / parcel).toFixed(2));
@@ -96,6 +94,8 @@ module.exports = ((app: any) => {
                     }
                 }
                 else {
+                    if (globalFunctions.formatMoney(value) > (entriesValue - expenses)) throw "INSUFFICIENT_FUNDS";
+
                     await app.database("payment")
                         .insert({
                             category,
