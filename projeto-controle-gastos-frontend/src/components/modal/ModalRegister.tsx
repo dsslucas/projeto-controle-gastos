@@ -32,9 +32,9 @@ const ModalRegister = (props: any) => {
     const [dadosForm, setDadosForm] = useState({
         title: "",
         date: "",
-        category: "",
+        category: selectOptions[0].value,
         description: "",
-        paymentMethod: "",
+        paymentMethod: optionsPayment[0].value,
         parcel: "",
         value: ""
     })

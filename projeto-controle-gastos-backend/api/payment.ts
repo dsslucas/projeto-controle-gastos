@@ -7,7 +7,8 @@ module.exports = ((app: any) => {
         }
 
         for (const [key, value] of Object.entries(requestBody)) {
-            if (key !== "description" && (value === "" || value === null || value === undefined)) {
+            if ((key !== "description" && key !== "parcel") && (value === "" || value === null || value === undefined)) {
+                console.log("entrei aqui, ", key, value)
                 throw "EMPTY_FIELD";
             }
 
@@ -22,6 +23,7 @@ module.exports = ((app: any) => {
     }
 
     const registerPayment = async (req: any, res: any) => {
+        console.log(req.body)
         try {
             await app.database.transaction(async (trx: any) => {
                 checkConditions(req.body);
@@ -175,6 +177,7 @@ module.exports = ((app: any) => {
                             let minute = String(element.date.getMinutes()).padStart(2, '0');
 
                             element.date = `${day}/${month}/${year} ${hour}:${minute}`;
+                            console.log(element)
                             element.value = element.value.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' });
                         })
                         return response;
