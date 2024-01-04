@@ -4,8 +4,17 @@ module.exports = (app: any) => {
     const registerConfig = async (req: any, res: any) => {
         const { date, values } = req.body;
 
+        if (date === undefined || date === null || date === "") return res.status(404).send("A data de registro não foi informada.")
+
+        if (values === undefined || values === null) return res.status(404).send("As fontes de receita não foram informadas.")
+
+        const { initialDate } = globalFunctions.getBetweenDates(date);
+
         try {
             await app.database.transaction(async (trx: any) => {
+                const currentDate = new Date();
+                if (currentDate < initialDate) throw "NOT_CURRENT_DATE";
+
                 const existsMonthConfig = await app.database("config")
                     .where({ date })
                     .transacting(trx)
@@ -23,7 +32,8 @@ module.exports = (app: any) => {
                         .returning("id")
                         .transacting(trx)
 
-                    await values.forEach(async (element: any) => {
+                    if (values.length === 0) throw "NO_VALUES"
+                    else await values.forEach(async (element: any) => {
                         await app.database("config_entries")
                             .insert({
                                 idConfig: idConfig[0].id,
@@ -37,7 +47,9 @@ module.exports = (app: any) => {
                 .then((response: any) => res.status(200).send("Enviado!"))
         }
         catch (error: any) {
-            if (error === "EXISTS_CONFIG") res.status(404).send("Já existe configuração registrada para este mês.");
+            if (error === "NOT_CURRENT_DATE") return res.status(404).send("Não é possível registrar dados de meses seguintes.")
+            else if (error === "EXISTS_CONFIG") res.status(404).send("Já existe configuração registrada para este mês.");
+            else if(error === "NO_VALUES") res.status(404).send("As fontes de receita não foram informadas.")
             else res.status(500).send("Não foi possível realizar o registro desta configuração. Contate um administrador.");
         }
     }
@@ -49,6 +61,9 @@ module.exports = (app: any) => {
 
         try {
             await app.database.transaction(async (trx: any) => {
+                const currentDate = new Date();
+                if(currentDate < initialDate) throw "NOT_CURRENT_DATE";
+
                 return await app.database("config as c")
                     .join("config_entries as ce", "c.id", "ce.idConfig")
                     .where("c.date", ">=", initialDate)
@@ -82,7 +97,8 @@ module.exports = (app: any) => {
                 .then((response: any) => res.status(200).send(response));
         }
         catch (error: any) {
-            res.status(500).send("Não foi possível realizar a consulta. Tente novamente mais tarde.");
+            if(error === "NOT_CURRENT_DATE") return res.status(404).send("Não é possível consultar os dados de meses seguintes.")
+            else return res.status(500).send("Não foi possível realizar a consulta. Tente novamente mais tarde.");
         }
     }
 
@@ -111,7 +127,8 @@ module.exports = (app: any) => {
                 .then(() => res.status(200).send("Inserção realizada!"))
         }
         catch (error: any) {
-            if (error === "NO_ENTRIES") return res.status(404).send("Deve-se existir, ao menos, uma fonte de receita.");
+            if(error === "NOT_CURRENT_DATE") return res.status(404).send("Não é possível consultar os dados de meses seguintes.")
+            else if (error === "NO_ENTRIES") return res.status(404).send("Deve-se existir, ao menos, uma fonte de receita.");
             else return res.status(500).send("Não foi possível realizar a alteração. Tente novamente mais tarde.");
         }
     }

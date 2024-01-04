@@ -140,10 +140,15 @@ module.exports = ((app: any) => {
     const getDashboard = async (req: any, res: any) => {
         const { date } = req.query;
 
+        if(date === "" || date === undefined || date === null) return res.status(404).send("A data para consulta não foi informada.")
+
         const { initialDate, finalDate } = globalFunctions.getBetweenDates(date);
 
         try {
             await app.database.transaction(async (trx: any) => {
+                const currentDate = new Date();
+                if(currentDate < initialDate) throw "NOT_CURRENT_DATE";
+
                 const totalEntries = await app.database("config as c")
                     .join("config_entries as ce", "c.id", "ce.idConfig")
                     .where("c.date", ">=", initialDate)
@@ -176,7 +181,7 @@ module.exports = ((app: any) => {
                                 })
 
                             var dataLastMonth = await getDashData(remainEntriesLastMonth, initialDateLastYearMonth, finalDateLastYearMonth)
-                            
+
                             const availableValue = globalFunctions.formatMoney(dataLastMonth.available.value);
 
                             //Create new config for month
@@ -210,8 +215,8 @@ module.exports = ((app: any) => {
                 })
         }
         catch (error: any) {
-            console.log(error)
-            res.status(500).send("Não foi possível consultar os dados do dashboard. Contate o administrador do sistema.")
+            if(error === "NOT_CURRENT_DATE") return res.status(404).send("Não é possível consultar os dados de meses seguintes.")
+            else return res.status(500).send("Não foi possível consultar os dados do dashboard. Contate o administrador do sistema.")
         }
     }
 

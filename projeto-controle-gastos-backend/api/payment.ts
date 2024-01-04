@@ -31,6 +31,9 @@ module.exports = ((app: any) => {
 
                 const { initialDate, finalDate } = globalFunctions.getBetweenDates(date.substring(0, 7));
 
+                const currentDate = new Date();
+                if(currentDate < initialDate) throw "NOT_CURRENT_DATE";
+
                 const entriesValue = await app.database("config as c")
                     .join("config_entries as ce", "ce.idConfig", "c.id")
                     .where("c.date", ">=", initialDate)
@@ -121,7 +124,8 @@ module.exports = ((app: any) => {
                 })
         }
         catch (error: any) {
-            if (error === "NO_CATEGORY") return res.status(404).send("Erro: está faltando um parâmetro para envio deste registro.");
+            if(error === "NOT_CURRENT_DATE") return res.status(404).send("Não é possível registrar gastos para o mês seguinte.")
+            else if (error === "NO_CATEGORY") return res.status(404).send("Erro: está faltando um parâmetro para envio deste registro.");
             else if (error === "EMPTY_FIELD") return res.status(404).send("Erro: é necessário preencher os campos obrigatórios para salvar este registro.");
             else if (error === "INVALID_CATEGORY") return res.status(404).send("Erro: categoria inválida.");
             else if (error === "INVALID_PAYMENT") return res.status(404).send("Erro: forma de pagamento inválida.");
@@ -160,10 +164,15 @@ module.exports = ((app: any) => {
     const getPayments = async (req: any, res: any) => {
         const { category, paymentMethod, date } = req.query;
 
+        if(date === "" || date === undefined || date === null) return res.status(404).send("A data para consulta não foi informada.")
+
         const { initialDate, finalDate } = globalFunctions.getBetweenDates(date.substring(0, 7));
 
         try {
             await app.database.transaction(async (trx: any) => {
+                const currentDate = new Date();
+                if(currentDate < initialDate) throw "NOT_CURRENT_DATE";
+
                 const data = await app.database("payment")
                     .where((builder: any) => {
                         if (category) builder.where("category", category);
@@ -194,7 +203,8 @@ module.exports = ((app: any) => {
                 .then((response: any) => res.status(200).send(response));
         }
         catch (error: any) {
-            res.status(500).send("Erro interno. Contate o administrador do sistema.");
+            if(error === "NOT_CURRENT_DATE") return res.status(404).send("Não é possível registrar gastos para o mês seguinte.")
+            else res.status(500).send("Erro interno. Contate o administrador do sistema.");
         }
     }
 
