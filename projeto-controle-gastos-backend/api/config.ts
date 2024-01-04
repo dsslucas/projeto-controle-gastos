@@ -106,6 +106,8 @@ module.exports = (app: any) => {
         const { id } = req.params;
         const { values } = req.body;
 
+        if(values === undefined || values === null || values === "") return res.status(404).send("Os valores não foram informados.")
+
         try {
             await app.database.transaction(async (trx: any) => {
                 if (values.length === 0) throw "NO_ENTRIES"
