@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Title from "../text/Title";
 import Button from "../button/Button";
 
@@ -7,7 +7,7 @@ const Navbar = (props: any) => {
 
     return (
         <>
-            <nav className="w-full flex xs:justify-between">
+            <nav className="w-full flex xs:justify-between lg:items-center">
                 <section className="MOBILE-MENU flex lg:hidden">
                     <div
                         className="HAMBURGER-ICON space-y-2"
@@ -37,7 +37,7 @@ const Navbar = (props: any) => {
                             </svg>
                         </div>
                         <ul className="MENU-LINK-MOBILE-OPEN flex flex-col items-center justify-between min-h-[250px]">
-                            <li className="border-b border-gray-400 my-8 uppercase xs:flex sm:flex">
+                            <li className="border-b border-gray-400 my-8 uppercase xs:flex sm:flex md:flex lg:hidden">
                                 {/* <a href="/about">Aboutaaaaaaaaaa</a> */}
                                 <Button type="button" content="Dashboard" color="" returnClick={() => {
                                     setIsNavOpen(false);
@@ -62,15 +62,18 @@ const Navbar = (props: any) => {
                 </section>
 
                 <Title title="Controle de Gastos" />
-                { }                <ul className="DESKTOP-MENU xs:hidden xl:flex space-x-8 lg:flex">
+                <ul className="DESKTOP-MENU xs:hidden xl:flex space-x-8 lg:flex">
                     <li>
-                        <a href="/about">About</a>
+                        <Button type="button" content="Configurações" color="" returnClick={() => {
+                            setIsNavOpen(false);
+                            props.clickButtonConfig();
+                        }} />
                     </li>
                     <li>
-                        <a href="/portfolio">Portfolio</a>
-                    </li>
-                    <li>
-                        <a href="/contact">Contact</a>
+                        <Button type="button" content="Registrar" color="" returnClick={() => {
+                            setIsNavOpen(false);
+                            props.clickButtonRegister();
+                        }} />
                     </li>
                 </ul>
             </nav>
