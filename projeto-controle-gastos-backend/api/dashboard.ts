@@ -140,14 +140,14 @@ module.exports = ((app: any) => {
     const getDashboard = async (req: any, res: any) => {
         const { date } = req.query;
 
-        if(date === "" || date === undefined || date === null) return res.status(404).send("A data para consulta não foi informada.")
+        if (date === "" || date === undefined || date === null) return res.status(404).send("A data para consulta não foi informada.")
 
         const { initialDate, finalDate } = globalFunctions.getBetweenDates(date);
 
         try {
             await app.database.transaction(async (trx: any) => {
                 const currentDate = new Date();
-                if(currentDate < initialDate) throw "NOT_CURRENT_DATE";
+                if (currentDate < initialDate) throw "NOT_CURRENT_DATE";
 
                 const totalEntries = await app.database("config as c")
                     .join("config_entries as ce", "c.id", "ce.idConfig")
@@ -184,24 +184,27 @@ module.exports = ((app: any) => {
 
                             const availableValue = globalFunctions.formatMoney(dataLastMonth.available.value);
 
-                            //Create new config for month
-                            const idConfig = await app.database("config")
-                                .insert({
-                                    date: new Date(date)
-                                })
-                                .returning("id")
-                                .transacting(trx)
+                            if (availableValue != 0) {
+                                //Create new config for month
+                                const idConfig = await app.database("config")
+                                    .insert({
+                                        date: new Date(date)
+                                    })
+                                    .returning("id")
+                                    .transacting(trx)
 
-                            // // Set remain value
-                            await app.database("config_entries")
-                                .insert({
-                                    idConfig: idConfig[0].id,
-                                    description: "Valor do mês anterior",
-                                    value: availableValue
-                                })
-                                .transacting(trx)
+                                // // Set remain value
+                                await app.database("config_entries")
+                                    .insert({
+                                        idConfig: idConfig[0].id,
+                                        description: "Valor do mês anterior",
+                                        value: availableValue
+                                    })
+                                    .transacting(trx)
 
-                            return availableValue
+                                return availableValue
+                            }
+                            else return 0;                            
                         }
                         else return value;
                     })
@@ -215,7 +218,7 @@ module.exports = ((app: any) => {
                 })
         }
         catch (error: any) {
-            if(error === "NOT_CURRENT_DATE") return res.status(404).send("Não é possível consultar os dados de meses seguintes.")
+            if (error === "NOT_CURRENT_DATE") return res.status(404).send("Não é possível consultar os dados de meses seguintes.")
             else return res.status(500).send("Não foi possível consultar os dados do dashboard. Contate o administrador do sistema.")
         }
     }
