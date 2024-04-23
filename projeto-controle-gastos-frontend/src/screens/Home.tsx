@@ -103,7 +103,9 @@ const Home = (props: any) => {
                 date: date
             }
         })
-            .then((response: any) => setDataApiDashboard(response.data))
+            .then((response: any) => {
+                setDataApiDashboard(response.data)
+            })                
             .catch((error: any) => {
                 Alert({
                     text: error.response.data,

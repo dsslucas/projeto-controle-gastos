@@ -60,7 +60,7 @@ module.exports = ((app: any) => {
 
                         const valueAvaliable = entries - expenses;
 
-                        return {
+                        const teste = {
                             total: entries.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' }),
                             available: {
                                 value: valueAvaliable.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' }),
@@ -123,6 +123,8 @@ module.exports = ((app: any) => {
                                 }
                             }
                         }
+
+                        return teste;
                     })
             })
                 .then((response: any) => {
@@ -160,53 +162,8 @@ module.exports = ((app: any) => {
                         response.forEach((element: any) => {
                             value += element.value;
                         })
-
-                        if (value === 0) {
-                            // Investigate if remains values of last month
-                            const string = anoMesAnterior(date)
-                            const initialDateLastYearMonth = globalFunctions.getBetweenDates(string).initialDate;
-                            const finalDateLastYearMonth = globalFunctions.getBetweenDates(string).finalDate;
-
-                            const remainEntriesLastMonth = await app.database("config as c")
-                                .join("config_entries as ce", "c.id", "ce.idConfig")
-                                .where("c.date", ">=", initialDateLastYearMonth)
-                                .where("c.date", "<", finalDateLastYearMonth)
-                                .transacting(trx)
-                                .then((secondResponse: any) => {
-                                    var entriesLastMonth = 0;
-                                    secondResponse.forEach((element: any) => {
-                                        entriesLastMonth += element.value;
-                                    })
-                                    return entriesLastMonth;
-                                })
-
-                            var dataLastMonth = await getDashData(remainEntriesLastMonth, initialDateLastYearMonth, finalDateLastYearMonth)
-
-                            const availableValue = globalFunctions.formatMoney(dataLastMonth.available.value);
-
-                            if (availableValue != 0) {
-                                //Create new config for month
-                                const idConfig = await app.database("config")
-                                    .insert({
-                                        date: new Date(date)
-                                    })
-                                    .returning("id")
-                                    .transacting(trx)
-
-                                // // Set remain value
-                                await app.database("config_entries")
-                                    .insert({
-                                        idConfig: idConfig[0].id,
-                                        description: "Valor do mês anterior",
-                                        value: availableValue
-                                    })
-                                    .transacting(trx)
-
-                                return availableValue
-                            }
-                            else return 0;                            
-                        }
-                        else return value;
+                        
+                        return value;                       
                     })
 
                 var data = await getDashData(totalEntries, initialDate, finalDate)
