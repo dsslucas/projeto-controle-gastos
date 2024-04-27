@@ -283,8 +283,7 @@ const Home = (props: any) => {
     }
 
     return (
-        <main className="flex flex-col xs:overflow-x-hidden xl:h-screen xl:overflow-hidden bg-gray-300">
-
+        <>
             {showModalConfig && (
                 <ModalConfig
                     returnClick={() => {
@@ -380,7 +379,7 @@ const Home = (props: any) => {
                     </div>
                 </div>
             </section>
-        </main>
+        </>
     )
 }
 
