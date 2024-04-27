@@ -17,6 +17,7 @@ import Navbar from "../components/navbar/Navbar";
 import ModalDashboard from "../components/modal/ModalDashboard";
 import api from "../api/api";
 import Alert from "../components/alert/Alert";
+import Button from "../components/button/Button";
 //import { io } from "socket.io-client";
 
 const Home = (props: any) => {
@@ -33,7 +34,7 @@ const Home = (props: any) => {
     const [currentSeconds, setCurrentSeconds] = useState<String>();
 
     const [maxYear, setMaxYear] = useState<String>();
-    const [maxMonth, setMaxMonth] = useState<String>();   
+    const [maxMonth, setMaxMonth] = useState<String>();
 
     const [idSelected, setIdSelected] = useState<number>();
     const [searchString, setSearchString] = useState("");
@@ -65,7 +66,7 @@ const Home = (props: any) => {
 
         // Renderize API info
         getData("", "", `${year}-${month}`);
-        getDashboardData(`${year}-${month}`);       
+        getDashboardData(`${year}-${month}`);
 
         // const socket = io(`ws://${window.location.hostname}:3003`, {
         //     reconnectionDelayMax: 10000
@@ -105,7 +106,7 @@ const Home = (props: any) => {
         })
             .then((response: any) => {
                 setDataApiDashboard(response.data)
-            })                
+            })
             .catch((error: any) => {
                 Alert({
                     text: error.response.data,
@@ -310,7 +311,7 @@ const Home = (props: any) => {
                     currentYear={currentYear}
                     currentHour={currentHour}
                     currentMinutes={currentMinutes}
-                    returnClick={() => {                        
+                    returnClick={() => {
                         setShowModalRegister(false);
                         setIdSelected(undefined);
                         getData("", "", `${currentYear}-${currentMonth}`);
@@ -331,17 +332,24 @@ const Home = (props: any) => {
                     returnClick={() => setShowModalDashboard(false)}
                 />
             )}
-            
-            <header className="flex xs:items-center xs:justify-start xs:h-12 xl:flex-row xl:justify-between xl:items-center bg-gray-800 text-white p-1">
-                <Navbar
-                    clickButtonConfig={() => setShowModalConfig(true)}
-                    clickButtonRegister={checkRegisterPossible}
-                    clickButtonDashboard={() => setShowModalDashboard(true)}
-                />
-            </header>
 
-            <section className="flex xl:flex-row gap-2 px-1 p-1">
-                <Subtitle subtitle={`Mês de atuação: ${currentMonth}/${currentYear}`} />
+            <section className="flex xs:flex-col lg:flex-row items-center justify-between xl:flex-row gap-2 px-1 p-1">
+                <div>
+                    <Subtitle subtitle={`Mês de atuação: ${currentMonth}/${currentYear}`} />
+                </div>
+                <div className="flex gap-2">
+                    <div className="xl:hidden">
+                        <Button type="button" content="Dashboard" color="bg-blue-500" registerConfig returnClick={() => {
+                            setShowModalDashboard(true)
+                        }} />
+                    </div>
+                    <Button type="button" content="Configurações" color="bg-sky-500" registerConfig returnClick={() => {
+                        setShowModalConfig(true)
+                    }} />
+                    <Button type="button" content="Registrar" color="bg-green-500" registerConfig returnClick={() => {
+                        checkRegisterPossible()
+                    }} />
+                </div>
             </section>
 
             <section className="flex xl:flex-row gap-2 xl:h-[90%] px-1 p-1">

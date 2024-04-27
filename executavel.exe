@@ -1,0 +1,4 @@
+@echo off
+cd C:\Projetos\Pessoal\projeto-controle-gastos\projeto-controle-gastos-backend
+npm start
+pause

@@ -234,7 +234,7 @@ const ModalRegister = (props: any) => {
                                 )}
                             </div>
                             {/*footer*/}
-                            <div className="flex items-center justify-end p-6 border-t border-solid border-blueGray-200 rounded-b">
+                            <div className="flex items-center justify-end p-6 border-t border-solid border-blueGray-200 rounded-b gap-2">
                                 <Button type="button" content="Sair" color="bg-red-500" returnClick={() => props.returnClick()} />
                                 <Button type="submit" content="Salvar" color="bg-green-500" returnClick={() => null} />
                             </div>
