@@ -4,6 +4,7 @@ const Report = (props: any) => {
     return (
         <>
             <h1>Report</h1>
+            
         </>
     )
 }

@@ -163,10 +163,19 @@ module.exports = ((app: any) => {
 
     const getPayments = async (req: any, res: any) => {
         const { category, paymentMethod, date } = req.query;
+        const dateReported = date !== "";
 
-        if(date === "" || date === undefined || date === null) return res.status(404).send("A data para consulta não foi informada.")
+        console.log("DATA PASSADA? ", dateReported)
 
-        const { initialDate, finalDate } = globalFunctions.getBetweenDates(date.substring(0, 7));
+        //if(date === "" || date === undefined || date === null) return res.status(404).send("A data para consulta não foi informada.")
+        var initialDate = null;
+        var finalDate = null;
+
+        if(dateReported){
+            const { initialDate: startDate, finalDate: endDate } = globalFunctions.getBetweenDates(date.substring(0, 7));
+            initialDate = startDate;
+            finalDate = endDate;
+        }        
 
         try {
             await app.database.transaction(async (trx: any) => {
@@ -178,9 +187,11 @@ module.exports = ((app: any) => {
                         if (category) builder.where("category", category);
                         else if (paymentMethod) builder.where("paymentMethod", paymentMethod);
                         else builder.whereNotNull('category')
+
+                        if(dateReported){
+                            builder.where("date", ">=", initialDate).where("date", "<", finalDate);
+                        }
                     })
-                    .where("date", ">=", initialDate)
-                    .where("date", "<", finalDate)
                     .orderBy("date", "asc")
                     .transacting(trx)
                     .then((response: any) => {
@@ -203,6 +214,7 @@ module.exports = ((app: any) => {
                 .then((response: any) => res.status(200).send(response));
         }
         catch (error: any) {
+            console.error(error)
             if(error === "NOT_CURRENT_DATE") return res.status(404).send("Não é possível registrar gastos para o mês seguinte.")
             else res.status(500).send("Erro interno. Contate o administrador do sistema.");
         }

@@ -12,7 +12,7 @@ function App() {
         <header className="flex xs:items-center xs:justify-start xs:h-12 xl:flex-row xl:justify-between xl:items-center bg-gray-800 text-white p-1">
           <Navbar />
         </header>
-        <main className='className="flex flex-col xs:overflow-x-hidden xl:h-screen xl:overflow-hidden bg-gray-300"'>
+        <main className="flex flex-col xs:overflow-x-hidden xl:h-screen xl:overflow-hidden bg-gray-300 px-2">
           <Router />
         </main>
         
