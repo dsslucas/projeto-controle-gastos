@@ -332,7 +332,7 @@ const Home = (props: any) => {
                 />
             )}
 
-            <section className="flex xs:flex-col lg:flex-row items-center justify-between xl:flex-row gap-2 px-1 p-1">
+            <section className="flex xs:flex-col lg:flex-row items-center justify-between xl:flex-row gap-2">
                 <div>
                     <Subtitle subtitle={`Mês de atuação: ${currentMonth}/${currentYear}`} />
                 </div>
@@ -351,7 +351,7 @@ const Home = (props: any) => {
                 </div>
             </section>
 
-            <section className="flex xl:flex-row gap-2 xl:h-[90%] px-1 p-1">
+            <section className="flex xl:flex-row gap-2 xl:h-[90%]">
                 <div className="lg:w-[20%] xl:w-[30%] flex flex-col gap-2 xs:hidden sm:hidden md:hidden lg:flex lg:h-[100%]">
                     {dashboardData()}
                 </div>
