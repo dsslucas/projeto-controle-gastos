@@ -5,9 +5,11 @@ import Title from "../components/text/Title";
 import api from "../api/api";
 import Alert from "../components/alert/Alert";
 import Button from "../components/button/Button";
+import ModalRegisterInvestment from "../components/modal/ModalRegisterInvestment";
 
 const Investments = (props: any) => {
     const [dataApiPayment, setDataApiPayment] = useState<any>();
+    const [showModalRegisterInvestment, setShowModalRegisterInvestment] = useState(false);
 
     useEffect(() => {
         getData("Investimentos", "", "");
@@ -33,11 +35,19 @@ const Investments = (props: any) => {
 
     return (
         <>
+            {showModalRegisterInvestment && (
+                <ModalRegisterInvestment 
+                    returnClick={() => setShowModalRegisterInvestment(false)}
+                />
+            )}
             <section className="flex justify-between my-1">
                 <div className="flex">
                     <Title title="Investimentos" />
                 </div>
-                <div>
+                <div className="flex gap-2">
+                    <Button type="button" content="Cadastrar" color="bg-green-500 text-white" returnClick={() => {
+                        setShowModalRegisterInvestment(true);
+                    }} />
                     <Button type="button" content="Resgatar" color="bg-red-500 text-white" returnClick={() => {
 
                     }} />
@@ -49,28 +59,24 @@ const Investments = (props: any) => {
                 <CardDash
                     title="Total"
                     value={0}
-                    fullCard
                     color="bg-gray-300"
                     returnCardSelected={(value: string) => console.log(value)}
                 />
                 <CardDash
-                    title="Renda fixa"
+                    title="LCI/LCA"
                     value={0}
-                    fullCard
                     color="bg-gray-300"
                     returnCardSelected={(value: string) => console.log(value)}
                 />
                 <CardDash
-                    title="Porquinho Inter"
+                    title="CDB"
                     value={0}
-                    fullCard
                     color="bg-gray-300"
                     returnCardSelected={(value: string) => console.log(value)}
                 />
                 <CardDash
                     title="Poupança"
                     value={0}
-                    fullCard
                     color="bg-gray-300"
                     returnCardSelected={(value: string) => console.log(value)}
                 />

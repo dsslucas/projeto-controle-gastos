@@ -34,6 +34,23 @@ module.exports = ((app: any) => {
         if(!isFinite(number)) return 0.0;
         else return number;
     }
+
+    function calcDateDiff(data1: string, data2: string): number {
+        const umDia: number = 24 * 60 * 60 * 1000; // milissegundos em um dia
     
-    return { formatMoney, getBetweenDates, checkNumber }
+        // Convertendo as datas para objetos Date
+        const date1: Date = new Date(data1);
+        const date2: Date = new Date(data2);
+    
+        // Calculando a diferença em milissegundos entre as datas
+        const diferencaMilissegundos: number = Math.abs(date1.getTime() - date2.getTime());
+    
+        // Convertendo a diferença de milissegundos para dias e arredondando para baixo
+        const diferencaDias: number = Math.floor(diferencaMilissegundos / umDia);
+    
+        return diferencaDias;
+    }
+    
+    
+    return { formatMoney, getBetweenDates, checkNumber, calcDateDiff }
 })

@@ -2,6 +2,7 @@ module.exports = (app: any) => {
     const dashboard = app.api.dashboard;
     const config = app.api.config;
     const payment = app.api.payment;
+    const investment = app.api.investment;
 
     app.route("/dashboard")
         .get(dashboard.getDashboard)
@@ -23,4 +24,7 @@ module.exports = (app: any) => {
     app.route("/payment/:id")
         .get(payment.getPayment)
         .patch(payment.editPayment)
+
+    app.route("/investment/test")
+        .get(investment.testeInvestimento)
 }

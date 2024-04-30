@@ -13,7 +13,6 @@ import ModalConfig from "../components/modal/ModalConfig";
 import ModalRegister from "../components/modal/ModalRegister";
 import ModalView from "../components/modal/ModalView";
 import Input from "../components/input/Input";
-import Navbar from "../components/navbar/Navbar";
 import ModalDashboard from "../components/modal/ModalDashboard";
 import api from "../api/api";
 import Alert from "../components/alert/Alert";
