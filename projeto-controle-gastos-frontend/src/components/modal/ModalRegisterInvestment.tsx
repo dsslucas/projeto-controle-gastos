@@ -9,6 +9,7 @@ import Alert from "../alert/Alert";
 import globalFunctions from "../../global/functions";
 
 const ModalRegisterInvestment = (props: any) => {
+    const {options} = props;
     const [dadosForm, setDadosForm] = useState<Object>({
 
     });
@@ -44,21 +45,20 @@ const ModalRegisterInvestment = (props: any) => {
                                     <Label label="Categoria" />
                                     <Select
                                         name="category"
-                                        options={
-                                            [{
-                                                value: 1,
-                                                text: "CDB"
-                                            },
-                                            {
-                                                value: 2,
-                                                text: "LCI/LCA"
-                                            },
-                                            {
-                                                value: 3,
-                                                text: "Poupança"
-                                            }]
-                                        }
+                                        options={options}
                                         returnSelect={(name: string, value: number) => console.log(`${name} - ${value}`)}
+                                    />
+                                </div>
+                                <div className="flex">
+                                    <Label label="Valor inicial" />
+                                    <Input
+                                        type="text"
+                                        name="value"
+                                        placeholder="Insira o valor"
+                                        inputMode="numeric"
+                                        mask="money"
+                                        returnInput={(name: string, value: string) => console.log(name, value)}
+                                        required
                                     />
                                 </div>                                
                                 <div className="flex">
@@ -76,7 +76,7 @@ const ModalRegisterInvestment = (props: any) => {
                                         type="date"
                                         name="initialDate"
                                         placeholder="Insira a data"
-
+                                        required
                                     />
                                 </div>
                                 <div className="flex">
@@ -85,6 +85,7 @@ const ModalRegisterInvestment = (props: any) => {
                                         type="date"
                                         name="finalDate"
                                         placeholder="Insira a data"
+                                        required
                                     />
                                 </div>
                                 <div className="flex">

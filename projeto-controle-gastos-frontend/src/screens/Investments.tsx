@@ -6,10 +6,25 @@ import api from "../api/api";
 import Alert from "../components/alert/Alert";
 import Button from "../components/button/Button";
 import ModalRegisterInvestment from "../components/modal/ModalRegisterInvestment";
+import ModalRescueInvestment from "../components/modal/ModalRescueInvestment";
 
 const Investments = (props: any) => {
     const [dataApiPayment, setDataApiPayment] = useState<any>();
     const [showModalRegisterInvestment, setShowModalRegisterInvestment] = useState(false);
+    const [showModalRescueInvestment, setShowModalRescueInvestment] = useState(false);
+
+    const optionsInvestments = [{
+        value: 1,
+        text: "CDB"
+    },
+    {
+        value: 2,
+        text: "LCI/LCA"
+    },
+    {
+        value: 3,
+        text: "Poupança"
+    }];
 
     useEffect(() => {
         getData("Investimentos", "", "");
@@ -36,8 +51,15 @@ const Investments = (props: any) => {
     return (
         <>
             {showModalRegisterInvestment && (
-                <ModalRegisterInvestment 
+                <ModalRegisterInvestment
+                    options={optionsInvestments}
                     returnClick={() => setShowModalRegisterInvestment(false)}
+                />
+            )}
+            {showModalRescueInvestment && (
+                <ModalRescueInvestment
+                    options={optionsInvestments}
+                    returnClick={() => setShowModalRescueInvestment(false)}
                 />
             )}
             <section className="flex justify-between my-1">
@@ -49,7 +71,7 @@ const Investments = (props: any) => {
                         setShowModalRegisterInvestment(true);
                     }} />
                     <Button type="button" content="Resgatar" color="bg-red-500 text-white" returnClick={() => {
-
+                        setShowModalRescueInvestment(true)
                     }} />
                 </div>
             </section>
