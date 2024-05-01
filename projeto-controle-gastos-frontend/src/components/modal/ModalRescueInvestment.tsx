@@ -10,7 +10,6 @@ import globalFunctions from "../../global/functions";
 import Text from "../text/Text";
 
 const ModalRescueInvestment = (props: any) => {
-    const { options } = props;
     const [dadosForm, setDadosForm] = useState<Object>({
 
     });

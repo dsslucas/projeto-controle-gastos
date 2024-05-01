@@ -7,9 +7,10 @@ import Select from "../select/Select";
 import api from "../../api/api";
 import Alert from "../alert/Alert";
 import globalFunctions from "../../global/functions";
+import Text from "../text/Text";
 
 const ModalRegisterInvestment = (props: any) => {
-    const {options} = props;
+    const { options } = props;
     const [dadosForm, setDadosForm] = useState<Object>({
 
     });
@@ -30,7 +31,7 @@ const ModalRegisterInvestment = (props: any) => {
                             </div>
                             {/*body*/}
                             <div className="relative p-6 flex-auto flex flex-col gap-2">
-                            <div className="flex">
+                                <div className="flex">
                                     <Label label="Título" />
                                     <Input
                                         type="text"
@@ -60,16 +61,77 @@ const ModalRegisterInvestment = (props: any) => {
                                         returnInput={(name: string, value: string) => console.log(name, value)}
                                         required
                                     />
-                                </div>                                
-                                <div className="flex">
-                                    <Label label="Rentabilidade do CDI" />
-                                    <Input
-                                        type="number"
-                                        name="rentability"
-                                        placeholder="Insira a rentabilidade"
-
-                                    />
                                 </div>
+                                <div className="flex">
+                                    <Label label="Rentabilidade" />
+
+                                    <div className="w-full">
+                                        <label className="flex justify-center items-center gap-2">
+                                            <Input
+                                                type="checkbox"
+                                                name="cdi"
+                                                returnInput={(name: string, value: string) => console.log(name, value)}
+                                            />
+
+                                            <Text text="CDI" />
+
+                                            <Input
+                                                type="text"
+                                                name="rentabilidade_cdi"
+                                                placeholder="Insira o percentual"
+                                                inputMode="numeric"
+                                                mask="percentage"
+                                                returnInput={(name: string, value: string) => console.log(name, value)}
+                                                required
+                                            />
+                                        </label>
+
+                                        <label className="flex justify-center items-center gap-2">
+                                            <Input
+                                                type="checkbox"
+                                                name="IPCA"
+                                                returnInput={(name: string, value: string) => console.log(name, value)}
+                                            />
+
+                                            <Text text="IPCA" />
+                                        </label>
+                                        <label className="flex justify-center items-center gap-2">
+                                            <Input
+                                                type="checkbox"
+                                                name="taxa"
+                                                returnInput={(name: string, value: string) => console.log(name, value)}
+                                            />
+
+                                            <Text text="Taxa" />
+
+                                            <Input
+                                                type="text"
+                                                name="rentabilidade_taxa"
+                                                placeholder=""
+                                                required
+                                                inputMode="numeric"
+                                                mask="percentage"
+                                                returnInput={(name: string, value: string) => console.log(name, value)}
+                                            />
+
+                                            <Select
+                                                name="rentabilidade_taxa_seletor"
+                                                options={[
+                                                    {
+                                                        text: "a.a",
+                                                        value: "a.a"
+                                                    },
+                                                    {
+                                                        text: "a.m",
+                                                        value: "a.m"
+                                                    },
+                                                ]}
+                                                returnSelect={(name: string, value: number) => console.log(`${name} - ${value}`)}
+                                            />
+                                        </label>
+                                    </div>
+                                </div>
+
                                 <div className="flex">
                                     <Label label="Data inicial" />
                                     <Input

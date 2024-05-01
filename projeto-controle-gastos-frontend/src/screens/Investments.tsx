@@ -58,7 +58,6 @@ const Investments = (props: any) => {
             )}
             {showModalRescueInvestment && (
                 <ModalRescueInvestment
-                    options={optionsInvestments}
                     returnClick={() => setShowModalRescueInvestment(false)}
                 />
             )}
@@ -95,7 +94,7 @@ const Investments = (props: any) => {
                     value={0}
                     color="bg-gray-300"
                     returnCardSelected={(value: string) => console.log(value)}
-                />
+                />                
                 <CardDash
                     title="Poupança"
                     value={0}
