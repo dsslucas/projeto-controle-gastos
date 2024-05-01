@@ -11,12 +11,22 @@ import Text from "../text/Text";
 
 const ModalRegisterInvestment = (props: any) => {
     const { options } = props;
-    const [dadosForm, setDadosForm] = useState<Object>({
-
+    const [dadosForm, setDadosForm] = useState<any>({
+        title: "",
+        category: options[0].value.toString(),
+        initialValue: "",
+        initialDate: undefined,
+        finalDate: undefined,
+        observation: undefined
     });
+
+    const changeData = (name: string, valueChanged: any) => {
+        setDadosForm({ ...dadosForm, [name]: valueChanged });
+    }
 
     const handleSubmit = async (event: any) => {
         event.preventDefault();
+        props.sendData(dadosForm);
     }
 
     return (
@@ -37,8 +47,8 @@ const ModalRegisterInvestment = (props: any) => {
                                         type="text"
                                         name="title"
                                         placeholder="Insira o título"
-                                        // value={dadosForm.title}
-                                        // returnInput={(name: string, value: string) => changeData(name, value)}
+                                        value={dadosForm.title}
+                                        returnInput={(name: string, value: string) => changeData(name, value)}
                                         required
                                     />
                                 </div>
@@ -47,18 +57,19 @@ const ModalRegisterInvestment = (props: any) => {
                                     <Select
                                         name="category"
                                         options={options}
-                                        returnSelect={(name: string, value: number) => console.log(`${name} - ${value}`)}
+                                        returnSelect={(name: string, value: number) => changeData(name, value)}
                                     />
                                 </div>
                                 <div className="flex">
                                     <Label label="Valor inicial" />
                                     <Input
                                         type="text"
-                                        name="value"
+                                        name="initialValue"
                                         placeholder="Insira o valor"
                                         inputMode="numeric"
                                         mask="money"
-                                        returnInput={(name: string, value: string) => console.log(name, value)}
+                                        value={dadosForm.initialValue}
+                                        returnInput={(name: string, value: string) => changeData(name, value)}
                                         required
                                     />
                                 </div>
@@ -138,6 +149,7 @@ const ModalRegisterInvestment = (props: any) => {
                                         type="date"
                                         name="initialDate"
                                         placeholder="Insira a data"
+                                        returnInput={(name: string, value: string) => changeData(name, value)}
                                         required
                                     />
                                 </div>
@@ -147,6 +159,7 @@ const ModalRegisterInvestment = (props: any) => {
                                         type="date"
                                         name="finalDate"
                                         placeholder="Insira a data"
+                                        returnInput={(name: string, value: string) => changeData(name, value)}
                                         required
                                     />
                                 </div>
@@ -155,6 +168,7 @@ const ModalRegisterInvestment = (props: any) => {
                                     <Input
                                         type="text"
                                         name="observation"
+                                        returnInput={(name: string, value: string) => changeData(name, value)}
                                     />
                                 </div>
                             </div>

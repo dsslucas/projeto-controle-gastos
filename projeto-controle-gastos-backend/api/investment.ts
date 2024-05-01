@@ -38,8 +38,23 @@ module.exports = ((app: any) => {
     // VALOR
     // IOF
     // DATA RESGATE
+    
+    // RENDIMENTO
+    // ID
+    // ID INVESTIMENTO
+    // NOME
+    // PERCENTUAL (NÃO OBRIGATÓRIO)
     // 
 
+    const createInvestment = async (req: any, res: any) => {
+
+        try {
+            res.status(200).send("Deu bom")
+        }
+        catch (e: any){
+            res.status(400).send("Deu ruim")
+        }        
+    }
 
     const testeInvestimento = async (req: any, res: any) => {
         var valorInicialInvestimento = 520.41;
@@ -136,5 +151,5 @@ module.exports = ((app: any) => {
     }
     */
 
-    return { testeInvestimento }
+    return { testeInvestimento, createInvestment }
 })

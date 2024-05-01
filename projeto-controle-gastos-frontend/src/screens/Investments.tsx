@@ -30,6 +30,28 @@ const Investments = (props: any) => {
         getData("Investimentos", "", "");
     }, []);
 
+    // POST INVESTMENT
+    const createInvestment = async (response: any) => {
+        console.log(response)
+
+        await api.post("/investment", response)
+            .then((response: any) => {
+                console.log(response.data)
+                Alert({
+                    text: response.data,
+                    icon: "success",
+                    callback: setShowModalRegisterInvestment(false)
+                });
+            })
+            .catch((error: any) => {
+                console.error(error)
+                Alert({
+                    text: error.response.data,
+                    icon: "error"
+                });
+            })
+    }
+
     const getData = async (category: string, paymentMethod: string, date: string) => {
         console.log("O QUE ESTOU RECEBENDO: ", date)
         await api.get("/payment", {
@@ -53,6 +75,7 @@ const Investments = (props: any) => {
             {showModalRegisterInvestment && (
                 <ModalRegisterInvestment
                     options={optionsInvestments}
+                    sendData={(data: any) => createInvestment(data)}
                     returnClick={() => setShowModalRegisterInvestment(false)}
                 />
             )}
@@ -94,7 +117,7 @@ const Investments = (props: any) => {
                     value={0}
                     color="bg-gray-300"
                     returnCardSelected={(value: string) => console.log(value)}
-                />                
+                />
                 <CardDash
                     title="Poupança"
                     value={0}
