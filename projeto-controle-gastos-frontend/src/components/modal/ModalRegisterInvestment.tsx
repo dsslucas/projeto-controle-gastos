@@ -1,12 +1,9 @@
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import Subtitle from "../text/Subtitle";
 import Button from "../button/Button";
 import Input from "../input/Input";
 import Label from "../text/Label";
 import Select from "../select/Select";
-import api from "../../api/api";
-import Alert from "../alert/Alert";
-import globalFunctions from "../../global/functions";
 import Text from "../text/Text";
 
 const ModalRegisterInvestment = (props: any) => {
@@ -17,16 +14,63 @@ const ModalRegisterInvestment = (props: any) => {
         initialValue: "",
         initialDate: undefined,
         finalDate: undefined,
-        observation: undefined
+        observation: undefined,
+
+        rentability: [
+            {
+                name: "CDI",
+                percentage: "",
+                type: null,
+                checked: false,
+            },
+            {
+                name: "LCI/LCA",
+                percentage: "",
+                type: null,
+                checked: false,
+            },
+            {
+                name: "tax",
+                percentage: "",
+                type: "a.a",
+                checked: false,
+            }
+        ]
     });
 
     const changeData = (name: string, valueChanged: any) => {
-        setDadosForm({ ...dadosForm, [name]: valueChanged });
+        if (name.startsWith("rentability")) {
+            console.log(name, valueChanged)
+            const rentabilityIndex = parseInt(name.split("-")[1]);
+            const updatedRentability = [...dadosForm.rentability];
+            updatedRentability[rentabilityIndex] = {
+                ...updatedRentability[rentabilityIndex],
+                [valueChanged.name]: valueChanged.value
+            };
+    
+            setDadosForm({
+                ...dadosForm,
+                rentability: updatedRentability
+            });
+        } else {
+            setDadosForm({ ...dadosForm, [name]: valueChanged });
+        }
     }
 
     const handleSubmit = async (event: any) => {
         event.preventDefault();
-        props.sendData(dadosForm);
+
+        console.log(dadosForm.rentability.some((element: any) => element.checked))
+
+        if(!dadosForm.rentability.some((element: any) => element.checked)){           
+            props.returnAlert({
+                text: "Selecione ao menos um modo de rentabilidade.",
+                icon: "error"
+            });
+        }
+        else {
+            props.sendData(dadosForm);
+        }        
     }
 
     return (
@@ -81,19 +125,20 @@ const ModalRegisterInvestment = (props: any) => {
                                             <Input
                                                 type="checkbox"
                                                 name="cdi"
-                                                returnInput={(name: string, value: string) => console.log(name, value)}
+                                                returnInput={(name: string, value: boolean) => changeData("rentability-0", { name: "checked", value })}
                                             />
 
                                             <Text text="CDI" />
 
                                             <Input
                                                 type="text"
-                                                name="rentabilidade_cdi"
+                                                name="cdi"
                                                 placeholder="Insira o percentual"
                                                 inputMode="numeric"
                                                 mask="percentage"
-                                                returnInput={(name: string, value: string) => console.log(name, value)}
-                                                required
+                                                value={dadosForm.rentability[0].percentage}
+                                                returnInput={(name: string, value: string) => changeData("rentability-0", { name: "percentage", value })}
+                                                required={dadosForm.rentability[0].checked}
                                             />
                                         </label>
 
@@ -101,32 +146,34 @@ const ModalRegisterInvestment = (props: any) => {
                                             <Input
                                                 type="checkbox"
                                                 name="IPCA"
-                                                returnInput={(name: string, value: string) => console.log(name, value)}
+                                                returnInput={(name: string, value: boolean) => changeData("rentability-1", { name: "checked", value })}
                                             />
 
                                             <Text text="IPCA" />
                                         </label>
+
                                         <label className="flex justify-center items-center gap-2">
                                             <Input
                                                 type="checkbox"
                                                 name="taxa"
-                                                returnInput={(name: string, value: string) => console.log(name, value)}
+                                                returnInput={(name: string, value: boolean) => changeData("rentability-2", { name: "checked", value })}
                                             />
 
                                             <Text text="Taxa" />
 
                                             <Input
                                                 type="text"
-                                                name="rentabilidade_taxa"
+                                                name="tax"
                                                 placeholder=""
-                                                required
                                                 inputMode="numeric"
                                                 mask="percentage"
-                                                returnInput={(name: string, value: string) => console.log(name, value)}
+                                                value={dadosForm.rentability[2].percentage}
+                                                returnInput={(name: string, value: string) => changeData("rentability-2", { name: "percentage", value })}
+                                                required={dadosForm.rentability[2].checked}
                                             />
 
                                             <Select
-                                                name="rentabilidade_taxa_seletor"
+                                                name="tax_type"
                                                 options={[
                                                     {
                                                         text: "a.a",
@@ -137,7 +184,7 @@ const ModalRegisterInvestment = (props: any) => {
                                                         value: "a.m"
                                                     },
                                                 ]}
-                                                returnSelect={(name: string, value: number) => console.log(`${name} - ${value}`)}
+                                                returnSelect={(name: string, value: number) => changeData("rentability-2", { name: "type", value })}
                                             />
                                         </label>
                                     </div>

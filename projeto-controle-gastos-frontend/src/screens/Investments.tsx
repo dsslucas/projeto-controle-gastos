@@ -77,6 +77,7 @@ const Investments = (props: any) => {
                     options={optionsInvestments}
                     sendData={(data: any) => createInvestment(data)}
                     returnClick={() => setShowModalRegisterInvestment(false)}
+                    returnAlert={(alert: any) => Alert(alert)}
                 />
             )}
             {showModalRescueInvestment && (

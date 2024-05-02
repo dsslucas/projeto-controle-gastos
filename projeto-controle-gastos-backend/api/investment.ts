@@ -47,7 +47,7 @@ module.exports = ((app: any) => {
     // 
 
     const createInvestment = async (req: any, res: any) => {
-
+        console.log(req.body)
         try {
             res.status(200).send("Deu bom")
         }
