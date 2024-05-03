@@ -40,7 +40,8 @@ const Investments = (props: any) => {
                 Alert({
                     text: response.data,
                     icon: "success",
-                    callback: setShowModalRegisterInvestment(false)
+                    //callback: setShowModalRegisterInvestment(false)
+                    callback: null
                 });
             })
             .catch((error: any) => {
