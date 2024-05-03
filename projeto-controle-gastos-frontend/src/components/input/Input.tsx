@@ -10,6 +10,7 @@ const Input = (props: any) => {
     const inputMode = props.inputMode;
     const mask = props.mask;
     const disabled = props.disabled || false;
+    const min = props.min;
     const max = props.max;
 
     function checkField(name: string, value: string, checked: boolean) {
@@ -59,6 +60,7 @@ const Input = (props: any) => {
         required={required}
         value={value}
         disabled={disabled}
+        min={min}
         max={max}
     />
 }

@@ -48,6 +48,46 @@ module.exports = ((app: any) => {
 
     const createInvestment = async (req: any, res: any) => {
         console.log(req.body)
+        const {title, category, initialValue, initialDate, finalDate, rentability} = req.body;
+
+        if(title === null || title === undefined || title === ""){
+            return res.status(404).send("Informe o título do investimento.");
+        }
+
+        if(category === null || category === undefined || category === ""){
+            return res.status(404).send("Informe a categoria do investimento.");
+        }
+
+        if(!Array.isArray(rentability) || rentability == null || rentability == undefined || rentability.length == 0){
+            return res.status(404).send("Rentabilidade não informada.");
+        }
+
+        if(Array.isArray(rentability) && rentability.length > 0){
+            if(!rentability.some((element: any) => element.checked)){
+                return res.status(404).send("Selecione ao menos um modo de rentabilidade.");
+            }
+            
+            else if(rentability.some(item => {return item.checked && (item.percentage === '' || item.percentage === '%') && item.name !== 'IPCA'})){
+                return res.status(404).send("É necessário informar o percentual para a rentabilidade.");
+            }            
+        }
+
+        if(initialDate === null || initialDate === undefined || initialDate === ""){
+            return res.status(404).send("Informe a data inicial do investimento.");
+        }
+
+        if(finalDate === null || finalDate === undefined || finalDate === ""){
+            return res.status(404).send("Informe a data final do investimento.");
+        }
+
+        if(new Date(initialDate) > new Date(finalDate)){
+            return res.status(404).send("A data inicial deste investimento não pode ser maior que a data final.");
+        }
+
+
+
+        
+
         try {
             res.status(200).send("Deu bom")
         }

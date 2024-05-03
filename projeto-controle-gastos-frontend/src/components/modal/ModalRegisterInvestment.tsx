@@ -24,7 +24,7 @@ const ModalRegisterInvestment = (props: any) => {
                 checked: false,
             },
             {
-                name: "LCI/LCA",
+                name: "IPCA",
                 percentage: "",
                 type: null,
                 checked: false,
@@ -59,8 +59,6 @@ const ModalRegisterInvestment = (props: any) => {
 
     const handleSubmit = async (event: any) => {
         event.preventDefault();
-
-        console.log(dadosForm.rentability.some((element: any) => element.checked))
 
         if(!dadosForm.rentability.some((element: any) => element.checked)){           
             props.returnAlert({
@@ -207,7 +205,8 @@ const ModalRegisterInvestment = (props: any) => {
                                         name="finalDate"
                                         placeholder="Insira a data"
                                         returnInput={(name: string, value: string) => changeData(name, value)}
-                                        required
+                                        required                                        
+                                        min={dadosForm.initialDate}
                                     />
                                 </div>
                                 <div className="flex">
