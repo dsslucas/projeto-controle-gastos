@@ -27,6 +27,7 @@ module.exports = (app: any) => {
 
     app.route("/investment")
         .post(investment.createInvestment)
+        .get(investment.listInvestments)
 
     app.route("/investment/test")
         .get(investment.testeInvestimento)

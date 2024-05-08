@@ -52,7 +52,20 @@ const globalFunctions = () => {
             return parseFloat(numberFormatted);
         }
 
-    return {selectOptions, optionsPayment, formatMoney}
+        const optionsInvestments = [{
+            value: 1,
+            text: "CDB"
+        },
+        {
+            value: 2,
+            text: "LCI/LCA"
+        },
+        {
+            value: 3,
+            text: "Poupança"
+        }];
+
+    return {selectOptions, optionsPayment, optionsInvestments, formatMoney}
 }
 
 export default globalFunctions;

@@ -17,6 +17,7 @@ import ModalDashboard from "../components/modal/ModalDashboard";
 import api from "../api/api";
 import Alert from "../components/alert/Alert";
 import Button from "../components/button/Button";
+import globalFunctions from "../global/functions";
 //import { io } from "socket.io-client";
 
 const Home = (props: any) => {

@@ -21,30 +21,46 @@ module.exports = ((app: any) => {
         return valorIOF;
     }
 
-    // TABELA PARA REGISTRAR
-    // INVESTIMENTO
-    // NOME
-    // CATEGORIA (CDB, LCI/LCA)
-    // PERCENTUAL CDI
-    // DATA INICIAL
-    // DATA FINAL
-    // VALOR INICIAL
-    // VALOR BRUTO
-    // OBSERVACAO
-    // INVESTIMENTO COM RESGATE (BOOLEANO)
+    async function registerInvestment(id: any, title: string, category: string, initialValue: string, initialDate: string, finalDate:string, rentability: any, observation: string, trx: any){
+        var idInvestment = 0;
 
-    // RESGATE
-    // ID INVESTIMENTO
-    // VALOR
-    // IOF
-    // DATA RESGATE
+        if(id === null){
+            idInvestment = (await app.database("investments")
+            .insert({
+                name: title,
+                category: parseInt(category)
+            })
+            .returning("id")
+            .transacting(trx))[0].id;
 
-    // RENDIMENTO
-    // ID
-    // ID INVESTIMENTO
-    // NOME
-    // PERCENTUAL (NÃO OBRIGATÓRIO)
-    // 
+            console.log(idInvestment)
+        }
+        else {
+            idInvestment = id;
+        }
+
+        await app.database("investment")
+            .insert({
+                idInvestment: idInvestment,
+                initialValue: globalFunctions.formatMoney(initialValue),
+                initialDate: new Date(initialDate),
+                finalDate: new Date(finalDate),
+                observation: observation
+            })
+            .transacting(trx)
+
+        await rentability.forEach(async (element: any) => {
+            await app.database("investment_rentability")
+                .insert({
+                    idInvestment: idInvestment,
+                    name: element.name,
+                    checked: element.checked,
+                    type: element.type,
+                    percentage: element.percentage == "" ? 0 : globalFunctions.formatPercentage(element.percentage)
+                })
+                .transacting(trx)
+        })
+    }
 
     const createInvestment = async (req: any, res: any) => {
         console.log(req.body)
@@ -88,42 +104,53 @@ module.exports = ((app: any) => {
 
         try {
             await app.database.transaction(async (trx: any) => {
-                const idInvestment = await app.database("investments")
-                    .insert({
-                        name: title,
-                        category: parseInt(category),
-                        initialValue: globalFunctions.formatMoney(initialValue),
-                        initialDate: new Date(initialDate),
-                        finalDate: new Date(finalDate),
-                        observation: observation
-                    })
-                    .returning("id")
-                    .transacting(trx)
-
-                await rentabilityWithFilter.forEach(async (element: any) => {
-                    await app.database("investment_rentability")
-                        .insert({
-                            idInvestment: idInvestment[0].id,
-                            name: element.name,
-                            checked: element.checked,
-                            type: element.type,
-                            percentage: element.percentage == "" ? 0 : globalFunctions.formatPercentage(element.percentage)
-                        })
-                        .transacting(trx)
-                })
+                return registerInvestment(null, title, category, initialValue, initialDate, finalDate, rentability, observation, trx)
             })
                 .then((response: any) => res.status(200).send("Deu bom!"))
                 .catch((error: any) => {
                     console.error(error)
                     res.status(400).send("Não cadastrou.")
                 })
-
-
-
-
         }
         catch (e: any) {
             res.status(400).send("Deu ruim")
+        }
+    }
+
+    // Rentability investments
+    const rentabilityInvestments = async (idInvestment: number, trx: any) => {
+        return await app.database("investment_rentability")
+            .where({ idInvestment })
+            .transacting(trx)
+    }
+
+    // Investments list
+    const listInvestments = async (req: any, res: any) => {
+        try {
+            await app.database.transaction(async (trx: any) => {
+                return await app.database("investments")
+                    .distinct()
+                    .transacting(trx)
+                    .then((response: any) => {
+                        const returnData = [];
+                        response.forEach(async (element: any) => {
+                            returnData.push({
+                                ...element,
+                                rentability: await rentabilityInvestments(element.id, trx)
+                            })
+                        });
+
+                        return returnData
+                    })
+            })
+                .then((response: any) => res.status(200).send(response))
+                .catch((error: any) => {
+                    console.error(error)
+                    res.status(400).send("Erro ao buscar a lista de investimentos.")
+                })
+        }
+        catch (e: any) {
+            res.status(400).send("Erro ao buscar a lista de investimentos.")
         }
     }
 
@@ -222,5 +249,5 @@ module.exports = ((app: any) => {
     }
     */
 
-    return { testeInvestimento, createInvestment }
+    return { testeInvestimento, createInvestment, listInvestments }
 })

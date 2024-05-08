@@ -7,38 +7,62 @@ import Select from "../select/Select";
 import api from "../../api/api";
 import Alert from "../alert/Alert";
 import globalFunctions from "../../global/functions";
+import Text from "../text/Text";
 
 const ModalRegister = (props: any) => {
     const { currentDay, currentMonth, currentYear, currentHour, currentMinutes } = props;
 
-    const { selectOptions, optionsPayment } = globalFunctions();
+    const { selectOptions, optionsPayment, optionsInvestments } = globalFunctions();
     var [parcels, setParcels] = useState([
-        {value: 1,text: ""},
-        {value: 2, text: ""},
-        {value: 3, text: ""},
-        {value: 4, text: ""},
-        {value: 5, text: ""},
-        {value: 6, text: ""},
-        {value: 7, text: ""},
-        {value: 8, text: ""},
-        {value: 9, text: ""},
-        {value: 10, text: ""},
-        {value: 11, text: ""},
-        {value: 12,text: ""}
+        { value: 1, text: "" },
+        { value: 2, text: "" },
+        { value: 3, text: "" },
+        { value: 4, text: "" },
+        { value: 5, text: "" },
+        { value: 6, text: "" },
+        { value: 7, text: "" },
+        { value: 8, text: "" },
+        { value: 9, text: "" },
+        { value: 10, text: "" },
+        { value: 11, text: "" },
+        { value: 12, text: "" }
     ]);
 
     const [editMode, setEditMode] = useState(false);
     const [showParcel, setShowParcel] = useState(false);
 
-    const [dadosForm, setDadosForm] = useState({
+    const [dadosForm, setDadosForm] = useState<any>({
         title: "",
         date: "",
         category: selectOptions[0].value,
         description: "",
         paymentMethod: optionsPayment[0].value,
         parcel: "",
-        value: ""
+        value: "",
+        investment_category: optionsInvestments[0].value.toString(),
+        rentability: [
+            {
+                name: "CDI",
+                percentage: "",
+                type: null,
+                checked: false,
+            },
+            {
+                name: "IPCA",
+                percentage: "",
+                type: null,
+                checked: false,
+            },
+            {
+                name: "tax",
+                percentage: "",
+                type: "a.a",
+                checked: false,
+            }
+        ]
     })
+
+    const [apiInvestments, setApiInvestments] = useState<any>([]);
 
     useEffect(() => {
         if (props.id !== undefined) {
@@ -65,11 +89,25 @@ const ModalRegister = (props: any) => {
                     icon: "error"
                 });;
             })
+
+        await api.get("/investment")
+            .then((response: any) => {
+                setApiInvestments(response.data);
+            })
+            .catch((error: any) => {
+                Alert({
+                    text: error.response.data,
+                    icon: "error"
+                });;
+            })
     }
 
     const handleSubmit = async (event: any) => {
         event.preventDefault();
 
+        console.log(dadosForm);
+
+        /*
         if (props.id) {
             await api.patch(`/payment/${props.id}`, dadosForm)
                 .then((response: any) => {
@@ -102,6 +140,7 @@ const ModalRegister = (props: any) => {
                     });
                 })
         }
+        */
     }
 
     useEffect(() => {
@@ -109,12 +148,23 @@ const ModalRegister = (props: any) => {
         // eslint-disable-next-line
     }, [dadosForm.paymentMethod, dadosForm.value])
 
-    const changeData = (name: string, valueChanged: string) => {
-        console.log(valueChanged)
-
-        setDadosForm({ ...dadosForm, [name]: valueChanged });
-
-        // if((name === "paymentMethod" && value === "Crédito") || (name === "value" && value !== ""))  defineParcel();
+    const changeData = (name: string, valueChanged: any) => {
+        if (name.startsWith("rentability")) {
+            console.log(name, valueChanged)
+            const rentabilityIndex = parseInt(name.split("-")[1]);
+            const updatedRentability = [...dadosForm.rentability];
+            updatedRentability[rentabilityIndex] = {
+                ...updatedRentability[rentabilityIndex],
+                [valueChanged.name]: valueChanged.value
+            };
+    
+            setDadosForm({
+                ...dadosForm,
+                rentability: updatedRentability
+            });
+        } else {
+            setDadosForm({ ...dadosForm, [name]: valueChanged });
+        }
     }
 
     const defineParcel = () => {
@@ -140,6 +190,10 @@ const ModalRegister = (props: any) => {
                 parcels[i - 1].text = ""
             }
         }
+    }
+
+    const listInvestments = () => {
+        
     }
 
     return (
@@ -186,6 +240,112 @@ const ModalRegister = (props: any) => {
                                         returnSelect={(name: string, value: string) => changeData(name, value)}
                                     />
                                 </div>
+                                {dadosForm.category === "Investimentos" && (
+                                    <>
+                                        <div className="flex">
+                                            <Label label="Tipo" />
+                                            <Select
+                                                name="investment_category"
+                                                options={optionsInvestments}
+                                                returnSelect={(name: string, value: number) => changeData(name, value)}
+                                            />
+                                        </div>
+
+                                        <div className="flex">
+                                            <Label label="Rentabilidade" />
+
+                                            <div className="w-full">
+                                                <label className="flex justify-center items-center gap-2">
+                                                    <Input
+                                                        type="checkbox"
+                                                        name="cdi"
+                                                        returnInput={(name: string, value: boolean) => changeData("rentability-0", { name: "checked", value })}
+                                                    />
+
+                                                    <Text text="CDI" />
+
+                                                    <Input
+                                                        type="text"
+                                                        name="cdi"
+                                                        placeholder="Insira o percentual"
+                                                        inputMode="numeric"
+                                                        mask="percentage"
+                                                        value={dadosForm.rentability[0].percentage}
+                                                        returnInput={(name: string, value: string) => changeData("rentability-0", { name: "percentage", value })}
+                                                        required={dadosForm.rentability[0].checked}
+                                                    />
+                                                </label>
+
+                                                <label className="flex justify-center items-center gap-2">
+                                                    <Input
+                                                        type="checkbox"
+                                                        name="IPCA"
+                                                        returnInput={(name: string, value: boolean) => changeData("rentability-1", { name: "checked", value })}
+                                                    />
+
+                                                    <Text text="IPCA" />
+                                                </label>
+
+                                                <label className="flex justify-center items-center gap-2">
+                                                    <Input
+                                                        type="checkbox"
+                                                        name="taxa"
+                                                        returnInput={(name: string, value: boolean) => changeData("rentability-2", { name: "checked", value })}
+                                                    />
+
+                                                    <Text text="Taxa" />
+
+                                                    <Input
+                                                        type="text"
+                                                        name="tax"
+                                                        placeholder=""
+                                                        inputMode="numeric"
+                                                        mask="percentage"
+                                                        value={dadosForm.rentability[2].percentage}
+                                                        returnInput={(name: string, value: string) => changeData("rentability-2", { name: "percentage", value })}
+                                                        required={dadosForm.rentability[2].checked}
+                                                    />
+
+                                                    <Select
+                                                        name="tax_type"
+                                                        options={[
+                                                            {
+                                                                text: "a.a",
+                                                                value: "a.a"
+                                                            },
+                                                            {
+                                                                text: "a.m",
+                                                                value: "a.m"
+                                                            },
+                                                        ]}
+                                                        returnSelect={(name: string, value: number) => changeData("rentability-2", { name: "type", value })}
+                                                    />
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div className="flex">
+                                            <Label label="Data inicial" />
+                                            <Input
+                                                type="date"
+                                                name="initialDate"
+                                                placeholder="Insira a data"
+                                                returnInput={(name: string, value: string) => changeData(name, value)}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="flex">
+                                            <Label label="Data final" />
+                                            <Input
+                                                type="date"
+                                                name="finalDate"
+                                                placeholder="Insira a data"
+                                                returnInput={(name: string, value: string) => changeData(name, value)}
+                                                required
+                                                min={dadosForm.initialDate}
+                                            />
+                                        </div>
+                                    </>
+                                )}
                                 <div className="flex">
                                     <Label label="Descrição" />
                                     <Input

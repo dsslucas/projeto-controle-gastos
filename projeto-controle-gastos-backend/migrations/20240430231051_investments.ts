@@ -5,10 +5,6 @@ exports.up = function (knex: any) {
         table.increments('id').primary()        
         table.string("name").notNull()
         table.integer("category").default(1).notNull()
-        table.double("initialValue").default(0).notNull()
-        table.datetime("initialDate").notNull()
-        table.datetime("finalDate").notNull()
-        table.string("observation")
     })
 };
 

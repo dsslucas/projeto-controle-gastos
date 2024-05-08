@@ -7,24 +7,13 @@ import Alert from "../components/alert/Alert";
 import Button from "../components/button/Button";
 import ModalRegisterInvestment from "../components/modal/ModalRegisterInvestment";
 import ModalRescueInvestment from "../components/modal/ModalRescueInvestment";
+import globalFunctions from "../global/functions";
 
 const Investments = (props: any) => {
     const [dataApiPayment, setDataApiPayment] = useState<any>();
     const [showModalRegisterInvestment, setShowModalRegisterInvestment] = useState(false);
-    const [showModalRescueInvestment, setShowModalRescueInvestment] = useState(false);
-
-    const optionsInvestments = [{
-        value: 1,
-        text: "CDB"
-    },
-    {
-        value: 2,
-        text: "LCI/LCA"
-    },
-    {
-        value: 3,
-        text: "Poupança"
-    }];
+    const [showModalRescueInvestment, setShowModalRescueInvestment] = useState(false);    
+    const { optionsInvestments } = globalFunctions();
 
     useEffect(() => {
         getData("Investimentos", "", "");
