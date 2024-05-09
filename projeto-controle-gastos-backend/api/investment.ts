@@ -23,43 +23,48 @@ module.exports = ((app: any) => {
 
     async function registerInvestment(id: any, title: string, category: string, initialValue: string, initialDate: string, finalDate:string, rentability: any, observation: string, trx: any){
         var idInvestment = 0;
-
-        if(id === null){
-            idInvestment = (await app.database("investments")
-            .insert({
-                name: title,
-                category: parseInt(category)
-            })
-            .returning("id")
-            .transacting(trx))[0].id;
-
-            console.log(idInvestment)
-        }
-        else {
-            idInvestment = id;
-        }
-
-        await app.database("investment")
-            .insert({
-                idInvestment: idInvestment,
-                initialValue: globalFunctions.formatMoney(initialValue),
-                initialDate: new Date(initialDate),
-                finalDate: new Date(finalDate),
-                observation: observation
-            })
-            .transacting(trx)
-
-        await rentability.forEach(async (element: any) => {
-            await app.database("investment_rentability")
+        
+        try {
+            if(id === null){
+                idInvestment = (await app.database("investments")
+                .insert({
+                    name: title,
+                    category: parseInt(category)
+                })
+                .returning("id")
+                .transacting(trx))[0].id;
+    
+                console.log(idInvestment)
+            }
+            else {
+                idInvestment = id;
+            }
+    
+            await app.database("investment")
                 .insert({
                     idInvestment: idInvestment,
-                    name: element.name,
-                    checked: element.checked,
-                    type: element.type,
-                    percentage: element.percentage == "" ? 0 : globalFunctions.formatPercentage(element.percentage)
+                    initialValue: globalFunctions.formatMoney(initialValue),
+                    initialDate: new Date(initialDate),
+                    finalDate: new Date(finalDate),
+                    observation: observation
                 })
                 .transacting(trx)
-        })
+    
+            await rentability.forEach(async (element: any) => {
+                await app.database("investment_rentability")
+                    .insert({
+                        idInvestment: idInvestment,
+                        name: element.name,
+                        checked: element.checked,
+                        type: element.type,
+                        percentage: element.percentage == "" ? 0 : globalFunctions.formatPercentage(element.percentage)
+                    })
+                    .transacting(trx)
+            })
+        }
+        catch(e: any){
+            console.error(e);
+        }
     }
 
     const createInvestment = async (req: any, res: any) => {

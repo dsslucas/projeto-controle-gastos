@@ -131,7 +131,7 @@ module.exports = ((app: any) => {
 
                     const rentability = investment.rentability.filter((element: any) => element.checked);
 
-                    await investmentService.registerInvestment(idInvestment, investment.title, investment.category, valueInvestment, investment.initialDate, investment.finalDate, rentability, description, trx);
+                    await investmentService.registerInvestment(idInvestment, investment.title, investment.category, value, investment.initialDate, investment.finalDate, rentability, description, trx);
                 }
             })
                 .then(() => {
