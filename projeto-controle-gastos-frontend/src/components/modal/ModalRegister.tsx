@@ -106,7 +106,7 @@ const ModalRegister = (props: any) => {
             .then((response: any) => {
                 setApiInvestments(response.data);
 
-                if(response.data[0].value === "-1"){
+                if (response.data[0].value === "-1") {
                     // SELECT CDB
                     setDadosForm({
                         ...dadosForm,
@@ -177,7 +177,7 @@ const ModalRegister = (props: any) => {
                 ...updatedRentability[rentabilityIndex],
                 [valueChanged.name]: valueChanged.value
             };
-    
+
             setDadosForm({
                 ...dadosForm,
                 investment: {
@@ -189,12 +189,12 @@ const ModalRegister = (props: any) => {
         else if (name.startsWith("investment")) {
             console.log(name, valueChanged);
             const investmentName = name.substring(11);
-    
+
             const updatedInvestment = {
                 ...dadosForm.investment,
                 [investmentName]: valueChanged
             };
-    
+
             setDadosForm({
                 ...dadosForm,
                 investment: updatedInvestment
@@ -202,8 +202,45 @@ const ModalRegister = (props: any) => {
         }
         else {
             setDadosForm({ ...dadosForm, [name]: valueChanged });
+
+            console.log(name, valueChanged)
+            if (name === "category" && valueChanged !== "Investimentos") {
+                setDadosForm({
+                    ...dadosForm,
+                    [name]: valueChanged,
+                    investment: {
+                        ...dadosForm.investment,
+                        id: 0,
+                        title: "",
+                        category: "",
+                        initialValue: "",
+                        initialDate: "",
+                        finalDate: "",
+                        rentability: [
+                            {
+                                name: "CDI",
+                                percentage: "",
+                                type: null,
+                                checked: false,
+                            },
+                            {
+                                name: "IPCA",
+                                percentage: "",
+                                type: null,
+                                checked: false,
+                            },
+                            {
+                                name: "tax",
+                                percentage: "",
+                                type: "a.a",
+                                checked: false,
+                            }
+                        ]
+                    }
+                });
+            }
         }
-    }    
+    }
 
     const defineParcel = () => {
         const value = dadosForm.value;
@@ -287,7 +324,7 @@ const ModalRegister = (props: any) => {
                                                 />
                                             </div>
                                         )}
-                                        
+
                                         {(apiInvestments[0].value === "-1" || dadosForm.investment.category === "-1") && (
                                             <div className="flex">
                                                 <Label label="Nome" />
@@ -300,7 +337,7 @@ const ModalRegister = (props: any) => {
                                                     required
                                                 />
                                             </div>
-                                        )}                                        
+                                        )}
                                         <div className="flex">
                                             <Label label="Tipo" />
                                             <Select
@@ -309,7 +346,7 @@ const ModalRegister = (props: any) => {
                                                 returnSelect={(name: string, value: number) => changeData(name, value)}
                                             />
                                         </div>
-                                        
+
                                         <div className="flex">
                                             <Label label="Rentabilidade" />
 
