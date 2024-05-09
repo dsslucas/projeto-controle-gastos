@@ -27,13 +27,15 @@ module.exports = ((app: any) => {
             await app.database.transaction(async (trx: any) => {
                 checkConditions(req.body);
 
-                const { category, date, description, paymentMethod, title, value, parcel } = req.body;
+                const { category, date, description, paymentMethod, title, value, parcel, investment } = req.body;
 
                 const { initialDate, finalDate } = globalFunctions.getBetweenDates(date.substring(0, 7));
 
                 const currentDate = new Date();
                 if(currentDate < initialDate) throw "NOT_CURRENT_DATE";
 
+                console.log(investment)
+                /*
                 const entriesValue = await app.database("config as c")
                     .join("config_entries as ce", "ce.idConfig", "c.id")
                     .where("c.date", ">=", initialDate)
@@ -117,6 +119,7 @@ module.exports = ((app: any) => {
                         })
                         .transacting(trx)
                 }
+                */
             })
                 .then(() => {
                     app.io.emit("NEW_PAYMENT_REGISTED");

@@ -129,15 +129,58 @@ module.exports = ((app: any) => {
         try {
             await app.database.transaction(async (trx: any) => {
                 return await app.database("investments")
-                    .distinct()
                     .transacting(trx)
                     .then((response: any) => {
                         const returnData = [];
                         response.forEach(async (element: any) => {
                             returnData.push({
-                                ...element,
-                                rentability: await rentabilityInvestments(element.id, trx)
+                                value: element.id.toString(),
+                                text: element.name,
+                                category: element.category.toString()
+                                //...element,
+                                //rentability: await rentabilityInvestments(element.id, trx)
                             })
+                        });
+
+                        returnData.push({
+                            value: (-1).toString(),
+                            text: "Não possuo",
+                            category: (-1).toString()
+                        });
+
+                        return returnData
+                    })
+            })
+                .then((response: any) => res.status(200).send(response))
+                .catch((error: any) => {
+                    console.error(error)
+                    res.status(400).send("Erro ao buscar a lista de investimentos.")
+                })
+        }
+        catch (e: any) {
+            res.status(400).send("Erro ao buscar a lista de investimentos.")
+        }
+    }
+
+    const getUniqueInvestment = async (req: any, res: any) => {
+        try {
+            await app.database.transaction(async (trx: any) => {
+                return await app.database("investments")
+                    .transacting(trx)
+                    .then((response: any) => {
+                        const returnData = [];
+                        response.forEach(async (element: any) => {
+                            returnData.push({
+                                value: element.id.toString(),
+                                text: element.name
+                                //...element,
+                                //rentability: await rentabilityInvestments(element.id, trx)
+                            })
+                        });
+
+                        returnData.push({
+                            value: (-1).toString(),
+                            text: "Não possuo"
                         });
 
                         return returnData

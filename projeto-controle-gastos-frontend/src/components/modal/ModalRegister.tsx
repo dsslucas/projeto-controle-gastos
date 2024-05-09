@@ -40,26 +40,34 @@ const ModalRegister = (props: any) => {
         parcel: "",
         value: "",
         investment_category: optionsInvestments[0].value.toString(),
-        rentability: [
-            {
-                name: "CDI",
-                percentage: "",
-                type: null,
-                checked: false,
-            },
-            {
-                name: "IPCA",
-                percentage: "",
-                type: null,
-                checked: false,
-            },
-            {
-                name: "tax",
-                percentage: "",
-                type: "a.a",
-                checked: false,
-            }
-        ]
+        investment: {
+            id: 0,
+            title: "",
+            category: "",
+            initialValue: "",
+            initialDate: "",
+            finalDate: "",
+            rentability: [
+                {
+                    name: "CDI",
+                    percentage: "",
+                    type: null,
+                    checked: false,
+                },
+                {
+                    name: "IPCA",
+                    percentage: "",
+                    type: null,
+                    checked: false,
+                },
+                {
+                    name: "tax",
+                    percentage: "",
+                    type: "a.a",
+                    checked: false,
+                }
+            ]
+        }
     })
 
     const [apiInvestments, setApiInvestments] = useState<any>([]);
@@ -90,13 +98,24 @@ const ModalRegister = (props: any) => {
                     text: error.response.data,
                     icon: "error"
                 });;
-            })        
+            })
     }
 
     const apiInvestmentList = async () => {
         await api.get("/investment")
             .then((response: any) => {
                 setApiInvestments(response.data);
+
+                if(response.data[0].value === "-1"){
+                    // SELECT CDB
+                    setDadosForm({
+                        ...dadosForm,
+                        investment: {
+                            ...dadosForm.investment,
+                            category: "1"
+                        }
+                    });
+                }
             })
             .catch((error: any) => {
                 Alert({
@@ -109,9 +128,6 @@ const ModalRegister = (props: any) => {
     const handleSubmit = async (event: any) => {
         event.preventDefault();
 
-        console.log(dadosForm);
-
-        /*
         if (props.id) {
             await api.patch(`/payment/${props.id}`, dadosForm)
                 .then((response: any) => {
@@ -134,7 +150,8 @@ const ModalRegister = (props: any) => {
                     Alert({
                         text: response.data,
                         icon: "success",
-                        callback: props.returnClick()
+                        //allback: props.returnClick()
+                        callback: null
                     });
                 })
                 .catch((error: any) => {
@@ -144,7 +161,6 @@ const ModalRegister = (props: any) => {
                     });
                 })
         }
-        */
     }
 
     useEffect(() => {
@@ -156,20 +172,38 @@ const ModalRegister = (props: any) => {
         if (name.startsWith("rentability")) {
             console.log(name, valueChanged)
             const rentabilityIndex = parseInt(name.split("-")[1]);
-            const updatedRentability = [...dadosForm.rentability];
+            const updatedRentability = [...dadosForm.investment.rentability]; // Mudança aqui
             updatedRentability[rentabilityIndex] = {
                 ...updatedRentability[rentabilityIndex],
                 [valueChanged.name]: valueChanged.value
             };
-
+    
             setDadosForm({
                 ...dadosForm,
-                rentability: updatedRentability
+                investment: {
+                    ...dadosForm.investment,
+                    rentability: updatedRentability // Mudança aqui
+                }
             });
-        } else {
+        }
+        else if (name.startsWith("investment")) {
+            console.log(name, valueChanged);
+            const investmentName = name.substring(11);
+    
+            const updatedInvestment = {
+                ...dadosForm.investment,
+                [investmentName]: valueChanged
+            };
+    
+            setDadosForm({
+                ...dadosForm,
+                investment: updatedInvestment
+            });
+        }
+        else {
             setDadosForm({ ...dadosForm, [name]: valueChanged });
         }
-    }
+    }    
 
     const defineParcel = () => {
         const value = dadosForm.value;
@@ -242,23 +276,40 @@ const ModalRegister = (props: any) => {
                                 </div>
                                 {dadosForm.category === "Investimentos" && apiInvestments !== null && (
                                     <>
+                                        {apiInvestments[0].value !== "-1" && (
+                                            <div className="flex">
+                                                <Label label="Investimento" />
+                                                <Select
+                                                    name="investment_category"
+                                                    options={apiInvestments}
+                                                    value={dadosForm.investment.category}
+                                                    returnSelect={(name: string, value: number) => changeData(name, value)}
+                                                />
+                                            </div>
+                                        )}
+                                        
+                                        {(apiInvestments[0].value === "-1" || dadosForm.investment.category === "-1") && (
+                                            <div className="flex">
+                                                <Label label="Nome" />
+                                                <Input
+                                                    type="text"
+                                                    name="investment_title"
+                                                    placeholder="Insira o nome do investimento"
+                                                    value={dadosForm.investment.title}
+                                                    returnInput={(name: string, value: string) => changeData(name, value)}
+                                                    required
+                                                />
+                                            </div>
+                                        )}                                        
                                         <div className="flex">
-                                            <Label label="Investimento" />
-                                            <Select
-                                                name="investment_category"
-                                                options={apiInvestments}
-                                                returnSelect={(name: string, value: number) => changeData(name, value)}
-                                            />
-                                        </div>
-                                        {/* <div className="flex">
                                             <Label label="Tipo" />
                                             <Select
                                                 name="investment_category"
-                                                options={optionsInvestments}
+                                                options={apiInvestments.length > 1 ? apiInvestments : optionsInvestments}
                                                 returnSelect={(name: string, value: number) => changeData(name, value)}
                                             />
                                         </div>
-
+                                        
                                         <div className="flex">
                                             <Label label="Rentabilidade" />
 
@@ -278,9 +329,9 @@ const ModalRegister = (props: any) => {
                                                         placeholder="Insira o percentual"
                                                         inputMode="numeric"
                                                         mask="percentage"
-                                                        value={dadosForm.rentability[0].percentage}
+                                                        value={dadosForm.investment.rentability[0].percentage}
                                                         returnInput={(name: string, value: string) => changeData("rentability-0", { name: "percentage", value })}
-                                                        required={dadosForm.rentability[0].checked}
+                                                        required={dadosForm.investment.rentability[0].checked}
                                                     />
                                                 </label>
 
@@ -309,9 +360,9 @@ const ModalRegister = (props: any) => {
                                                         placeholder=""
                                                         inputMode="numeric"
                                                         mask="percentage"
-                                                        value={dadosForm.rentability[2].percentage}
+                                                        value={dadosForm.investment.rentability[2].percentage}
                                                         returnInput={(name: string, value: string) => changeData("rentability-2", { name: "percentage", value })}
-                                                        required={dadosForm.rentability[2].checked}
+                                                        required={dadosForm.investment.rentability[2].checked}
                                                     />
 
                                                     <Select
@@ -335,7 +386,7 @@ const ModalRegister = (props: any) => {
                                             <Label label="Data inicial" />
                                             <Input
                                                 type="date"
-                                                name="initialDate"
+                                                name="investment_initialDate"
                                                 placeholder="Insira a data"
                                                 returnInput={(name: string, value: string) => changeData(name, value)}
                                                 required
@@ -345,13 +396,13 @@ const ModalRegister = (props: any) => {
                                             <Label label="Data final" />
                                             <Input
                                                 type="date"
-                                                name="finalDate"
+                                                name="investment_finalDate"
                                                 placeholder="Insira a data"
                                                 returnInput={(name: string, value: string) => changeData(name, value)}
                                                 required
                                                 min={dadosForm.initialDate}
                                             />
-                                        </div> */}
+                                        </div>
                                     </>
                                 )}
                                 <div className="flex">
@@ -401,7 +452,12 @@ const ModalRegister = (props: any) => {
                                     </div>
                                 )}
                             </div>
-                            <button onClick={() => console.log(apiInvestments)}>CLICA AQUI</button>
+                            <div className="flex flex-col w-full">
+                                <button type="button" className="border bg-sky-500 w-1/2" onClick={() => console.log(dadosForm)}>DADOS FORM</button>
+                                <button type="button" className="border bg-sky-500 w-1/2" onClick={() => console.log(apiInvestments)}>API INVESTIMENTOS</button>
+                            </div>
+
+
                             {/*footer*/}
                             <div className="flex items-center justify-end p-6 border-t border-solid border-blueGray-200 rounded-b gap-2">
                                 <Button type="button" content="Sair" color="bg-red-500" returnClick={() => props.returnClick()} />
