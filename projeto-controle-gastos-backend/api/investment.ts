@@ -104,7 +104,7 @@ module.exports = ((app: any) => {
 
         try {
             await app.database.transaction(async (trx: any) => {
-                return registerInvestment(null, title, category, initialValue, initialDate, finalDate, rentability, observation, trx)
+                return registerInvestment(null, title, category, initialValue, initialDate, finalDate, rentabilityWithFilter, observation, trx)
             })
                 .then((response: any) => res.status(200).send("Deu bom!"))
                 .catch((error: any) => {
@@ -292,5 +292,5 @@ module.exports = ((app: any) => {
     }
     */
 
-    return { testeInvestimento, createInvestment, listInvestments }
+    return { testeInvestimento, registerInvestment, createInvestment, listInvestments }
 })

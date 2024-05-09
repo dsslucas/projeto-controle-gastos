@@ -23,6 +23,8 @@ module.exports = ((app: any) => {
     }
 
     const registerPayment = async (req: any, res: any) => {
+        const investmentService = app.api.investment;
+
         try {
             await app.database.transaction(async (trx: any) => {
                 checkConditions(req.body);
@@ -34,8 +36,6 @@ module.exports = ((app: any) => {
                 const currentDate = new Date();
                 if(currentDate < initialDate) throw "NOT_CURRENT_DATE";
 
-                console.log(investment)
-                /*
                 const entriesValue = await app.database("config as c")
                     .join("config_entries as ce", "ce.idConfig", "c.id")
                     .where("c.date", ">=", initialDate)
@@ -119,7 +119,20 @@ module.exports = ((app: any) => {
                         })
                         .transacting(trx)
                 }
-                */
+
+                console.log(investment)
+                if(category === "Investimentos"){
+                    var idInvestment = 0;
+
+                    if(investment.id === 0) idInvestment = null;
+                    else investment.id;
+
+                    const valueInvestment = globalFunctions.formatMoney(value);
+
+                    const rentability = investment.rentability.filter((element: any) => element.checked);
+
+                    await investmentService.registerInvestment(idInvestment, investment.title, investment.category, valueInvestment, investment.initialDate, investment.finalDate, rentability, description, trx);
+                }
             })
                 .then(() => {
                     app.io.emit("NEW_PAYMENT_REGISTED");
