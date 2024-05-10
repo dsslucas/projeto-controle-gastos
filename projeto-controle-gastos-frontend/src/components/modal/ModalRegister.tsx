@@ -511,16 +511,13 @@ const ModalRegister = (props: any) => {
                                     </div>
                                 )}
                             </div>
-                            <div className="flex flex-col w-full">
-                                <button type="button" className="border bg-sky-500 w-1/2" onClick={() => console.log(dadosForm)}>DADOS FORM</button>
-                                <button type="button" className="border bg-sky-500 w-1/2" onClick={() => console.log(apiInvestments)}>API INVESTIMENTOS</button>
-                            </div>
-
 
                             {/*footer*/}
                             <div className="flex items-center justify-end p-6 border-t border-solid border-blueGray-200 rounded-b gap-2">
                                 <Button type="button" content="Sair" color="bg-red-500" returnClick={() => props.returnClick()} />
-                                <Button type="submit" content="Salvar" color="bg-green-500" returnClick={() => null} disabled={blockRegisterInfo}/>
+                                {!blockRegisterInfo && (
+                                    <Button type="submit" content="Salvar" color="bg-green-500" returnClick={() => null} disabled={blockRegisterInfo}/>
+                                )}                                
                             </div>
                         </form>
                     </div>
