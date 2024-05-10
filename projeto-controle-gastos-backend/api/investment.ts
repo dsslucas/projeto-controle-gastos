@@ -195,6 +195,9 @@ module.exports = ((app: any) => {
                 .where({ idInvestment })
                 .transacting(trx)
                 .then((response: any) => {
+                    response.forEach((element: any) => {
+                        percentage: `${element.percentage}%`
+                    })
                     return response;
                 })
 
