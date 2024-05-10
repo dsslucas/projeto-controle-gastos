@@ -4,6 +4,7 @@ exports.up = function (knex: any) {
     return knex.schema.createTable('investment_rentability', (table: any) => {
         table.increments('id').primary()        
         table.integer("idInvestment").references("id").inTable("investments").notNull()
+        table.integer("idPayment")
         table.string("name").notNull()
         table.boolean("checked").default("false").notNull()
         table.string("type")

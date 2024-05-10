@@ -21,7 +21,7 @@ module.exports = ((app: any) => {
         return valorIOF;
     }
 
-    async function registerInvestment(id: any, title: string, category: string, initialValue: string, initialDate: string, finalDate:string, rentability: any, observation: string, trx: any){
+    async function registerInvestment(id: any, idPayment: any, title: string, category: string, initialValue: string, initialDate: string, finalDate:string, rentability: any, observation: string, trx: any){
         var idInvestment = 0;
         
         try {
@@ -109,7 +109,7 @@ module.exports = ((app: any) => {
 
         try {
             await app.database.transaction(async (trx: any) => {
-                return registerInvestment(null, title, category, initialValue, initialDate, finalDate, rentabilityWithFilter, observation, trx)
+                return registerInvestment(null, null, title, category, initialValue, initialDate, finalDate, rentabilityWithFilter, observation, trx)
             })
                 .then((response: any) => res.status(200).send("Deu bom!"))
                 .catch((error: any) => {

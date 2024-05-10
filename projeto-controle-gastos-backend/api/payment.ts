@@ -71,6 +71,8 @@ module.exports = ((app: any) => {
 
                 if (entriesValue < expenses) throw "NO_CASH";
 
+                var idPayment = 0;
+
                 if (paymentMethod === "Crédito") {
                     if (parcel) {
                         const valueParcel = parseFloat((globalFunctions.formatMoney(value) / parcel).toFixed(2));
@@ -87,7 +89,7 @@ module.exports = ((app: any) => {
 
                             console.log("DATA PARCELA: ", dateParcel)
 
-                            await app.database("payment")
+                            idPayment = (await app.database("payment")
                                 .insert({
                                     category,
                                     date: dateParcel,
@@ -98,8 +100,9 @@ module.exports = ((app: any) => {
                                     parcel,
                                     parcel_value: valueParcel
                                 })
-                                .transacting(trx)
-                        }
+                                .returning("id")
+                                .transacting(trx))[0].id;
+                            }
                     }
                     else {
                         throw "NO_PARCEL_DEFINED";
@@ -108,7 +111,7 @@ module.exports = ((app: any) => {
                 else {
                     if (globalFunctions.formatMoney(value) > (entriesValue - expenses)) throw "INSUFFICIENT_FUNDS";
 
-                    await app.database("payment")
+                    idPayment = (await app.database("payment")
                         .insert({
                             category,
                             date: new Date(date),
@@ -117,7 +120,8 @@ module.exports = ((app: any) => {
                             title,
                             value: globalFunctions.formatMoney(value)
                         })
-                        .transacting(trx)
+                        .returning("id")
+                        .transacting(trx))[0].id;
                 }
 
                 console.log(investment)
@@ -131,7 +135,7 @@ module.exports = ((app: any) => {
 
                     const rentability = investment.rentability.filter((element: any) => element.checked);
 
-                    await investmentService.registerInvestment(idInvestment, investment.title, investment.category, value, investment.initialDate, investment.finalDate, rentability, description, trx);
+                    await investmentService.registerInvestment(idInvestment, idPayment, investment.title, investment.category, value, investment.initialDate, investment.finalDate, rentability, description, trx);
                 }
             })
                 .then(() => {
@@ -140,6 +144,7 @@ module.exports = ((app: any) => {
                 })
         }
         catch (error: any) {
+            console.error(error)
             if(error === "NOT_CURRENT_DATE") return res.status(404).send("Não é possível registrar gastos para o mês seguinte.")
             else if (error === "NO_CATEGORY") return res.status(404).send("Erro: está faltando um parâmetro para envio deste registro.");
             else if (error === "EMPTY_FIELD") return res.status(404).send("Erro: é necessário preencher os campos obrigatórios para salvar este registro.");
@@ -238,6 +243,7 @@ module.exports = ((app: any) => {
 
     const getPayment = async (req: any, res: any) => {
         const id = req.params.id;
+        console.log(id)
         try {
             await app.database.transaction(async (trx: any) => {
                 const data = await app.database("payment")
