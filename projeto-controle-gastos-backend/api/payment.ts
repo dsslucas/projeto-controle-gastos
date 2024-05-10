@@ -1,5 +1,6 @@
 module.exports = ((app: any) => {
     const globalFunctions = app.globalFunctions();
+    const investmentService = app.api.investment;
 
     function checkConditions(requestBody: object) {
         if (!("category" in requestBody) || !("date" in requestBody) || !("paymentMethod" in requestBody) || !("title" in requestBody) || !("value" in requestBody)) {
@@ -23,8 +24,6 @@ module.exports = ((app: any) => {
     }
 
     const registerPayment = async (req: any, res: any) => {
-        const investmentService = app.api.investment;
-
         try {
             await app.database.transaction(async (trx: any) => {
                 checkConditions(req.body);
@@ -250,7 +249,7 @@ module.exports = ((app: any) => {
                     .where({ id })
                     .first()
                     .transacting(trx)
-                    .then((response: any) => {
+                    .then(async (response: any) => {
                         let year = response.date.getFullYear();
                         let month = String(response.date.getMonth() + 1).padStart(2, '0');
                         let day = String(response.date.getDate()).padStart(2, '0');
@@ -260,7 +259,15 @@ module.exports = ((app: any) => {
                         if (response.description === "") response.description = "-";
                         response.date = `${year}-${month}-${day}T${hour}:${minute}`;
                         response.value = response.value.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' });
-                        return response;
+
+                        var investment = null;
+                        if(response.category === "Investimentos"){
+                            investment = await investmentService.allInfoInvestmentByIdPayment(response.id, trx);
+                        }
+                        return {
+                            ...response,
+                            investment
+                        };
                     });
 
                 return data;

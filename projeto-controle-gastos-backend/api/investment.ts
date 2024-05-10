@@ -21,25 +21,26 @@ module.exports = ((app: any) => {
         return valorIOF;
     }
 
-    async function registerInvestment(id: any, idPayment: any, title: string, category: string, initialValue: string, initialDate: string, finalDate:string, rentability: any, observation: string, trx: any){
+    async function registerInvestment(id: any, idPayment: any, title: string, category: string, initialValue: string, initialDate: string, finalDate: string, rentability: any, observation: string, trx: any) {
         var idInvestment = 0;
-        
+
         try {
-            if(id === null){
+            if (id === null) {
                 idInvestment = (await app.database("investments")
-                .insert({
-                    name: title,
-                    category: parseInt(category)
-                })
-                .returning("id")
-                .transacting(trx))[0].id;
-    
+                    .insert({
+                        name: title,
+                        category: parseInt(category),
+                        idPayment: idPayment
+                    })
+                    .returning("id")
+                    .transacting(trx))[0].id;
+
                 console.log(idInvestment)
             }
             else {
                 idInvestment = id;
             }
-    
+
             await app.database("investment")
                 .insert({
                     idInvestment: idInvestment,
@@ -49,7 +50,7 @@ module.exports = ((app: any) => {
                     observation: observation
                 })
                 .transacting(trx)
-    
+
             await rentability.forEach(async (element: any) => {
                 await app.database("investment_rentability")
                     .insert({
@@ -62,7 +63,7 @@ module.exports = ((app: any) => {
                     .transacting(trx)
             })
         }
-        catch(e: any){
+        catch (e: any) {
             console.error(e);
         }
     }
@@ -167,6 +168,42 @@ module.exports = ((app: any) => {
         }
     }
 
+    const allInfoInvestmentByIdPayment = async (idPayment: number, trx: any) => {
+        try {
+            return await app.database("investments as i")
+                .join("investment as i_simple", "i_simple.idInvestment", "i.id")
+                .select("i.id", "i.name", "i.category", "i_simple.initialValue", "i_simple.initialDate", "i_simple.finalDate")
+                .where({ idPayment: idPayment })
+                .first()
+                .transacting(trx)
+                .then(async (response: any) => {
+                    return {
+                        ...response,
+                        rentability: await getRentability(response.id, trx)
+                    };
+                })
+
+        }
+        catch (e: any) {
+            console.error(e);
+        }
+    }
+
+    const getRentability = async (idInvestment: number, trx: any) => {
+        try {
+            return await app.database("investment_rentability")
+                .where({ idInvestment })
+                .transacting(trx)
+                .then((response: any) => {
+                    return response;
+                })
+
+        }
+        catch (e: any) {
+            console.error(e);
+        }
+    }
+
     const getUniqueInvestment = async (req: any, res: any) => {
         try {
             await app.database.transaction(async (trx: any) => {
@@ -260,13 +297,13 @@ module.exports = ((app: any) => {
         const serie = 433;
         const percentAoAno = 0.0645;
         const percentAoDia = (1+percentAoAno)^(1/365);
-
+    
         // 11 - SELIC
         // 12 - CDI
         // 433 - IPCA
-
+    
         const url = `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${serie}/dados?formato=json&dataInicial=${dataInicial.toLocaleDateString("pt-br")}&dataFinal=${dataFinal.toLocaleDateString("pt-br")}`;       
-
+    
         await fetch(url)
             .then(response => {
                 if (!response.ok) {
@@ -290,12 +327,12 @@ module.exports = ((app: any) => {
             .catch(error => {
                 console.error('Erro:', error);
             });
-
+    
         console.log(valorTotalInvestimento)
-
+    
         res.status(200).send(`Valor total do investimento: ${valorTotalInvestimento}`)
     }
     */
 
-    return { testeInvestimento, registerInvestment, createInvestment, listInvestments }
+    return { testeInvestimento, registerInvestment, allInfoInvestmentByIdPayment, createInvestment, listInvestments }
 })
