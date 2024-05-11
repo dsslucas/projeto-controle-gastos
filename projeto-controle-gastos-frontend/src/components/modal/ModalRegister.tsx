@@ -367,7 +367,7 @@ const ModalRegister = (props: any) => {
                                                     <Input
                                                         type="checkbox"
                                                         name="checked"
-                                                        // checked={dadosForm.investment.rentability[0] && dadosForm.investment.rentability[0].checked}
+                                                        checked={dadosForm.investment.rentability[0] && dadosForm.investment.rentability[0].checked}
                                                         returnInput={(name: string, value: boolean) => changeData("rentability-0", { name: "checked", value })}
                                                         //disabled={blockRegisterInfo}
                                                     />
@@ -391,7 +391,7 @@ const ModalRegister = (props: any) => {
                                                     <Input
                                                         type="checkbox"
                                                         name="IPCA"
-                                                        checked={dadosForm.investment.rentability[2] && dadosForm.investment.rentability[2].checked}
+                                                        checked={dadosForm.investment.rentability[1] && dadosForm.investment.rentability[1].checked}
                                                         returnInput={(name: string, value: boolean) => changeData("rentability-1", { name: "checked", value })}
                                                         //disabled={blockRegisterInfo}
                                                     />
@@ -403,6 +403,7 @@ const ModalRegister = (props: any) => {
                                                     <Input
                                                         type="checkbox"
                                                         name="taxa"
+                                                        checked={dadosForm.investment.rentability[2] && dadosForm.investment.rentability[2].checked}
                                                         returnInput={(name: string, value: boolean) => changeData("rentability-2", { name: "checked", value })}
                                                         //disabled={blockRegisterInfo}
                                                     />
@@ -513,6 +514,10 @@ const ModalRegister = (props: any) => {
                                         />
                                     </div>
                                 )}
+                            </div>
+
+                            <div className="flex w-full bg-green-500 my-2 justify-center">
+                                    <button type="button" className="border bg-red-400 p-2" onClick={() => console.log(dadosForm)}>visualização estado</button>
                             </div>
 
                             {/*footer*/}

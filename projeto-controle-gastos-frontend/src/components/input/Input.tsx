@@ -18,6 +18,7 @@ const Input = (props: any) => {
         var newFieldValue = "";
 
         if (type === "checkbox") {
+            console.log("NO INPUT, CHECKED: ", checked)
             props.returnInput(name, checked);
         }
         else {
@@ -59,7 +60,8 @@ const Input = (props: any) => {
             checkField(e.target.name, e.target.value, e.target.checked)
         }}
         required={required}
-        checked={checked}
+        // checked={checked}
+        defaultChecked={checked}
         value={value}
         disabled={disabled}
         min={min}
