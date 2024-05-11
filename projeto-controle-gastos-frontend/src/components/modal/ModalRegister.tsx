@@ -106,7 +106,7 @@ const ModalRegister = (props: any) => {
     }
 
     const apiInvestmentList = async () => {
-        await api.get("/investment")
+        await api.get("/investment/list")
             .then((response: any) => {
                 setApiInvestments(response.data);
 

@@ -13,20 +13,23 @@ module.exports = (app: any) => {
 
     app.route("/config/:id")
         .patch(config.editConfig)
-    
+
     app.route("/payment")
         .post(payment.registerPayment)
         .get(payment.getPayments)
 
     app.route("/payment/check")
         .get(payment.checkPaymentPossible)
-    
+
     app.route("/payment/:id")
         .get(payment.getPayment)
         .patch(payment.editPayment)
 
     app.route("/investment")
         .post(investment.createInvestment)
+        .get(investment.getAllInvestments)
+
+    app.route("/investment/list")
         .get(investment.listInvestments)
 
     app.route("/investment/test")
