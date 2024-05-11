@@ -174,6 +174,18 @@ const ModalRegister = (props: any) => {
         // eslint-disable-next-line
     }, [dadosForm.paymentMethod, dadosForm.value])
 
+    useEffect(() => {
+        if(dadosForm.category ===  "Investimentos" && apiInvestments[0].value !== "-1"){
+            console.log("mudei pra investimento");
+            setDadosForm({...dadosForm, 
+            investment: {
+                ...dadosForm.investment,
+                id: apiInvestments[0].value,
+                category: apiInvestments[0].category
+            }})
+        }
+    }, [dadosForm.category])
+
     const changeData = (name: string, valueChanged: any) => {
         if (name.startsWith("rentability")) {
             console.log(name, valueChanged)

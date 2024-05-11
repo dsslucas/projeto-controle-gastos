@@ -123,12 +123,11 @@ module.exports = ((app: any) => {
                         .transacting(trx))[0].id;
                 }
 
-                console.log(investment)
                 if (category === "Investimentos") {
                     var idInvestment = 0;
 
-                    if (investment.id === 0) idInvestment = null;
-                    else investment.id;
+                    if (Number(investment.id) === 0 || Number(investment.id) === -1) idInvestment = null;
+                    else idInvestment = Number(investment.id);
 
                     const valueInvestment = globalFunctions.formatMoney(value);
 
@@ -137,6 +136,7 @@ module.exports = ((app: any) => {
                     await investmentService.registerInvestment(idInvestment, idPayment, investment.title, investment.category, value, investment.initialDate, investment.finalDate, rentability, description, trx);
                 }
             })
+
                 .then(() => {
                     app.io.emit("NEW_PAYMENT_REGISTED");
                     res.status(200).send("Registro salvo!");

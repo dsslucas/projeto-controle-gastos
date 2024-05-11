@@ -22,7 +22,7 @@ module.exports = ((app: any) => {
     }
 
     async function registerInvestment(id: any, idPayment: any, title: string, category: string, initialValue: string, initialDate: string, finalDate: string, rentability: any, observation: string, trx: any) {
-        var idInvestment = 0;
+        var idInvestment = 0;        
 
         try {
             if (id === null) {
@@ -30,12 +30,10 @@ module.exports = ((app: any) => {
                     .insert({
                         name: title,
                         category: parseInt(category),
-                        idPayment: idPayment
+                        idPayment: parseInt(idPayment)
                     })
                     .returning("id")
                     .transacting(trx))[0].id;
-
-                console.log(idInvestment)
             }
             else {
                 idInvestment = id;
@@ -44,6 +42,7 @@ module.exports = ((app: any) => {
             await app.database("investment")
                 .insert({
                     idInvestment: idInvestment,
+                    idPayment: idPayment,
                     initialValue: globalFunctions.formatMoney(initialValue),
                     initialDate: new Date(initialDate),
                     finalDate: new Date(finalDate),
@@ -172,8 +171,8 @@ module.exports = ((app: any) => {
         try {
             return await app.database("investments as i")
                 .join("investment as i_simple", "i_simple.idInvestment", "i.id")
-                .select("i.id", "i.name", "i.category", "i_simple.initialValue", "i_simple.initialDate", "i_simple.finalDate")
-                .where({ idPayment: idPayment })
+                .select("i.id", "i_simple.idPayment", "i.name", "i.category", "i_simple.initialValue", "i_simple.initialDate", "i_simple.finalDate")
+                .where("i_simple.idPayment", idPayment)
                 .first()
                 .transacting(trx)
                 .then(async (response: any) => {

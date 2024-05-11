@@ -18,7 +18,6 @@ const Input = (props: any) => {
         var newFieldValue = "";
 
         if (type === "checkbox") {
-            console.log("NO INPUT, CHECKED: ", checked)
             props.returnInput(name, checked);
         }
         else {
