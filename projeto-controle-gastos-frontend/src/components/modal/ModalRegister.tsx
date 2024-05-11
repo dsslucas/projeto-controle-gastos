@@ -444,6 +444,7 @@ const ModalRegister = (props: any) => {
                                                 type="date"
                                                 name="investment_initialDate"
                                                 placeholder="Insira a data"
+                                                value={dadosForm.investment.initialDate}
                                                 returnInput={(name: string, value: string) => changeData(name, value)}
                                                 required
                                                 disabled={blockRegisterInfo}
@@ -455,6 +456,7 @@ const ModalRegister = (props: any) => {
                                                 type="date"
                                                 name="investment_finalDate"
                                                 placeholder="Insira a data"
+                                                value={dadosForm.investment.finalDate}
                                                 returnInput={(name: string, value: string) => changeData(name, value)}
                                                 required
                                                 min={dadosForm.initialDate}

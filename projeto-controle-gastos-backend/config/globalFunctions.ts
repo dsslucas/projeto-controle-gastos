@@ -36,6 +36,24 @@ module.exports = ((app: any) => {
         }
     }
 
+    function formatDate(data: Date){
+        let year = data.getFullYear();
+        let month = String(data.getMonth() + 1).padStart(2, '0');
+        let day = String(data.getDate()).padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
+    }
+
+    function formatDateTFormat(data: Date){
+        let year = data.getFullYear();
+        let month = String(data.getMonth() + 1).padStart(2, '0');
+        let day = String(data.getDate()).padStart(2, '0');
+        let hour = String(data.getHours()).padStart(2, '0');
+        let minute = String(data.getMinutes()).padStart(2, '0');
+
+        return `${year}-${month}-${day}T${hour}:${minute}`;
+    }
+
     // Check if number is infinite or NaN
     function checkNumber(number: number) {
         if (!isFinite(number)) return 0.0;
@@ -58,5 +76,5 @@ module.exports = ((app: any) => {
         return diferencaDias;
     }
 
-    return { formatMoney, formatPercentage, getBetweenDates, checkNumber, calcDateDiff }
+    return { formatMoney, formatPercentage, getBetweenDates, formatDate, formatDateTFormat, checkNumber, calcDateDiff }
 })

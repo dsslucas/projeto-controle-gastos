@@ -179,6 +179,8 @@ module.exports = ((app: any) => {
                 .then(async (response: any) => {
                     return {
                         ...response,
+                        initialDate: globalFunctions.formatDate(response.initialDate),
+                        finalDate: globalFunctions.formatDate(response.finalDate),
                         rentability: await getRentability(response.id, trx)
                     };
                 })
