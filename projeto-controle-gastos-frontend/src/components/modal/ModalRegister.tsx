@@ -294,7 +294,7 @@ const ModalRegister = (props: any) => {
                                         value={dadosForm.title}
                                         returnInput={(name: string, value: string) => changeData(name, value)}
                                         required
-                                        disabled={blockRegisterInfo}
+                                        //disabled={blockRegisterInfo}
                                     />
                                 </div>
                                 <div className="flex">
@@ -306,7 +306,7 @@ const ModalRegister = (props: any) => {
                                         value={dadosForm.date}
                                         returnInput={(name: string, value: string) => changeData(name, value)}
                                         required
-                                        disabled={(editMode && dadosForm.paymentMethod === "Crédito") || blockRegisterInfo}
+                                        //disabled={(editMode && dadosForm.paymentMethod === "Crédito") || blockRegisterInfo}
                                     />
                                 </div>
                                 <div className="flex">
@@ -316,7 +316,7 @@ const ModalRegister = (props: any) => {
                                         options={selectOptions}
                                         value={dadosForm.category}
                                         returnSelect={(name: string, value: string) => changeData(name, value)}
-                                        disabled={blockRegisterInfo}
+                                        //disabled={blockRegisterInfo}
                                     />
                                 </div>
                                 {dadosForm.category === "Investimentos" && apiInvestments !== null && (
@@ -329,7 +329,7 @@ const ModalRegister = (props: any) => {
                                                     options={apiInvestments}
                                                     value={dadosForm.investment.category}
                                                     returnSelect={(name: string, value: number) => changeData(name, value)}
-                                                    disabled={blockRegisterInfo}
+                                                    //disabled={blockRegisterInfo}
                                                 />
                                             </div>
                                         )}
@@ -344,7 +344,7 @@ const ModalRegister = (props: any) => {
                                                     value={dadosForm.investment.title}
                                                     returnInput={(name: string, value: string) => changeData(name, value)}
                                                     required
-                                                    disabled={blockRegisterInfo}
+                                                    //disabled={blockRegisterInfo}
                                                 />
                                             </div>
                                         )}
@@ -352,9 +352,10 @@ const ModalRegister = (props: any) => {
                                             <Label label="Tipo" />
                                             <Select
                                                 name="investment_category"
+                                                value={dadosForm.investment.category}
                                                 options={optionsInvestments}
                                                 returnSelect={(name: string, value: number) => changeData(name, value)}
-                                                disabled={dadosForm.investment.category !== "-1"}
+                                                //disabled={dadosForm.investment.category !== "-1"}
                                             />
                                         </div>
 
@@ -365,10 +366,10 @@ const ModalRegister = (props: any) => {
                                                 <label className="flex justify-center items-center gap-2">
                                                     <Input
                                                         type="checkbox"
-                                                        name="cdi"
-                                                        checked={dadosForm.investment.rentability[0] && dadosForm.investment.rentability[0].checked}
+                                                        name="checked"
+                                                        // checked={dadosForm.investment.rentability[0] && dadosForm.investment.rentability[0].checked}
                                                         returnInput={(name: string, value: boolean) => changeData("rentability-0", { name: "checked", value })}
-                                                        disabled={blockRegisterInfo}
+                                                        //disabled={blockRegisterInfo}
                                                     />
 
                                                     <Text text="CDI" />
@@ -382,7 +383,7 @@ const ModalRegister = (props: any) => {
                                                         value={dadosForm.investment.rentability[0] && dadosForm.investment.rentability[0].percentage}
                                                         returnInput={(_name: string, value: string) => changeData("rentability-0", { name: "percentage", value })}
                                                         required={dadosForm.investment.rentability[0] && dadosForm.investment.rentability[0].checked}
-                                                        disabled={blockRegisterInfo}
+                                                        //disabled={blockRegisterInfo}
                                                     />
                                                 </label>
 
@@ -392,7 +393,7 @@ const ModalRegister = (props: any) => {
                                                         name="IPCA"
                                                         checked={dadosForm.investment.rentability[2] && dadosForm.investment.rentability[2].checked}
                                                         returnInput={(name: string, value: boolean) => changeData("rentability-1", { name: "checked", value })}
-                                                        disabled={blockRegisterInfo}
+                                                        //disabled={blockRegisterInfo}
                                                     />
 
                                                     <Text text="IPCA" />
@@ -403,7 +404,7 @@ const ModalRegister = (props: any) => {
                                                         type="checkbox"
                                                         name="taxa"
                                                         returnInput={(name: string, value: boolean) => changeData("rentability-2", { name: "checked", value })}
-                                                        disabled={blockRegisterInfo}
+                                                        //disabled={blockRegisterInfo}
                                                     />
 
                                                     <Text text="Taxa" />
@@ -417,7 +418,7 @@ const ModalRegister = (props: any) => {
                                                         value={dadosForm.investment.rentability[2] && dadosForm.investment.rentability[2].percentage}
                                                         returnInput={(name: string, value: string) => changeData("rentability-2", { name: "percentage", value })}
                                                         required={dadosForm.investment.rentability[2] && dadosForm.investment.rentability[2].checked}
-                                                        disabled={blockRegisterInfo}
+                                                        //disabled={blockRegisterInfo}
                                                     />
 
                                                     <Select
@@ -433,7 +434,7 @@ const ModalRegister = (props: any) => {
                                                             },
                                                         ]}
                                                         returnSelect={(name: string, value: number) => changeData("rentability-2", { name: "type", value })}
-                                                        disabled={blockRegisterInfo}
+                                                        //disabled={blockRegisterInfo}
                                                     />
                                                 </label>
                                             </div>
@@ -447,7 +448,7 @@ const ModalRegister = (props: any) => {
                                                 value={dadosForm.investment.initialDate}
                                                 returnInput={(name: string, value: string) => changeData(name, value)}
                                                 required
-                                                disabled={blockRegisterInfo}
+                                                //disabled={blockRegisterInfo}
                                             />
                                         </div>
                                         <div className="flex">
@@ -460,7 +461,7 @@ const ModalRegister = (props: any) => {
                                                 returnInput={(name: string, value: string) => changeData(name, value)}
                                                 required
                                                 min={dadosForm.initialDate}
-                                                disabled={blockRegisterInfo}
+                                                //disabled={blockRegisterInfo}
                                             />
                                         </div>
                                     </>
@@ -473,7 +474,7 @@ const ModalRegister = (props: any) => {
                                         placeholder="Descreva este gasto"
                                         value={dadosForm.description}
                                         returnInput={(name: string, value: string) => changeData(name, value)}
-                                        disabled={blockRegisterInfo}
+                                        //disabled={blockRegisterInfo}
                                     />
                                 </div>
                                 <div className="flex">
@@ -487,7 +488,7 @@ const ModalRegister = (props: any) => {
                                         returnInput={(name: string, value: string) => changeData(name, value)}
                                         value={dadosForm.value}
                                         required
-                                        disabled={(editMode && dadosForm.paymentMethod === "Crédito") || blockRegisterInfo}
+                                        //disabled={(editMode && dadosForm.paymentMethod === "Crédito") || blockRegisterInfo}
                                     />
                                 </div>
                                 <div className="flex">
@@ -497,7 +498,7 @@ const ModalRegister = (props: any) => {
                                         options={optionsPayment}
                                         value={dadosForm.paymentMethod}
                                         returnSelect={(name: string, value: string) => changeData(name, value)}
-                                        disabled={(editMode && dadosForm.paymentMethod === "Crédito") || blockRegisterInfo}
+                                        //disabled={(editMode && dadosForm.paymentMethod === "Crédito") || blockRegisterInfo}
                                     />
                                 </div>
                                 {showParcel && (
@@ -508,7 +509,7 @@ const ModalRegister = (props: any) => {
                                             options={parcels}
                                             value={dadosForm.parcel}
                                             returnSelect={(name: string, value: string) => changeData(name, value)}
-                                            disabled={(editMode && dadosForm.paymentMethod === "Crédito") || blockRegisterInfo}
+                                            //disabled={(editMode && dadosForm.paymentMethod === "Crédito") || blockRegisterInfo}
                                         />
                                     </div>
                                 )}
@@ -517,9 +518,10 @@ const ModalRegister = (props: any) => {
                             {/*footer*/}
                             <div className="flex items-center justify-end p-6 border-t border-solid border-blueGray-200 rounded-b gap-2">
                                 <Button type="button" content="Sair" color="bg-red-500" returnClick={() => props.returnClick()} />
-                                {!blockRegisterInfo && (
+                                <Button type="submit" content="Salvar" color="bg-green-500" returnClick={() => null}/>
+                                {/* {!blockRegisterInfo && (
                                     <Button type="submit" content="Salvar" color="bg-green-500" returnClick={() => null} disabled={blockRegisterInfo}/>
-                                )}                                
+                                )}                                 */}
                             </div>
                         </form>
                     </div>
