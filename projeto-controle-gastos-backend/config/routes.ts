@@ -31,4 +31,7 @@ module.exports = (app: any) => {
 
     app.route("/investment/test")
         .get(investment.testeInvestimento)
+
+    app.route("/teste")
+        .post(investment.teste)
 }

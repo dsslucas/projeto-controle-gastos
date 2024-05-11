@@ -39,7 +39,7 @@ module.exports = ((app: any) => {
                 idInvestment = id;
             }
 
-            await app.database("investment")
+            const investmentIdCreated = (await app.database("investment")
                 .insert({
                     idInvestment: idInvestment,
                     idPayment: idPayment,
@@ -48,12 +48,12 @@ module.exports = ((app: any) => {
                     finalDate: new Date(finalDate),
                     observation: observation
                 })
-                .transacting(trx)
+                .transacting(trx))[0].id;
 
             await rentability.forEach(async (element: any) => {
                 await app.database("investment_rentability")
                     .insert({
-                        idInvestment: idInvestment,
+                        idInvestment: investmentIdCreated,
                         name: element.name,
                         checked: element.checked,
                         type: element.type,
@@ -335,8 +335,43 @@ module.exports = ((app: any) => {
         console.log(valorTotalInvestimento)
     
         res.status(200).send(`Valor total do investimento: ${valorTotalInvestimento}`)
-    }
-    */
+    }   
+     */
 
-    return { testeInvestimento, registerInvestment, allInfoInvestmentByIdPayment, createInvestment, listInvestments }
+    const teste = async (req: any, res: any) => {
+        const {idInvestment, initialValue, initialDate, finalDate} = req.body;
+        console.log(req.body)
+
+        try {
+            const id = (await app.database("investment")
+            .insert({
+                idInvestment: Number(idInvestment),
+                initialValue: Number(initialValue),
+                initialDate: new Date(initialDate),
+                finalDate: new Date(finalDate)
+            })
+            .returning("id")
+            )[0].id;
+
+        await app.database("investment_rentability")
+            .insert({
+                idInvestment: Number(id),
+                name: "CDI",
+                checked: true,
+                percentage: 100
+            })
+
+            res.status(200).send("opa joia")
+        }
+        catch(e: any){
+            console.error(e)
+            res.status(400).send("deu ruim")
+        }
+
+
+
+        
+    }
+
+    return { testeInvestimento, registerInvestment, allInfoInvestmentByIdPayment, createInvestment, listInvestments, teste}
 })
