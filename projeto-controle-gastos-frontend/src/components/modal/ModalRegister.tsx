@@ -354,7 +354,7 @@ const ModalRegister = (props: any) => {
                                                 name="investment_category"
                                                 options={optionsInvestments}
                                                 returnSelect={(name: string, value: number) => changeData(name, value)}
-                                                disabled={blockRegisterInfo}
+                                                disabled={dadosForm.investment.category !== "-1"}
                                             />
                                         </div>
 
