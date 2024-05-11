@@ -70,12 +70,12 @@ module.exports = (app: any) => {
                     .where("c.date", "<", finalDate)
                     .select("c.id", "ce.id as idConfigEntry", "ce.value", "ce.description")
                     .transacting(trx)
-                    .then((response: any) => {
+                    .then(async (response: any) => {
                         const inputValues = []
                         var value = 0;
                         var id = null;
 
-                        response.forEach((element: any) => {
+                        response.forEach(async(element: any) => {
                             id = element.id;
                             value += element.value;
 
@@ -83,13 +83,13 @@ module.exports = (app: any) => {
                                 id: element.idConfigEntry,
                                 idConfig: element.id,
                                 description: element.description,
-                                value: element.value.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' })
+                                value: await globalFunctions.formatMoneyNumberToString(element.value)
                             })
                         })
 
                         return {
                             id,
-                            value: value.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' }),
+                            value: await globalFunctions.formatMoneyNumberToString(value),
                             inputValues
                         }
                     })

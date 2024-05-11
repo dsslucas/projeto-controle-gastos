@@ -1,4 +1,5 @@
 module.exports = ((app: any) => {
+    // MONEY
     function formatMoney(value: string) {
         const formattedValue = value.replace(/[^\d.,]/g, '').replace(',', '.');
         const removePointers = formattedValue.replace(/\.(?=[^.]*\.)/g, '');
@@ -7,6 +8,12 @@ module.exports = ((app: any) => {
         return parseFloat(numberFormatted);
     }
 
+    function formatMoneyNumberToString(value: number){
+        const convertedValue = (value).toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' });
+        return convertedValue;
+    }
+
+    // PERCENTAGE
     function formatPercentage(value: string) {
         const numericString = value.replace('%', '');
         const numericValue = parseFloat(numericString);
@@ -18,6 +25,7 @@ module.exports = ((app: any) => {
         }
     }
 
+    // DATE
     // Date between first and last day of month
     function getBetweenDates(date: string) {
         const month = Number(date.substring(5, 7));
@@ -54,6 +62,21 @@ module.exports = ((app: any) => {
         return `${year}-${month}-${day}T${hour}:${minute}`;
     }
 
+    function formatDateHourTimeFormat(data: Date){
+        let year = data.getFullYear();
+        let month = String(data.getMonth() + 1).padStart(2, '0');
+        let day = String(data.getDate()).padStart(2, '0');
+        let hour = String(data.getHours()).padStart(2, '0');
+        let minute = String(data.getMinutes()).padStart(2, '0');
+
+        return `${day}/${month}/${year} ${hour}:${minute}`;
+    }
+
+    // Convert String to Local Date String
+    function convertDateToLocation(data: Date){
+        return (new Date(data)).toLocaleDateString("pt-br");
+    }
+
     // Check if number is infinite or NaN
     function checkNumber(number: number) {
         if (!isFinite(number)) return 0.0;
@@ -76,5 +99,5 @@ module.exports = ((app: any) => {
         return diferencaDias;
     }
 
-    return { formatMoney, formatPercentage, getBetweenDates, formatDate, formatDateTFormat, checkNumber, calcDateDiff }
+    return { formatMoney, formatMoneyNumberToString, formatPercentage, getBetweenDates, formatDate, formatDateTFormat, formatDateHourTimeFormat, convertDateToLocation, checkNumber, calcDateDiff }
 })

@@ -212,18 +212,12 @@ module.exports = ((app: any) => {
                     })
                     .orderBy("date", "asc")
                     .transacting(trx)
-                    .then((response: any) => {
-                        response.forEach((element: any) => {
-                            let year = element.date.getFullYear();
-                            let month = String(element.date.getMonth() + 1).padStart(2, '0');
-                            let day = String(element.date.getDate()).padStart(2, '0');
-                            let hour = String(element.date.getHours()).padStart(2, '0');
-                            let minute = String(element.date.getMinutes()).padStart(2, '0');
+                    .then(async (response: any) => {
+                        response.forEach(async (element: any) => {
+                            element.date = await globalFunctions.formatDateHourTimeFormat(element.date);
 
-                            element.date = `${day}/${month}/${year} ${hour}:${minute}`;
-
-                            if (element.paymentMethod === "Crédito") element.value = element.parcel_value.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' });
-                            else element.value = element.value.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' });
+                            if (element.paymentMethod === "Crédito") element.value = await globalFunctions.formatMoneyNumberToString(element.parcel_value);
+                            else element.value = await globalFunctions.formatMoneyNumberToString(element.value);
                         })
                         return response;
                     });
@@ -249,7 +243,7 @@ module.exports = ((app: any) => {
                     .then(async (response: any) => {
                         if (response.description === "") response.description = "-";
                         response.date = globalFunctions.formatDateTFormat(response.date);
-                        response.value = response.value.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' });
+                        response.value = await globalFunctions.formatMoneyNumberToString(response.value);
 
                         var investment = null;
                         if (response.category === "Investimentos") {

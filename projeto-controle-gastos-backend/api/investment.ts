@@ -22,7 +22,7 @@ module.exports = ((app: any) => {
     }
 
     async function registerInvestment(id: any, idPayment: any, title: string, category: string, initialValue: string, initialDate: string, finalDate: string, rentability: any, observation: string, trx: any) {
-        var idInvestment = 0;        
+        var idInvestment = 0;
 
         try {
             if (id === null) {
@@ -242,6 +242,41 @@ module.exports = ((app: any) => {
         }
     }
 
+    // Table within investments registrated
+    const getAllInvestments = async (req: any, res: any) => {
+        try {
+            await app.database.transaction(async (trx: any) => {
+                return await app.database("investment as i")
+                    .join("investments as is", "i.idInvestment", "is.id")
+                    .select("is.id", "is.name", "i.initialValue", "i.initialDate", "i.finalDate", "i.observation", "is.category")
+                    .transacting(trx)
+                    .then((response: any) => {
+                        response.forEach(async (element: any) => {
+                            if(element.category === 1) element.category = "CDB"
+                            else if(element.category === 2) element.category = "LCI/LCA"
+                            else if(element.category === 3) element.category = "Poupança"
+                            else element.category = "Outro"
+
+                            element.initialValue = await globalFunctions.formatMoneyNumberToString(element.initialValue);
+                            element.currentValue = await globalFunctions.formatMoneyNumberToString(12345);
+
+                            element.initialDate = await globalFunctions.convertDateToLocation(element.initialDate);
+                            element.finalDate = await globalFunctions.convertDateToLocation(element.finalDate);
+                        })
+                        return response
+                    })
+            })
+                .then((response: any) => res.status(200).send(response))
+                .catch((error: any) => {
+                    console.error(error)
+                    res.status(400).send("Erro ao buscar a lista de investimentos.")
+                })
+        }
+        catch (e: any) {
+            res.status(400).send("Erro ao buscar a lista de investimentos.")
+        }
+    }
+
     const testeInvestimento = async (req: any, res: any) => {
         var valorInicialInvestimento = 520.41;
         var valorTotalInvestimento = 520.41;
@@ -333,38 +368,38 @@ module.exports = ((app: any) => {
      */
 
     const teste = async (req: any, res: any) => {
-        const {idInvestment, initialValue, initialDate, finalDate} = req.body;
+        const { idInvestment, initialValue, initialDate, finalDate } = req.body;
 
         try {
             const id = (await app.database("investment")
-            .insert({
-                idInvestment: Number(idInvestment),
-                initialValue: Number(initialValue),
-                initialDate: new Date(initialDate),
-                finalDate: new Date(finalDate)
-            })
-            .returning("id")
+                .insert({
+                    idInvestment: Number(idInvestment),
+                    initialValue: Number(initialValue),
+                    initialDate: new Date(initialDate),
+                    finalDate: new Date(finalDate)
+                })
+                .returning("id")
             )[0].id;
 
-        await app.database("investment_rentability")
-            .insert({
-                idInvestment: Number(id),
-                name: "CDI",
-                checked: true,
-                percentage: 100
-            })
+            await app.database("investment_rentability")
+                .insert({
+                    idInvestment: Number(id),
+                    name: "CDI",
+                    checked: true,
+                    percentage: 100
+                })
 
             res.status(200).send("opa joia")
         }
-        catch(e: any){
+        catch (e: any) {
             console.error(e)
             res.status(400).send("deu ruim")
         }
 
 
 
-        
+
     }
 
-    return { testeInvestimento, registerInvestment, allInfoInvestmentByIdPayment, createInvestment, listInvestments, teste}
+    return { testeInvestimento, registerInvestment, allInfoInvestmentByIdPayment, createInvestment, getAllInvestments, listInvestments, teste }
 })

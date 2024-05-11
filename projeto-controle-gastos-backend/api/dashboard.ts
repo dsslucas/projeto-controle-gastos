@@ -20,7 +20,7 @@ module.exports = ((app: any) => {
                     .where("date", ">=", initialDate)
                     .where("date", "<", finalDate)
                     .transacting(trx)
-                    .then((response: any) => {
+                    .then(async (response: any) => {
                         var valorPix: number = 0.0;
                         var valorDebito: number = 0.0;
                         var valorCredito: number = 0.0;
@@ -59,66 +59,66 @@ module.exports = ((app: any) => {
                         const expenses = totalContas + totalInvestimentos + totalLazer + totalAlimentacao + totalCompras + totalSaude + totalViagens + totalOutros;
 
                         const valueAvaliable = entries - expenses;
-
+                        //await globalFunctions.formatMoneyNumberToString(element.value)
                         const teste = {
-                            total: entries.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' }),
+                            total: await globalFunctions.formatMoneyNumberToString(entries),
                             available: {
-                                value: valueAvaliable.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' }),
+                                value: await globalFunctions.formatMoneyNumberToString(valueAvaliable),
                                 percentage: `${globalFunctions.checkNumber(((valueAvaliable / entries) * 100).toFixed(0))}%`
                             },
                             expenses: {
-                                value: expenses.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+                                value: await globalFunctions.formatMoneyNumberToString(expenses),
                                 percentage: `${globalFunctions.checkNumber(((expenses / entries) * 100).toFixed(0))}%`
                             },
                             indicators: {
                                 billing: {
-                                    value: totalContas.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+                                    value: await globalFunctions.formatMoneyNumberToString(totalContas),
                                     percentage: `${globalFunctions.checkNumber(((totalContas / entries) * 100).toFixed(0))}%`
                                 },
                                 investments: {
-                                    value: totalInvestimentos.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+                                    value: await globalFunctions.formatMoneyNumberToString(totalInvestimentos),
                                     percentage: `${globalFunctions.checkNumber(((totalInvestimentos / entries) * 100).toFixed(0))}%`
                                 },
                                 leisure: {
-                                    value: totalLazer.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+                                    value: await globalFunctions.formatMoneyNumberToString(totalLazer),
                                     percentage: `${globalFunctions.checkNumber(((totalLazer / entries) * 100).toFixed(0))}%`
                                 },
                                 food: {
-                                    value: totalAlimentacao.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+                                    value: await globalFunctions.formatMoneyNumberToString(totalAlimentacao),
                                     percentage: `${globalFunctions.checkNumber(((totalAlimentacao / entries) * 100).toFixed(0))}%`
                                 },
                                 purcharse: {
-                                    value: totalCompras.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+                                    value: await globalFunctions.formatMoneyNumberToString(totalCompras),
                                     percentage: `${globalFunctions.checkNumber(((totalCompras / entries) * 100).toFixed(0))}%`
                                 },
                                 health: {
-                                    value: totalSaude.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+                                    value: await globalFunctions.formatMoneyNumberToString(totalSaude),
                                     percentage: `${globalFunctions.checkNumber(((totalSaude / entries) * 100).toFixed(0))}%`
                                 },
                                 travel: {
-                                    value: totalViagens.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+                                    value: await globalFunctions.formatMoneyNumberToString(totalViagens),
                                     percentage: `${globalFunctions.checkNumber(((totalViagens / entries) * 100).toFixed(0))}%`
                                 },
                                 other: {
-                                    value: totalOutros.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+                                    value: await globalFunctions.formatMoneyNumberToString(totalOutros),
                                     percentage: `${globalFunctions.checkNumber(((totalOutros / entries) * 100).toFixed(0))}%`
                                 }
                             },
                             paymentMethod: {
                                 debit: {
-                                    value: valorDebito.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+                                    value: await globalFunctions.formatMoneyNumberToString(valorDebito),
                                     percentage: `${globalFunctions.checkNumber(((valorDebito / entries) * 100).toFixed(0))}%`
                                 },
                                 credit: {
-                                    value: valorCredito.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+                                    value: await globalFunctions.formatMoneyNumberToString(valorCredito),
                                     percentage: `${globalFunctions.checkNumber(((valorCredito / entries) * 100).toFixed(0))}%`
                                 },
                                 pix: {
-                                    value: valorPix.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+                                    value: await globalFunctions.formatMoneyNumberToString(valorPix),
                                     percentage: `${globalFunctions.checkNumber(((valorPix / entries) * 100).toFixed(0))}%`
                                 },
                                 cash: {
-                                    value: valorEspecie.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+                                    value: await globalFunctions.formatMoneyNumberToString(valorEspecie),
                                     percentage: `${globalFunctions.checkNumber(((valorEspecie / entries) * 100).toFixed(0))}%`
                                 }
                             }
