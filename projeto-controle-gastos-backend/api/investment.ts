@@ -68,7 +68,6 @@ module.exports = ((app: any) => {
     }
 
     const createInvestment = async (req: any, res: any) => {
-        console.log(req.body)
         const { title, category, initialValue, initialDate, finalDate, rentability, observation } = req.body;
 
         if (title === null || title === undefined || title === "") {
@@ -171,7 +170,7 @@ module.exports = ((app: any) => {
         try {
             return await app.database("investments as i")
                 .join("investment as i_simple", "i_simple.idInvestment", "i.id")
-                .select("i.id", "i_simple.idPayment", "i.name", "i.category", "i_simple.initialValue", "i_simple.initialDate", "i_simple.finalDate")
+                .select("i.id", "i_simple.id as idInvestment", "i_simple.idPayment", "i.name", "i.category", "i_simple.initialValue", "i_simple.initialDate", "i_simple.finalDate")
                 .where("i_simple.idPayment", idPayment)
                 .first()
                 .transacting(trx)
@@ -180,7 +179,7 @@ module.exports = ((app: any) => {
                         ...response,
                         initialDate: globalFunctions.formatDate(response.initialDate),
                         finalDate: globalFunctions.formatDate(response.finalDate),
-                        rentability: await getRentability(response.id, trx)
+                        rentability: await getRentability(response.idInvestment, trx)
                     };
                 })
 
@@ -267,7 +266,6 @@ module.exports = ((app: any) => {
                 return response.json();
             })
             .then(data => {
-                console.log(data); // Aqui você pode processar os dados conforme necessário
                 if (Array.isArray(data)) {
                     data.forEach((element: any, index: number) => {
                         if (index != 0 && data.length - 1 != index) {
@@ -280,11 +278,7 @@ module.exports = ((app: any) => {
                 console.error('Erro:', error);
             });
 
-
-        console.log(valorTotalInvestimento)
-
         const IOF: number = calcularIOF(valorInicialInvestimento, dataInicial, new Date("2024-04-29"));
-
 
         console.log("Valor do IOF a pagar:", IOF.toFixed(2)); // Exibe o valor do IOF com duas casas decimais
 
@@ -340,7 +334,6 @@ module.exports = ((app: any) => {
 
     const teste = async (req: any, res: any) => {
         const {idInvestment, initialValue, initialDate, finalDate} = req.body;
-        console.log(req.body)
 
         try {
             const id = (await app.database("investment")

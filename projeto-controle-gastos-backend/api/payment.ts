@@ -185,8 +185,6 @@ module.exports = ((app: any) => {
         const { category, paymentMethod, date } = req.query;
         const dateReported = date !== "";
 
-        console.log("DATA PASSADA? ", dateReported)
-
         //if(date === "" || date === undefined || date === null) return res.status(404).send("A data para consulta não foi informada.")
         var initialDate = null;
         var finalDate = null;
@@ -242,7 +240,6 @@ module.exports = ((app: any) => {
 
     const getPayment = async (req: any, res: any) => {
         const id = req.params.id;
-        console.log(id)
         try {
             await app.database.transaction(async (trx: any) => {
                 const data = await app.database("payment")
