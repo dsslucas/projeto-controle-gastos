@@ -249,6 +249,7 @@ module.exports = ((app: any) => {
                 return await app.database("investment as i")
                     .join("investments as is", "i.idInvestment", "is.id")
                     .select("is.id", "is.name", "i.initialValue", "i.initialDate", "i.finalDate", "i.observation", "is.category")
+                    .orderBy("i.initialDate", "asc")
                     .transacting(trx)
                     .then((response: any) => {
                         response.forEach(async (element: any) => {
@@ -263,10 +264,10 @@ module.exports = ((app: any) => {
                             element.initialDate = await globalFunctions.convertDateToLocation(element.initialDate);
                             element.finalDate = await globalFunctions.convertDateToLocation(element.finalDate);
                         })
-                        
+
                         return {
                             data: response,
-                            columns: ["Nome", "Categoria", "Data inicial", "Data final", "Valor inicial", "Valor atual", "Observação"]
+                            columns: ["Nome", "Categoria", "Data inicial", "Data final", "Valor inicial", "Valor atual", "Observação", ""]
                         }
                     })
             })

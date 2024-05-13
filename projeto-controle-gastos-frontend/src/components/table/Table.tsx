@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEye } from "@fortawesome/free-solid-svg-icons";
 
 const Table = (props: any) => {
-    const { payment, data } = props;
+    const { payment, investment, data } = props;
 
     console.log(props)
 
@@ -23,6 +23,20 @@ const Table = (props: any) => {
                         <th>{columns[4]}</th>
                         <th>{columns[5]}</th>
                         <th>{columns[6]}</th>
+                    </tr>
+                );
+            }
+            else if(investment){
+                return (
+                    <tr>
+                        <th>{columns[0]}</th>
+                        <th>{columns[1]}</th>
+                        <th>{columns[2]}</th>
+                        <th>{columns[3]}</th>
+                        <th>{columns[4]}</th>
+                        <th>{columns[5]}</th>
+                        <th>{columns[6]}</th>
+                        <th>{columns[7]}</th>
                     </tr>
                 );
             }
@@ -43,6 +57,30 @@ const Table = (props: any) => {
                             <td className="xs:hidden sm:table-cell">{element.description}</td>
                             <td>{element.paymentMethod}</td>
                             <td>{element.value}</td>
+                            <td className='gap-2'>
+                                <Button
+                                    type="button"
+                                    iconTable
+                                    content={<FontAwesomeIcon icon={faEye} />}
+                                    color="bg-blue-500"
+                                    returnClick={() => props.returnClick(element.id)}
+                                />
+                            </td>
+                        </tr>
+                    )
+                })
+            }
+            else if(investment){
+                return rows.map((element: any, index: number) => {
+                    return (
+                        <tr key={index} className={`${index % 2 !== 0 ? "bg-blue-300 bg-opacity-40" : "bg-white"}`}>
+                            <td>{element.name}</td>
+                            <td>{element.category}</td>
+                            <td>{element.initialDate}</td>
+                            <td>{element.finalDate}</td>
+                            <td>{element.initialValue}</td>
+                            <td>{element.currentValue}</td>
+                            <td>{element.observation}</td>
                             <td className='gap-2'>
                                 <Button
                                     type="button"

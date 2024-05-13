@@ -10,9 +10,9 @@ import ModalRescueInvestment from "../components/modal/ModalRescueInvestment";
 import globalFunctions from "../global/functions";
 
 const Investments = (props: any) => {
-    const [dataApiPayment, setDataApiPayment] = useState<any>();
+    const [dataApiInvestment, setDataApiInvestment] = useState<any>();
     const [showModalRegisterInvestment, setShowModalRegisterInvestment] = useState(false);
-    const [showModalRescueInvestment, setShowModalRescueInvestment] = useState(false);    
+    const [showModalRescueInvestment, setShowModalRescueInvestment] = useState(false);
     const { optionsInvestments } = globalFunctions();
 
     useEffect(() => {
@@ -44,14 +44,8 @@ const Investments = (props: any) => {
 
     const getData = async (category: string, paymentMethod: string, date: string) => {
         console.log("O QUE ESTOU RECEBENDO: ", date)
-        await api.get("/payment", {
-            params: {
-                category: category,
-                paymentMethod: paymentMethod,
-                date: date
-            }
-        })
-            .then((response: any) => setDataApiPayment(response.data))
+        await api.get("/investment")
+            .then((response: any) => setDataApiInvestment(response.data))
             .catch((error: any) => {
                 Alert({
                     text: error.response.data,
@@ -119,13 +113,16 @@ const Investments = (props: any) => {
             </section>
 
             <section>
-                <Table
-                    returnClick={(id: number) => {
-                        // setIdSelected(id);
-                        // setShowModalRegister(true);
-                    }}
-                    data={dataApiPayment}
-                />
+                {dataApiInvestment && (
+                    <Table
+                        investment
+                        returnClick={(id: number) => {
+                            // setIdSelected(id);
+                            // setShowModalRegister(true);
+                        }}
+                        data={dataApiInvestment}
+                    />
+                )}
             </section>
         </>
     )
