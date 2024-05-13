@@ -369,13 +369,16 @@ const Home = (props: any) => {
                         </div>
                     </div>
                     <div className="xs:max-h-[85vh] lg:max-h-[90vh] xl:max-h-[80vh] overflow-y-auto block">
-                        <Table
-                            returnClick={(id: number) => {
-                                setIdSelected(id);
-                                setShowModalRegister(true);
-                            }}
-                            data={dataApiPayment}
-                        />
+                        {dataApiPayment && (
+                            <Table
+                                payment
+                                returnClick={(id: number) => {
+                                    setIdSelected(id);
+                                    setShowModalRegister(true);
+                                }}
+                                data={dataApiPayment}
+                            />
+                        )}                        
                     </div>
                 </div>
             </section>

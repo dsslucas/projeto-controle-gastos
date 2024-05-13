@@ -189,6 +189,10 @@ module.exports = ((app: any) => {
         var initialDate = null;
         var finalDate = null;
 
+        if(date === undefined || date === null || date === ""){
+           return res.status(404).send("As datas não foram informadas.")
+        }
+
         if (dateReported) {
             const { initialDate: startDate, finalDate: endDate } = globalFunctions.getBetweenDates(date.substring(0, 7));
             initialDate = startDate;
@@ -219,7 +223,10 @@ module.exports = ((app: any) => {
                             if (element.paymentMethod === "Crédito") element.value = await globalFunctions.formatMoneyNumberToString(element.parcel_value);
                             else element.value = await globalFunctions.formatMoneyNumberToString(element.value);
                         })
-                        return response;
+                        return {
+                            data: response,
+                            columns: ["TÍTULO",	"DATA",	"CATEGORIA", "DESCRIÇÃO", "FORMA", "VALOR",	"AÇÕES"]
+                        };
                     });
                 return data;
             })

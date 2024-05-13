@@ -263,7 +263,11 @@ module.exports = ((app: any) => {
                             element.initialDate = await globalFunctions.convertDateToLocation(element.initialDate);
                             element.finalDate = await globalFunctions.convertDateToLocation(element.finalDate);
                         })
-                        return response
+                        
+                        return {
+                            data: response,
+                            columns: ["Nome", "Categoria", "Data inicial", "Data final", "Valor inicial", "Valor atual", "Observação"]
+                        }
                     })
             })
                 .then((response: any) => res.status(200).send(response))
