@@ -36,7 +36,6 @@ const Table = (props: any) => {
                         <th>{columns[4]}</th>
                         <th>{columns[5]}</th>
                         <th>{columns[6]}</th>
-                        <th>{columns[7]}</th>
                     </tr>
                 );
             }
@@ -81,15 +80,6 @@ const Table = (props: any) => {
                             <td>{element.initialValue}</td>
                             <td>{element.currentValue}</td>
                             <td>{element.observation}</td>
-                            <td className='gap-2'>
-                                <Button
-                                    type="button"
-                                    iconTable
-                                    content={<FontAwesomeIcon icon={faEye} />}
-                                    color="bg-blue-500"
-                                    returnClick={() => props.returnClick(element.id)}
-                                />
-                            </td>
                         </tr>
                     )
                 })
