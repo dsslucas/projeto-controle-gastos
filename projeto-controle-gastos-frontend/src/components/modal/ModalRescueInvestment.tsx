@@ -10,13 +10,50 @@ import globalFunctions from "../../global/functions";
 import Text from "../text/Text";
 
 const ModalRescueInvestment = (props: any) => {
-    const [dadosForm, setDadosForm] = useState<Object>({
-
+    const [dadosForm, setDadosForm] = useState<any>({
+        idInvestment: "-"
     });
+
+    const [apiInvestments, setApiInvestments] = useState<any>([]);
+
+    const apiInvestmentList = async () => {
+        await api.get("/investment/list")
+            .then((response: any) => {
+                setApiInvestments(response.data);
+
+                if (response.data[0].value === "-1") {
+                    // SELECT CDB
+                    setDadosForm({
+                        ...dadosForm,
+                        investment: {
+                            ...dadosForm.investment,
+                            category: "1"
+                        }
+                    });
+                }
+            })
+            .catch((error: any) => {
+                Alert({
+                    text: error.response.data,
+                    icon: "error"
+                });
+            })
+    }
 
     const handleSubmit = async (event: any) => {
         event.preventDefault();
     }
+
+    const changeData = (name: string, valueChanged: any) => {
+        setDadosForm({
+            ...dadosForm,
+            [name]: valueChanged
+        })
+    }
+
+    useEffect(() => {
+        apiInvestmentList();
+    }, [])
 
     return (
         <>
@@ -32,24 +69,14 @@ const ModalRescueInvestment = (props: any) => {
                             <div className="relative p-6 flex-auto flex flex-col gap-2">
                                 <div className="flex">
                                     <Label label="Investimento" />
-                                    <Select
-                                        name="Investimento"
-                                        options={[
-                                            {
-                                                value: 1,
-                                                text: "CDB 12 Meses"
-                                            },
-                                            {
-                                                value: 2,
-                                                text: "LCI/LCA LIQUIDEX 90 DIAS - PF"
-                                            },
-                                            {
-                                                value: 3,
-                                                text: "LCI/LCA LIQUIDEZ DIARIA: PJ"
-                                            }
-                                        ]}
-                                        returnSelect={(name: string, value: number) => console.log(`${name} - ${value}`)}
-                                    />
+                                    {apiInvestments && (
+                                        <Select
+                                            name="idInvestment"
+                                            value={dadosForm.idInvestment}
+                                            options={apiInvestments}
+                                            returnSelect={(name: string, value: number) => changeData(name, value)}
+                                        />
+                                    )}
                                 </div>
 
                                 <div className="flex flex-col w-full">
@@ -91,8 +118,8 @@ const ModalRescueInvestment = (props: any) => {
                             </div>
                             {/*footer*/}
                             <div className="flex items-center justify-end p-6 border-t border-solid border-blueGray-200 rounded-b gap-2">
-                                <Button type="button" content="Sair" color="bg-red-500" returnClick={() => props.returnClick()} />
-                                <Button type="submit" content="Salvar" color="bg-green-500" returnClick={() => null} />
+                                <Button type="button" content="Sair" color="bg-gray-200" returnClick={() => props.returnClick()} />
+                                <Button type="submit" content="Salvar" color="bg-red-400" returnClick={() => null} />
                             </div>
                         </form>
                     </div>
