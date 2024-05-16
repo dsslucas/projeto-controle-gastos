@@ -121,13 +121,6 @@ module.exports = ((app: any) => {
         }
     }
 
-    // Rentability investments
-    const rentabilityInvestments = async (idInvestment: number, trx: any) => {
-        return await app.database("investment_rentability")
-            .where({ idInvestment })
-            .transacting(trx)
-    }
-
     // Investments list
     const listInvestments = async (req: any, res: any) => {
         try {
@@ -141,8 +134,6 @@ module.exports = ((app: any) => {
                                 value: element.id.toString(),
                                 text: element.name,
                                 category: element.category.toString()
-                                //...element,
-                                //rentability: await rentabilityInvestments(element.id, trx)
                             })
                         });
 
@@ -243,94 +234,120 @@ module.exports = ((app: any) => {
     }
 
     // Table within investments registrated
-    const getAllInvestments = async (req: any, res: any) => {
+    const getAllInvestments = async (req, res) => {
         try {
-            await app.database.transaction(async (trx: any) => {
+            const investments = await app.database.transaction(async (trx) => {
                 return await app.database("investment as i")
                     .join("investments as is", "i.idInvestment", "is.id")
                     .select("is.id", "is.name", "i.initialValue", "i.initialDate", "i.finalDate", "i.observation", "is.category")
                     .orderBy("i.initialDate", "asc")
-                    .transacting(trx)
-                    .then((response: any) => {
-                        response.forEach(async (element: any) => {
-                            if(element.category === 1) element.category = "CDB"
-                            else if(element.category === 2) element.category = "LCI/LCA"
-                            else if(element.category === 3) element.category = "Poupança"
-                            else element.category = "Outro"
-
-                            element.initialValue = await globalFunctions.formatMoneyNumberToString(element.initialValue);
-                            element.currentValue = await globalFunctions.formatMoneyNumberToString(12345);
-
-                            element.initialDate = await globalFunctions.convertDateToLocation(element.initialDate);
-                            element.finalDate = await globalFunctions.convertDateToLocation(element.finalDate);
-
-                            if(element.observation === "" || element.observation === null) element.observation = "-";
-                            else element.observation;
-                        })
-
-                        return {
-                            data: response,
-                            columns: ["Nome", "Categoria", "Data inicial", "Data final", "Valor inicial", "Valor atual", "Observação"]
-                        }
-                    })
-            })
-                .then((response: any) => res.status(200).send(response))
-                .catch((error: any) => {
-                    console.error(error)
-                    res.status(400).send("Erro ao buscar a lista de investimentos.")
-                })
+                    .transacting(trx);
+            });
+    
+            const formattedInvestments = [];
+            for (const investment of investments) {
+                let formattedInvestment = investment;
+    
+                if (investment.category === 1) {
+                    formattedInvestment.category = "CDB";
+                } else if (investment.category === 2) {
+                    formattedInvestment.category = "LCI/LCA";
+                } else if (investment.category === 3) {
+                    formattedInvestment.category = "Poupança";
+                } else {
+                    formattedInvestment.category = "Outro";
+                }
+    
+                formattedInvestment.initialValue = await globalFunctions.formatMoneyNumberToString(investment.initialValue);
+                formattedInvestment.initialDate = await globalFunctions.convertDateToLocation(investment.initialDate);
+                formattedInvestment.finalDate = await globalFunctions.convertDateToLocation(investment.finalDate);
+    
+                try {
+                    formattedInvestment.currentValue = await calculateInvestmentValue(investment.initialValue, new Date(investment.initialDate), formattedInvestment.category, new Date(investment.finalDate), investment.percentage);
+                } catch (error) {
+                    console.error(`Erro ao calcular rentabilidade para o investimento ${investment.name}: ${error}`);
+                    formattedInvestment.currentValue = 0; // Ou qualquer outro valor padrão que você deseje
+                }
+    
+                if (investment.observation === "" || investment.observation === null) {
+                    formattedInvestment.observation = "-";
+                } else {
+                    formattedInvestment.observation = investment.observation;
+                }
+    
+                formattedInvestments.push(formattedInvestment);
+            }
+    
+            res.status(200).send({
+                data: formattedInvestments,
+                columns: ["Nome", "Categoria", "Data inicial", "Data final", "Valor inicial", "Valor atual", "Observação"]
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(400).send("Erro ao buscar a lista de investimentos.");
         }
-        catch (e: any) {
-            res.status(400).send("Erro ao buscar a lista de investimentos.")
-        }
-    }
-
-    const testeInvestimento = async (req: any, res: any) => {
+    };
+    
+    const calculateInvestmentValue = async (initialValue, initialDate, category, finalDate, percentage) => {
+        let valorTotalInvestimento = initialValue;
+        let serie = 0;
+        /*
         var valorInicialInvestimento = 520.41;
         var valorTotalInvestimento = 520.41;
         const dataInicial = new Date("2024-04-10");
         const dataFinal = new Date("2026-04-01");
         const percentualCdi = 1;
         const serie = 11;
-
-        const diferencaDias = globalFunctions.calcDateDiff(dataInicial, dataFinal);
+        */
 
         // 11 - SELIC
         // 12 - CDI
         // 433 - IPCA
+    
+        if (category == "CDB") {
+            serie = 11;
+        } else if (category == "LCI/LCA") {
+            serie = 12;
+        } else if (category == "IPCA") {
+            serie = 433;
+        }
+    
+        const url = `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${serie}/dados?formato=json&dataInicial=${initialDate.toLocaleDateString("pt-br")}&dataFinal=${finalDate.toLocaleDateString("pt-br")}`;
+    
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error('Erro ao obter os dados da API');
+            }
+            const data = await response.json();
+            if (Array.isArray(data)) {
+                data.forEach((element, index) => {
+                    if (index != 0 && data.length - 1 != index) {
+                        valorTotalInvestimento *= 1 + (element.valor / 100) * percentage;
+                    }
+                });
+            }
+            return valorTotalInvestimento;
+        } catch (error) {
+            console.error('Erro:', error);
+            return 0;
+        }
 
-        const url = `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${serie}/dados?formato=json&dataInicial=${dataInicial.toLocaleDateString("pt-br")}&dataFinal=${dataFinal.toLocaleDateString("pt-br")}`;
-
-        await fetch(url)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Erro ao obter os dados da API');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (Array.isArray(data)) {
-                    data.forEach((element: any, index: number) => {
-                        if (index != 0 && data.length - 1 != index) {
-                            valorTotalInvestimento *= 1 + (element.valor / 100) * percentualCdi;
-                        }
-                    })
-                }
-            })
-            .catch(error => {
-                console.error('Erro:', error);
-            });
-
+        /* 
+        
         const IOF: number = calcularIOF(valorInicialInvestimento, dataInicial, new Date("2024-04-29"));
 
         console.log("Valor do IOF a pagar:", IOF.toFixed(2)); // Exibe o valor do IOF com duas casas decimais
 
         res.status(200).send(`Valor total do investimento: ${valorTotalInvestimento}`)
-    }
+        
+        */
+    };
+    
 
-    /* CDB */
+    // CDB
     /*
-    const testeInvestimento = async (req: any, res: any) => {
+    const calculoRentabilidade = async (req: any, res: any) => {
         var valorTotalInvestimento = 7000;
         const dataInicial = new Date("2022-04-29");
         const dataFinal = new Date("2025-05-15");
@@ -409,5 +426,5 @@ module.exports = ((app: any) => {
 
     }
 
-    return { testeInvestimento, registerInvestment, allInfoInvestmentByIdPayment, createInvestment, getAllInvestments, listInvestments, teste }
+    return { registerInvestment, allInfoInvestmentByIdPayment, createInvestment, getAllInvestments, listInvestments, teste }
 })
