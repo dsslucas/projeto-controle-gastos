@@ -274,8 +274,16 @@ module.exports = ((app: any) => {
                 const initialValueWithoutMoneyFormat = await globalFunctions.formatMoney(investment.initialValue);
 
                 var value = 0;
+                var rentabilityInfo = "";
                 if (Array.isArray(formattedInvestment.rentability) && formattedInvestment.rentability.length > 0) {                    
                     for (const element of formattedInvestment.rentability) {
+                        
+                        if(rentabilityInfo != "") rentabilityInfo += ` + `;
+
+                        if(element.name.includes("CDI")) rentabilityInfo += `${element.percentage.toLocaleString("pt-br")}% do CDI`;
+                        else if(element.name.includes("IPCA")) rentabilityInfo += element.name;
+                        else if(element.name.includes("tax")) rentabilityInfo += `${element.percentage.toLocaleString("pt-br")}% ${element.type}`;
+
                         try {
                             value += await calculateInvestmentValue(initialValueWithoutMoneyFormat, formattedInvestment.initialDate, formattedInvestment.category, formattedInvestment.finalDate, element.percentage, formattedInvestment.name);                
                         } catch (error) {
@@ -285,16 +293,11 @@ module.exports = ((app: any) => {
                     }
 
                     formattedInvestment.currentValue = await globalFunctions.formatMoneyNumberToString(value);
+                    formattedInvestment.rentabilityInfo = rentabilityInfo;
                 }
                 else {
                     formattedInvestment.currentValue = 0;
                 }
-                // try {
-                //     formattedInvestment.currentValue = await calculateInvestmentValue(investment.initialValue, formattedInvestment.initialDate, formattedInvestment.category, formattedInvestment.finalDate, formattedInvestment.percentage);
-                // } catch (error) {
-                //     console.error(`Erro ao calcular rentabilidade para o investimento ${investment.name}: ${error}`);
-                //     formattedInvestment.currentValue = 0; // Ou qualquer outro valor padrão que você deseje
-                // }
 
                 if (investment.observation === "" || investment.observation === null) {
                     formattedInvestment.observation = "-";
@@ -307,7 +310,7 @@ module.exports = ((app: any) => {
 
             res.status(200).send({
                 data: formattedInvestments,
-                columns: ["Nome", "Categoria", "Data inicial", "Data final", "Valor inicial", "Valor atual", "Observação"]
+                columns: ["Nome", "Categoria", "Data inicial", "Data final", "Valor inicial", "Valor atual", "Rentabilidade", "Observação"]
             });
         } catch (error) {
             console.error(error);

@@ -36,6 +36,7 @@ const Table = (props: any) => {
                         <th>{columns[4]}</th>
                         <th>{columns[5]}</th>
                         <th>{columns[6]}</th>
+                        <th>{columns[7]}</th>
                     </tr>
                 );
             }
@@ -79,6 +80,7 @@ const Table = (props: any) => {
                             <td>{element.finalDate}</td>
                             <td>{element.initialValue}</td>
                             <td>{element.currentValue}</td>
+                            <td>{element.rentabilityInfo}</td>
                             <td>{element.observation}</td>
                         </tr>
                     )
