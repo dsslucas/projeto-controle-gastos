@@ -186,9 +186,9 @@ module.exports = ((app: any) => {
                 .where({ idInvestment })
                 .transacting(trx)
                 .then((response: any) => {
-                    response.forEach((element: any) => {
-                        percentage: `${element.percentage}%`
-                    })
+                    // response.forEach((element: any) => {
+                    //     element.percentage = `${element.percentage}%`
+                    // })
                     return response;
                 })
 
@@ -234,20 +234,29 @@ module.exports = ((app: any) => {
     }
 
     // Table within investments registrated
-    const getAllInvestments = async (req, res) => {
+    const getAllInvestments = async (req: any, res: any) => {
         try {
             const investments = await app.database.transaction(async (trx) => {
                 return await app.database("investment as i")
                     .join("investments as is", "i.idInvestment", "is.id")
-                    .select("is.id", "is.name", "i.initialValue", "i.initialDate", "i.finalDate", "i.observation", "is.category")
+                    .select("i.id", "is.name", "i.initialValue", "i.initialDate", "i.finalDate", "i.observation", "is.category")
                     .orderBy("i.initialDate", "asc")
-                    .transacting(trx);
+                    .transacting(trx)
+                    .then(async (response: any) => {
+                        await response.forEach(async (element: any) => {
+                            element.rentability = await getRentability(element.id, trx);
+                        })
+
+                        return response;
+                    });
             });
-    
+
             const formattedInvestments = [];
+            var value = 0;
             for (const investment of investments) {
                 let formattedInvestment = investment;
-    
+                value = 0;
+
                 if (investment.category === 1) {
                     formattedInvestment.category = "CDB";
                 } else if (investment.category === 2) {
@@ -257,27 +266,45 @@ module.exports = ((app: any) => {
                 } else {
                     formattedInvestment.category = "Outro";
                 }
-    
+
                 formattedInvestment.initialValue = await globalFunctions.formatMoneyNumberToString(investment.initialValue);
                 formattedInvestment.initialDate = await globalFunctions.convertDateToLocation(investment.initialDate);
                 formattedInvestment.finalDate = await globalFunctions.convertDateToLocation(investment.finalDate);
-    
-                try {
-                    formattedInvestment.currentValue = await calculateInvestmentValue(investment.initialValue, new Date(investment.initialDate), formattedInvestment.category, new Date(investment.finalDate), investment.percentage);
-                } catch (error) {
-                    console.error(`Erro ao calcular rentabilidade para o investimento ${investment.name}: ${error}`);
-                    formattedInvestment.currentValue = 0; // Ou qualquer outro valor padrão que você deseje
+
+                const initialValueWithoutMoneyFormat = await globalFunctions.formatMoney(investment.initialValue);
+
+                var value = 0;
+                if (Array.isArray(formattedInvestment.rentability) && formattedInvestment.rentability.length > 0) {                    
+                    for (const element of formattedInvestment.rentability) {
+                        try {
+                            value += await calculateInvestmentValue(initialValueWithoutMoneyFormat, formattedInvestment.initialDate, formattedInvestment.category, formattedInvestment.finalDate, element.percentage, formattedInvestment.name);                
+                        } catch (error) {
+                            console.error(`Erro ao calcular rentabilidade para o investimento ${investment.name}: ${error}`);
+                            formattedInvestment.currentValue = 0; // Ou qualquer outro valor padrão que você deseje
+                        }
+                    }
+
+                    formattedInvestment.currentValue = await globalFunctions.formatMoneyNumberToString(value);
                 }
-    
+                else {
+                    formattedInvestment.currentValue = 0;
+                }
+                // try {
+                //     formattedInvestment.currentValue = await calculateInvestmentValue(investment.initialValue, formattedInvestment.initialDate, formattedInvestment.category, formattedInvestment.finalDate, formattedInvestment.percentage);
+                // } catch (error) {
+                //     console.error(`Erro ao calcular rentabilidade para o investimento ${investment.name}: ${error}`);
+                //     formattedInvestment.currentValue = 0; // Ou qualquer outro valor padrão que você deseje
+                // }
+
                 if (investment.observation === "" || investment.observation === null) {
                     formattedInvestment.observation = "-";
                 } else {
                     formattedInvestment.observation = investment.observation;
                 }
-    
+
                 formattedInvestments.push(formattedInvestment);
             }
-    
+
             res.status(200).send({
                 data: formattedInvestments,
                 columns: ["Nome", "Categoria", "Data inicial", "Data final", "Valor inicial", "Valor atual", "Observação"]
@@ -287,15 +314,15 @@ module.exports = ((app: any) => {
             res.status(400).send("Erro ao buscar a lista de investimentos.");
         }
     };
-    
-    const calculateInvestmentValue = async (initialValue, initialDate, category, finalDate, percentage) => {
+
+    const calculateInvestmentValue = async (initialValue, initialDate, category, finalDate, percentage, name) => {
         let valorTotalInvestimento = initialValue;
         let serie = 0;
         /*
         var valorInicialInvestimento = 520.41;
         var valorTotalInvestimento = 520.41;
         const dataInicial = new Date("2024-04-10");
-        const dataFinal = new Date("2026-04-01");
+        const dataFinal = new Date();
         const percentualCdi = 1;
         const serie = 11;
         */
@@ -303,17 +330,19 @@ module.exports = ((app: any) => {
         // 11 - SELIC
         // 12 - CDI
         // 433 - IPCA
-    
+
         if (category == "CDB") {
             serie = 11;
         } else if (category == "LCI/LCA") {
             serie = 12;
         } else if (category == "IPCA") {
             serie = 433;
+        } else if(category == "tax"){
+            return 0;
         }
-    
-        const url = `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${serie}/dados?formato=json&dataInicial=${initialDate.toLocaleDateString("pt-br")}&dataFinal=${finalDate.toLocaleDateString("pt-br")}`;
-    
+
+        const url = `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${serie}/dados?formato=json&dataInicial=${initialDate}&dataFinal=${finalDate}`;
+
         try {
             const response = await fetch(url);
             if (!response.ok) {
@@ -323,7 +352,7 @@ module.exports = ((app: any) => {
             if (Array.isArray(data)) {
                 data.forEach((element, index) => {
                     if (index != 0 && data.length - 1 != index) {
-                        valorTotalInvestimento *= 1 + (element.valor / 100) * percentage;
+                        valorTotalInvestimento *= 1 + (Number(element.valor) / 100) * Number(percentage / 100);
                     }
                 });
             }
@@ -343,7 +372,7 @@ module.exports = ((app: any) => {
         
         */
     };
-    
+
 
     // CDB
     /*
