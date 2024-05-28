@@ -77,6 +77,58 @@ module.exports = ((app: any) => {
         return (new Date(data)).toLocaleDateString("pt-br");
     }
 
+    // Calc date month difference
+    function monthDifference(date1: string, date2: string) {
+        const initialDate = date1.split("/");
+        const finalDate = date2.split("/");
+
+        // Convert the date strings to Date objects
+        let d1 = new Date(`${initialDate[2]}-${initialDate[1]}-${initialDate[0]}`);
+        let d2 = new Date(`${finalDate[2]}-${finalDate[1]}-${finalDate[0]}`);
+
+        var months = 0;
+        months = (d2.getFullYear() - d1.getFullYear()) * 12;
+        months += d2.getMonth() - d1.getMonth();
+        if (d2.getDate() < d1.getDate()) {
+            months--;
+        }
+        return months <= 0 ? 0 : months;
+    }
+
+    // Convert date DD/MM/YYYY to YYYY-MM-DD
+    function convertDateBrToUs(date: string){
+        const partes = date.split("/");
+
+        const dia = partes[0];
+        const mes = partes[1];
+        const ano = partes[2];
+
+        return `${ano}-${mes}-${dia}`;
+    }
+
+    // Calc date length
+    function calculateYearDifference(date1: string, date2: string) {
+        const initialDate = date1.split("/");
+        const finalDate = date2.split("/");
+
+        // Convert the date strings to Date objects
+        let d1 = new Date(`${initialDate[2]}-${initialDate[1]}-${initialDate[0]}`);
+        let d2 = new Date(`${finalDate[2]}-${finalDate[1]}-${finalDate[0]}`);
+    
+        // Calculate the raw difference in years
+        let yearDifference = d2.getFullYear() - d1.getFullYear();
+    
+        // Adjust the year difference if necessary
+        // If d1's date has not passed in the current year of d2
+        if (d2.getMonth() < d1.getMonth() || 
+           (d2.getMonth() === d1.getMonth() && d2.getDate() < d1.getDate())) {
+            yearDifference--;
+        }
+    
+        return yearDifference;
+    }
+    
+
     // Check if number is infinite or NaN
     function checkNumber(number: number) {
         if (!isFinite(number)) return 0.0;
@@ -99,5 +151,10 @@ module.exports = ((app: any) => {
         return diferencaDias;
     }
 
-    return { formatMoney, formatMoneyNumberToString, formatPercentage, getBetweenDates, formatDate, formatDateTFormat, formatDateHourTimeFormat, convertDateToLocation, checkNumber, calcDateDiff }
+    function arredondateNumber(number: number){
+        var numberArredondated = Number(number).toFixed(2);
+        return Number(numberArredondated);
+    }
+
+    return { formatMoney, formatMoneyNumberToString, formatPercentage, getBetweenDates, formatDate, formatDateTFormat, formatDateHourTimeFormat, convertDateToLocation, monthDifference, calculateYearDifference, convertDateBrToUs, checkNumber, calcDateDiff, arredondateNumber }
 })
