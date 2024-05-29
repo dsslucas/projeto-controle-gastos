@@ -240,7 +240,6 @@ module.exports = ((app: any) => {
                 return await app.database("investment as i")
                     .join("investments as is", "i.idInvestment", "is.id")
                     .select("i.id", "is.name", "i.initialValue", "i.initialDate", "i.finalDate", "i.observation", "is.category")
-                    .where("i.id", "=", 43)
                     .orderBy("i.initialDate", "asc")
                     .transacting(trx)
                     .then(async (response: any) => {
@@ -286,7 +285,7 @@ module.exports = ((app: any) => {
                         else if (element.name.includes("tax")) rentabilityInfo += `${element.percentage.toLocaleString("pt-br")}% ${element.type}`;
 
                         try {
-                            if(formattedInvestment.rentability.some((item: any) => item.name === "tax")){
+                            if (formattedInvestment.rentability.some((item: any) => item.name === "tax")) {
                                 var countPercentage = 0;
                                 formattedInvestment.rentability.filter((item: any) => item.name === "tax").forEach((element: any) => {
                                     countPercentage += Number(element.percentage / 100);
@@ -296,7 +295,7 @@ module.exports = ((app: any) => {
                             }
                             else {
                                 value += await calculateInvestmentValue(initialValueWithoutMoneyFormat, formattedInvestment.initialDate, element.name, formattedInvestment.finalDate, element.percentage, formattedInvestment.name);
-                            }                            
+                            }
                         } catch (error) {
                             console.error(`Erro ao calcular rentabilidade para o investimento ${investment.name}: ${error}`);
                             formattedInvestment.currentValue = 0; // Ou qualquer outro valor padrão que você deseje
@@ -359,7 +358,6 @@ module.exports = ((app: any) => {
 
         try {
             if (serie === 11 || serie === 12) {
-                /*
                 url = `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${serie}/dados?formato=json&dataInicial=${initialDate}&dataFinal=${finalDate}`;
 
                 const response = await fetch(url);
@@ -374,38 +372,29 @@ module.exports = ((app: any) => {
                         }
                     });
                 }
-                */
             }
             else if (serie === 433) {
                 const yearDifference = await globalFunctions.calculateYearDifference(initialDate, finalDate);
+
+                console.log(yearDifference);
 
                 if (yearDifference >= 1) {
 
                     const initialDateInvestment = new Date(await globalFunctions.convertDateBrToUs(initialDate));
                     const finalDateInvestment = new Date();
 
-                    const result = [];
-
-                    // Função auxiliar para adicionar um período ao resultado
                     async function addPeriod(year, startMonth, startDay, endMonth, endDay) {
                         const startDate = new Date(year, startMonth, startDay);
                         const endDate = new Date(year, endMonth, endDay);
 
-                        // Calcular o número de meses entre as datas
+                        // Calc months between the dates
                         let months = (endDate.getFullYear() - startDate.getFullYear()) * 12;
                         months += endDate.getMonth() - startDate.getMonth();
 
-                        // Se a data final é após o dia de início do mês
+                        // Check if final date is after the begin month day
                         if (endDate.getDate() >= startDate.getDate()) {
                             months++;
                         }
-
-                        // result.push({
-                        //     year: year,
-                        //     startDate,
-                        //     endDate,
-                        //     months: months
-                        // });
 
                         const initialDateYearInvestment = await globalFunctions.convertDateToLocation(startDate);
                         const finalDateYearInvestment = await globalFunctions.convertDateToLocation(endDate);
@@ -418,87 +407,44 @@ module.exports = ((app: any) => {
                         }
                         const data = await response.json();
 
-                        var percentIpca= 0;
+                        var percentIpca = 0;
                         var totalTax = 0;
                         var totalYearRentability = 0;
                         if (Array.isArray(data)) {
-                            console.log("COMPRIMENTO: ", data.length)
                             data.forEach(async (element, index) => {
                                 var valor = parseFloat(element.valor).toFixed(2);
                                 percentIpca += Number(valor);
                             });
-                            
-                            var percentIpcaArredondated = Number(percentIpca.toFixed(2));
 
-                            console.log(`DATA: ${initialDateYearInvestment} - ${finalDateYearInvestment}`)
-                            console.log("PERCENTUAL IPCA: ", percentIpcaArredondated);
-                            console.log("TAXA: ", percentage)
-                            if(data.length === 12){
+                            var percentIpcaArredondated = Number(percentIpca.toFixed(2)) / 100;
+
+                            if (data.length === 12) {
                                 totalTax = percentIpcaArredondated + percentage;
-                                totalYearRentability = (1 + (totalTax/100));
-                                var valueInvestment = valorTotalInvestimento * totalYearRentability;
-                                console.log(`TOTAL INVESTIMENTO: ${valueInvestment}`);
+                                totalYearRentability = (1 + totalTax);
+                                valorTotalInvestimento = valorTotalInvestimento * totalYearRentability;
                             }
                             else {
-                                var proportionalIpca = (((percentIpcaArredondated / 100) * data.length)/12);
-                                totalTax = proportionalIpca + percentage;
-                                totalYearRentability = (1 + totalTax)^(data.length/12);
-
-                                var valueInvestment = valorTotalInvestimento * totalYearRentability;
-
-                                console.log("IPCA PROPORCIONAL: ", proportionalIpca)
-                                
-                                console.log("TAXA TOTAL: ", totalTax)
-                                console.log("rentabilidade total: ", totalYearRentability)
-
-                                console.log(`TOTAL INVESTIMENTO: ${valueInvestment}`);
-
-                                //console.log("TAXA PROPORCIONAL DO IPCA: ", proportionalIpca)
+                                totalTax = percentIpcaArredondated + percentage;
+                                totalYearRentability = Math.pow((1 + totalTax), (data.length / 12));
+                                valorTotalInvestimento = valorTotalInvestimento * totalYearRentability;
                             }
                         }
-
-                        console.log("\n")
                     }
 
-                    // Calcular períodos
                     if (initialDateInvestment.getFullYear() === finalDateInvestment.getFullYear()) {
-                        // Se as datas estão no mesmo ano
-                        addPeriod(
-                            initialDateInvestment.getFullYear(),
-                            initialDateInvestment.getMonth(),
-                            initialDateInvestment.getDate(),
-                            finalDateInvestment.getMonth(),
-                            finalDateInvestment.getDate()
-                        );
+                        // Same year
+                        await addPeriod(initialDateInvestment.getFullYear(), initialDateInvestment.getMonth(), initialDateInvestment.getDate(), finalDateInvestment.getMonth(), finalDateInvestment.getDate());
                     } else {
-                        // Período do primeiro ano
-                        addPeriod(
-                            initialDateInvestment.getFullYear(),
-                            initialDateInvestment.getMonth(),
-                            initialDateInvestment.getDate(),
-                            11,
-                            31
-                        );
+                        // First year
+                        await addPeriod(initialDateInvestment.getFullYear(), initialDateInvestment.getMonth(), initialDateInvestment.getDate(), 11, 31);
 
-                        // Períodos dos anos completos entre as duas datas
+                        // Completed years
                         for (let year = initialDateInvestment.getFullYear() + 1; year < finalDateInvestment.getFullYear(); year++) {
-                            addPeriod(
-                                year,
-                                0,
-                                1,
-                                11,
-                                31
-                            );
+                            await addPeriod(year, 0, 1, 11, 31);
                         }
 
-                        // Período do último ano
-                        addPeriod(
-                            finalDateInvestment.getFullYear(),
-                            0,
-                            1,
-                            finalDateInvestment.getMonth(),
-                            finalDateInvestment.getDate()
-                        );
+                        // Last year
+                        await addPeriod(finalDateInvestment.getFullYear(), 0, 1, finalDateInvestment.getMonth(), finalDateInvestment.getDate());
                     }
                 }
                 else {
@@ -515,16 +461,6 @@ module.exports = ((app: any) => {
             console.error('Erro:', error);
             return 0;
         }
-
-        /* 
-        
-        const IOF: number = calcularIOF(valorInicialInvestimento, dataInicial, new Date("2024-04-29"));
-
-        console.log("Valor do IOF a pagar:", IOF.toFixed(2)); // Exibe o valor do IOF com duas casas decimais
-
-        res.status(200).send(`Valor total do investimento: ${valorTotalInvestimento}`)
-        
-        */
     };
 
 
