@@ -154,8 +154,7 @@ const ModalRegister = (props: any) => {
                     Alert({
                         text: response.data,
                         icon: "success",
-                        //allback: props.returnClick()
-                        callback: null
+                        callback: props.returnClick()
                     });
                 })
                 .catch((error: any) => {
