@@ -463,87 +463,77 @@ module.exports = ((app: any) => {
         }
     };
 
-
-    // CDB
-    /*
-    const calculoRentabilidade = async (req: any, res: any) => {
-        var valorTotalInvestimento = 7000;
-        const dataInicial = new Date("2022-04-29");
-        const dataFinal = new Date("2025-05-15");
-        const percentualCdi = 0.84;
-        const serie = 433;
-        const percentAoAno = 0.0645;
-        const percentAoDia = (1+percentAoAno)^(1/365);
-    
-        // 11 - SELIC
-        // 12 - CDI
-        // 433 - IPCA
-    
-        const url = `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${serie}/dados?formato=json&dataInicial=${dataInicial.toLocaleDateString("pt-br")}&dataFinal=${dataFinal.toLocaleDateString("pt-br")}`;       
-    
-        await fetch(url)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Erro ao obter os dados da API');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log(data); // Aqui você pode processar os dados conforme necessário
-                if(Array.isArray(data)){
-                    data.forEach((element: any, index: number) => {
-                        if(index != 0 && data.length - 1 != index){
-                            const jurosPrefixado = valorTotalInvestimento * percentAoDia;
-                            console.log(percentAoDia);
-                            const jurosPosfixado = valorTotalInvestimento * (element.valor / 100) * percentualCdi;
-                            valorTotalInvestimento += jurosPosfixado + jurosPrefixado;
-                        }
-                    })
-                }
-            })
-            .catch(error => {
-                console.error('Erro:', error);
-            });
-    
-        console.log(valorTotalInvestimento)
-    
-        res.status(200).send(`Valor total do investimento: ${valorTotalInvestimento}`)
-    }   
-     */
-
     const teste = async (req: any, res: any) => {
         const { idInvestment, initialValue, initialDate, finalDate } = req.body;
 
         try {
-            const id = (await app.database("investment")
-                .insert({
-                    idInvestment: Number(idInvestment),
-                    initialValue: Number(initialValue),
-                    initialDate: new Date(initialDate),
-                    finalDate: new Date(finalDate)
-                })
-                .returning("id")
-            )[0].id;
 
-            await app.database("investment_rentability")
-                .insert({
-                    idInvestment: Number(id),
-                    name: "CDI",
-                    checked: true,
-                    percentage: 100
-                })
-
-            res.status(200).send("opa joia")
         }
         catch (e: any) {
             console.error(e)
             res.status(400).send("deu ruim")
         }
-
-
-
-
     }
 
-    return { registerInvestment, allInfoInvestmentByIdPayment, createInvestment, getAllInvestments, listInvestments, teste }
+    const calcInvestmentRentabilityByIdInvestment = async (id: number, trx: any) => {
+        try {
+            return await app.database("investment as i")
+                .where("i.idInvestment", "=", id)
+                .transacting(trx)
+                .then(async (response: any) => {
+                    //console.log(response);
+
+                    var value = 0;
+                    if (Array.isArray(response) && response.length > 0) {                       
+                        response.forEach(async (element: any) => {
+                            console.log(element.id);
+                           
+                            console.log(await getRentability(element.id, trx))
+                        })
+                    }
+                    
+                    return response;
+                })
+        }
+        catch (e: any) {
+            console.error(e)
+            return null;
+        }
+    }
+
+    const investmentDashboard = async (req: any, res: any) => {
+        try {
+            await app.database.transaction(async (trx: any) => {
+                return await app.database("investments as is")
+                    .join("investment as i", "i.idInvestment", "is.id")
+                    .select("is.id", "is.name")
+                    .distinct()
+                    .transacting(trx)
+                    .then(async (response: any) => {
+                        if (Array.isArray(response) && response.length > 0) {
+                            response.push({
+                                id: null,
+                                name: "Total",
+                                value: "R$ 0,00"
+                            });
+
+                            response.forEach(async (element: any) => {
+                                element.value = "teste";
+
+                                await calcInvestmentRentabilityByIdInvestment(element.id, trx);
+                            })
+                        }
+
+                        return response;
+                    })
+            })
+                .then((response: any) => res.status(200).send(response))
+                .catch((error: any) => res.status(500).send("deu ruim"))
+        }
+        catch (e: any) {
+            res.status(500).send("deu ruim aqui ó")
+        }
+    }
+
+    return { registerInvestment, allInfoInvestmentByIdPayment, createInvestment, getAllInvestments, listInvestments, teste, investmentDashboard }
 })
