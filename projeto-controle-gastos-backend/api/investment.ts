@@ -463,18 +463,6 @@ module.exports = ((app: any) => {
         }
     };
 
-    const teste = async (req: any, res: any) => {
-        const { idInvestment, initialValue, initialDate, finalDate } = req.body;
-
-        try {
-
-        }
-        catch (e: any) {
-            console.error(e)
-            res.status(400).send("deu ruim")
-        }
-    }
-
     const calcInvestmentRentabilityByIdInvestment = async (id: number, trx: any) => {
         try {
             return await app.database("investment as i")
@@ -498,6 +486,33 @@ module.exports = ((app: any) => {
         catch (e: any) {
             console.error(e)
             return null;
+        }
+    }
+
+    const detailInvestments = async (req: any, res: any) => {
+        const {id} = req.params;
+        try {
+            await app.database.transaction(async (trx: any) => {
+                return await app.database("investments as is")
+                    .select("is.id", "is.name", "is.category")
+                    .where({id})
+                    .first()
+                    .transacting(trx)
+                    .then((response: any) => {
+                        return {
+                            name: response.name,
+                            bruteValue: 100,
+                            valueAvaliableRescue: 98,
+                            iof: -7.47,
+                            rentability: "100% do tigrinho"
+                        }
+                    })
+            })
+                .then((response: any) => res.status(200).send(response))
+                .catch((error: any) => res.status(500).send("deu ruim"))
+        }
+        catch (e: any) {
+            res.status(500).send("deu ruim aqui ó")
         }
     }
 
@@ -535,5 +550,5 @@ module.exports = ((app: any) => {
         }
     }
 
-    return { registerInvestment, allInfoInvestmentByIdPayment, createInvestment, getAllInvestments, listInvestments, teste, investmentDashboard }
+    return { registerInvestment, allInfoInvestmentByIdPayment, createInvestment, getAllInvestments, listInvestments, detailInvestments, investmentDashboard }
 })
