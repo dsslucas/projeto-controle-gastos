@@ -21,6 +21,8 @@ module.exports = ((app: any) => {
         return valorIOF;
     }
 
+    
+
     async function registerInvestment(id: any, idPayment: any, title: string, category: string, initialValue: string, initialDate: string, finalDate: string, rentability: any, observation: string, trx: any) {
         var idInvestment = 0;
 
@@ -121,7 +123,7 @@ module.exports = ((app: any) => {
         }
     }
 
-    // Investments list
+    // Investments list, FOR SELECT
     const listInvestments = async (req: any, res: any) => {
         try {
             await app.database.transaction(async (trx: any) => {
@@ -195,41 +197,6 @@ module.exports = ((app: any) => {
         }
         catch (e: any) {
             console.error(e);
-        }
-    }
-
-    const getUniqueInvestment = async (req: any, res: any) => {
-        try {
-            await app.database.transaction(async (trx: any) => {
-                return await app.database("investments")
-                    .transacting(trx)
-                    .then((response: any) => {
-                        const returnData = [];
-                        response.forEach(async (element: any) => {
-                            returnData.push({
-                                value: element.id.toString(),
-                                text: element.name
-                                //...element,
-                                //rentability: await rentabilityInvestments(element.id, trx)
-                            })
-                        });
-
-                        returnData.push({
-                            value: (-1).toString(),
-                            text: "Não possuo"
-                        });
-
-                        return returnData
-                    })
-            })
-                .then((response: any) => res.status(200).send(response))
-                .catch((error: any) => {
-                    console.error(error)
-                    res.status(400).send("Erro ao buscar a lista de investimentos.")
-                })
-        }
-        catch (e: any) {
-            res.status(400).send("Erro ao buscar a lista de investimentos.")
         }
     }
 
@@ -468,16 +435,11 @@ module.exports = ((app: any) => {
             return await app.database("investment as i")
                 .where("i.idInvestment", "=", id)
                 .transacting(trx)
-                .then(async (response: any) => {
-                    //console.log(response);
-
-                    var value = 0;
-                    if (Array.isArray(response) && response.length > 0) {                       
-                        response.forEach(async (element: any) => {
-                            console.log(element.id);
-                           
-                            console.log(await getRentability(element.id, trx))
-                        })
+                .then(async (response: any) => {           
+                    for(let i = 0; i < response.length; i++){
+                        const element = response[i];                        
+                        const rentabilidade = await getRentability(element.id, trx);
+                        element.rentability = rentabilidade;
                     }
                     
                     return response;
@@ -498,7 +460,11 @@ module.exports = ((app: any) => {
                     .where({id})
                     .first()
                     .transacting(trx)
-                    .then((response: any) => {
+                    .then(async (response: any) => {
+                        // Investments
+                        const investments = await calcInvestmentRentabilityByIdInvestment(response.id, trx);
+                        console.log("LISTA DE INVESTIMENTOS: ", investments);
+
                         return {
                             name: response.name,
                             bruteValue: 100,
