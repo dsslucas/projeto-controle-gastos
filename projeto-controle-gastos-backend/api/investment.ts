@@ -254,6 +254,7 @@ module.exports = ((app: any) => {
                 }
 
                 formattedInvestment.currentValue = await globalFunctions.formatMoneyNumberToString(value);
+                formattedInvestment.currentValueNumber = await globalFunctions.arredondateNumber(value);
                 formattedInvestment.rentabilityInfo = rentabilityInfo;
             }
             else {
