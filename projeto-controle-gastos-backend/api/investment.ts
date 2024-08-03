@@ -200,6 +200,78 @@ module.exports = ((app: any) => {
         }
     }
 
+    const getInvestmentInfo = async (investments: Array<any>) => {
+        const formattedInvestments = [];
+        var value = 0;
+
+        for (const investment of investments) {
+            let formattedInvestment = investment;
+            value = 0;
+
+            if (investment.category === 1) {
+                formattedInvestment.category = "CDB";
+            } else if (investment.category === 2) {
+                formattedInvestment.category = "LCI/LCA";
+            } else if (investment.category === 3) {
+                formattedInvestment.category = "Poupança";
+            } else {
+                formattedInvestment.category = "Outro";
+            }
+
+            formattedInvestment.initialValue = await globalFunctions.formatMoneyNumberToString(investment.initialValue);
+            formattedInvestment.initialDate = await globalFunctions.convertDateToLocation(investment.initialDate);
+            formattedInvestment.finalDate = await globalFunctions.convertDateToLocation(investment.finalDate);
+
+            const initialValueWithoutMoneyFormat = await globalFunctions.formatMoney(investment.initialValue);
+
+            var value = 0;
+            var rentabilityInfo = "";
+            if (Array.isArray(formattedInvestment.rentability) && formattedInvestment.rentability.length > 0) {
+                for (const element of formattedInvestment.rentability) {
+
+                    if (rentabilityInfo != "") rentabilityInfo += ` + `;
+
+                    if (element.name.includes("CDI")) rentabilityInfo += `${element.percentage.toLocaleString("pt-br")}% do CDI`;
+                    else if (element.name.includes("IPCA")) rentabilityInfo += element.name;
+                    else if (element.name.includes("tax")) rentabilityInfo += `${element.percentage.toLocaleString("pt-br")}% ${element.type}`;
+
+                    try {
+                        if (formattedInvestment.rentability.some((item: any) => item.name === "tax")) {
+                            var countPercentage = 0;
+                            formattedInvestment.rentability.filter((item: any) => item.name === "tax").forEach((element: any) => {
+                                countPercentage += Number(element.percentage / 100);
+                            })
+
+                            value += await calculateInvestmentValue(initialValueWithoutMoneyFormat, formattedInvestment.initialDate, element.name, formattedInvestment.finalDate, countPercentage, formattedInvestment.name);
+                        }
+                        else {
+                            value += await calculateInvestmentValue(initialValueWithoutMoneyFormat, formattedInvestment.initialDate, element.name, formattedInvestment.finalDate, element.percentage, formattedInvestment.name);
+                        }
+                    } catch (error) {
+                        console.error(`Erro ao calcular rentabilidade para o investimento ${investment.name}: ${error}`);
+                        formattedInvestment.currentValue = 0; // Ou qualquer outro valor padrão que você deseje
+                    }
+                }
+
+                formattedInvestment.currentValue = await globalFunctions.formatMoneyNumberToString(value);
+                formattedInvestment.rentabilityInfo = rentabilityInfo;
+            }
+            else {
+                formattedInvestment.currentValue = 0;
+            }
+
+            if (investment.observation === "" || investment.observation === null) {
+                formattedInvestment.observation = "-";
+            } else {
+                formattedInvestment.observation = investment.observation;
+            }
+
+            formattedInvestments.push(formattedInvestment);
+        }
+
+        return formattedInvestments;
+    }
+
     // Table within investments registrated
     const getAllInvestments = async (req: any, res: any) => {
         try {
@@ -218,72 +290,7 @@ module.exports = ((app: any) => {
                     });
             });
 
-            const formattedInvestments = [];
-            var value = 0;
-            for (const investment of investments) {
-                let formattedInvestment = investment;
-                value = 0;
-
-                if (investment.category === 1) {
-                    formattedInvestment.category = "CDB";
-                } else if (investment.category === 2) {
-                    formattedInvestment.category = "LCI/LCA";
-                } else if (investment.category === 3) {
-                    formattedInvestment.category = "Poupança";
-                } else {
-                    formattedInvestment.category = "Outro";
-                }
-
-                formattedInvestment.initialValue = await globalFunctions.formatMoneyNumberToString(investment.initialValue);
-                formattedInvestment.initialDate = await globalFunctions.convertDateToLocation(investment.initialDate);
-                formattedInvestment.finalDate = await globalFunctions.convertDateToLocation(investment.finalDate);
-
-                const initialValueWithoutMoneyFormat = await globalFunctions.formatMoney(investment.initialValue);
-
-                var value = 0;
-                var rentabilityInfo = "";
-                if (Array.isArray(formattedInvestment.rentability) && formattedInvestment.rentability.length > 0) {
-                    for (const element of formattedInvestment.rentability) {
-
-                        if (rentabilityInfo != "") rentabilityInfo += ` + `;
-
-                        if (element.name.includes("CDI")) rentabilityInfo += `${element.percentage.toLocaleString("pt-br")}% do CDI`;
-                        else if (element.name.includes("IPCA")) rentabilityInfo += element.name;
-                        else if (element.name.includes("tax")) rentabilityInfo += `${element.percentage.toLocaleString("pt-br")}% ${element.type}`;
-
-                        try {
-                            if (formattedInvestment.rentability.some((item: any) => item.name === "tax")) {
-                                var countPercentage = 0;
-                                formattedInvestment.rentability.filter((item: any) => item.name === "tax").forEach((element: any) => {
-                                    countPercentage += Number(element.percentage / 100);
-                                })
-
-                                value += await calculateInvestmentValue(initialValueWithoutMoneyFormat, formattedInvestment.initialDate, element.name, formattedInvestment.finalDate, countPercentage, formattedInvestment.name);
-                            }
-                            else {
-                                value += await calculateInvestmentValue(initialValueWithoutMoneyFormat, formattedInvestment.initialDate, element.name, formattedInvestment.finalDate, element.percentage, formattedInvestment.name);
-                            }
-                        } catch (error) {
-                            console.error(`Erro ao calcular rentabilidade para o investimento ${investment.name}: ${error}`);
-                            formattedInvestment.currentValue = 0; // Ou qualquer outro valor padrão que você deseje
-                        }
-                    }
-
-                    formattedInvestment.currentValue = await globalFunctions.formatMoneyNumberToString(value);
-                    formattedInvestment.rentabilityInfo = rentabilityInfo;
-                }
-                else {
-                    formattedInvestment.currentValue = 0;
-                }
-
-                if (investment.observation === "" || investment.observation === null) {
-                    formattedInvestment.observation = "-";
-                } else {
-                    formattedInvestment.observation = investment.observation;
-                }
-
-                formattedInvestments.push(formattedInvestment);
-            }
+            const formattedInvestments = await getInvestmentInfo(investments);
 
             res.status(200).send({
                 data: formattedInvestments,
@@ -441,8 +448,10 @@ module.exports = ((app: any) => {
                         const rentabilidade = await getRentability(element.id, trx);
                         element.rentability = rentabilidade;
                     }
+
+                    const updatedInvestmentList = await getInvestmentInfo(response);
                     
-                    return response;
+                    return updatedInvestmentList;
                 })
         }
         catch (e: any) {
@@ -470,7 +479,8 @@ module.exports = ((app: any) => {
                             bruteValue: 100,
                             valueAvaliableRescue: 98,
                             iof: -7.47,
-                            rentability: "100% do tigrinho"
+                            rentability: "100% do tigrinho",
+                            investments
                         }
                     })
             })
