@@ -21,7 +21,7 @@ module.exports = ((app: any) => {
         return valorIOF;
     }
 
-    
+
 
     async function registerInvestment(id: any, idPayment: any, title: string, category: string, initialValue: string, initialDate: string, finalDate: string, rentability: any, observation: string, trx: any) {
         var idInvestment = 0;
@@ -443,15 +443,15 @@ module.exports = ((app: any) => {
             return await app.database("investment as i")
                 .where("i.idInvestment", "=", id)
                 .transacting(trx)
-                .then(async (response: any) => {           
-                    for(let i = 0; i < response.length; i++){
-                        const element = response[i];                        
+                .then(async (response: any) => {
+                    for (let i = 0; i < response.length; i++) {
+                        const element = response[i];
                         const rentabilidade = await getRentability(element.id, trx);
                         element.rentability = rentabilidade;
                     }
 
                     const updatedInvestmentList = await getInvestmentInfo(response);
-                    
+
                     return updatedInvestmentList;
                 })
         }
@@ -462,12 +462,12 @@ module.exports = ((app: any) => {
     }
 
     const detailInvestments = async (req: any, res: any) => {
-        const {id} = req.params;
+        const { id } = req.params;
         try {
             await app.database.transaction(async (trx: any) => {
                 return await app.database("investments as is")
                     .select("is.id", "is.name", "is.category")
-                    .where({id})
+                    .where({ id })
                     .first()
                     .transacting(trx)
                     .then(async (response: any) => {
@@ -475,9 +475,11 @@ module.exports = ((app: any) => {
                         const investments = await calcInvestmentRentabilityByIdInvestment(response.id, trx);
                         console.log("LISTA DE INVESTIMENTOS: ", investments);
 
+                        const bruteValue = investments.reduce(function (acc, obj) { return acc + obj.currentValueNumber; }, 0);
+
                         return {
                             name: response.name,
-                            bruteValue: 100,
+                            bruteValue,
                             valueAvaliableRescue: 98,
                             iof: -7.47,
                             rentability: "100% do tigrinho",
