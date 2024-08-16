@@ -492,12 +492,6 @@ module.exports = ((app: any) => {
 
                         const auxBruteValue = investments.reduce(function (acc, obj) { return acc + obj.currentValueNumber; }, 0);
                         const bruteValue = await globalFunctions.arredondateNumber(auxBruteValue);
-
-                        console.log("VALOR BRUTO: ", bruteValue)
-                        console.log("DATA DE APLICAÇÃO: ", new Date(investments[0].initialDate))
-                        console.log("DATA DE RESGATE: ", new Date())
-
-                        //const calculoIof = calcularIOF(new Date(investments[0].initialDateUS), investments[0].initialValueWithoutMask, investments[0].currentValueNumber);
                         const calculoIof = calcularIOF(investments[0].initialDateUS, investments[0].initialValueWithoutMask, investments[0].currentValueNumber)
                         console.log("IOF: ", calculoIof);
 
@@ -516,7 +510,6 @@ module.exports = ((app: any) => {
                             iof: calculoIof * -1,
                             iofWithMask: await globalFunctions.formatMoneyNumberToString(calculoIof * -1),   
                             rentability: rentabilityString,
-                            //investments
                         }
                     })
             })
