@@ -11,7 +11,13 @@ import Text from "../text/Text";
 
 const ModalRescueInvestment = (props: any) => {
     const [dadosForm, setDadosForm] = useState<any>({
-        idInvestment: "-"
+        idInvestment: "-",
+        name: "",
+        bruteValueWithMask: "R$ 0,00",
+        valueAvaliableRescue: 0,
+        valueAvaliableRescueWithMask: "R$ 0,00",
+        iofWithMask: "R$ 0,00",
+        rentability: ""
     });
 
     const [apiInvestments, setApiInvestments] = useState<any>([]);
@@ -20,6 +26,7 @@ const ModalRescueInvestment = (props: any) => {
         await api.get("/investment/list")
             .then((response: any) => {
                 setApiInvestments(response.data);
+                console.log("RESPOSTA SELECT DE INVESTIMENTOS: ", response)
 
                 if (response.data[0].value === "-1") {
                     // SELECT CDB
@@ -30,7 +37,31 @@ const ModalRescueInvestment = (props: any) => {
                             category: "1"
                         }
                     });
+
+                    //apiInvestmentDetails(dadosForm.value);
                 }
+            })
+            .catch((error: any) => {
+                Alert({
+                    text: error.response.data,
+                    icon: "error"
+                });
+            })
+    }
+
+    const apiInvestmentDetails = async (id: number) => {
+        await api.get(`/investments/detail/${id}`)
+            .then((response: any) => {
+                console.log(response)
+                setDadosForm({
+                    ...dadosForm,
+                    name: response.data.name,
+                    bruteValueWithMask: response.data.bruteValueWithMask,
+                    valueAvaliableRescue: response.data.valueAvaliableRescue,
+                    valueAvaliableRescueWithMask: response.data.valueAvaliableRescueWithMask,
+                    iofWithMask: response.data.iofWithMask,
+                    rentability: response.data.rentability
+                })
             })
             .catch((error: any) => {
                 Alert({
@@ -49,6 +80,9 @@ const ModalRescueInvestment = (props: any) => {
             ...dadosForm,
             [name]: valueChanged
         })
+
+        apiInvestmentDetails(valueChanged);
+        console.log("alterei")
     }
 
     useEffect(() => {
@@ -85,22 +119,22 @@ const ModalRescueInvestment = (props: any) => {
                                     </div>
                                     <div className="flex w-full justify-between">
                                         <Subtitle subtitle="Valor bruto" />
-                                        <Text modalRescue text="R$ 125,05" />
+                                        <Text modalRescue text={dadosForm.bruteValueWithMask} />
                                     </div>
 
                                     <div className="flex w-full justify-between">
                                         <Subtitle subtitle="Valor disponível para resgate" />
-                                        <Text modalRescue text="R$ 125,05" />
+                                        <Text modalRescue text={dadosForm.valueAvaliableRescueWithMask} />
                                     </div>
 
                                     <div className="flex w-full justify-between">
                                         <Subtitle subtitle="IOF/IR" />
-                                        <Text modalRescue text="-R$ 7,27" />
+                                        <Text modalRescue text={dadosForm.iofWithMask} />
                                     </div>
 
                                     <div className="flex w-full justify-between">
                                         <Subtitle subtitle="Rentabilidade" />
-                                        <Text modalRescue text="100% do CDI" />
+                                        <Text modalRescue text={dadosForm.rentability} />
                                     </div>
                                 </div>
                                 <div className="flex">
