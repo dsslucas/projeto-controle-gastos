@@ -1,27 +1,40 @@
 module.exports = ((app: any) => {
     const globalFunctions = app.globalFunctions();
 
-    function calcularIOF(valorResgate: number, dataAplicacao: Date, dataResgate: Date): number {
-        const umDia: number = 24 * 60 * 60 * 1000; // milissegundos em um dia
-        const maximoDiasIOF: number = 30; // Máximo de 30 dias com IOF
-        const valorBruto: number = 523.13; // Valor bruto do investimento
-
-        // Calcula o número de dias corridos desde a aplicação até o resgate
-        const diasDecorridos: number = Math.round(Math.abs((dataResgate.getTime() - dataAplicacao.getTime()) / umDia));
-
-        // Se o resgate ocorrer após 30 dias da aplicação, não há IOF
-        if (diasDecorridos > maximoDiasIOF) {
-            return 0;
+    function calcularIOF(initialDate: string, initialValue: number, currentValue: number): number {
+        const differenceDates = Math.abs(new Date().getTime() - new Date(initialDate).getTime());    
+        const applicationDays = Math.ceil(differenceDates / (1000 * 60 * 60 * 24)); 
+    
+        // Função para calcular a alíquota de IOF com base no número de dias aplicados
+        function calcAliquota(days: number): number {
+            if (days >= 30) return 0;
+            return (30 - days) / 30 * 0.96;  // 96% no primeiro dia, decrescendo até 0% no 30º dia
         }
-
-        // Calcula o valor do IOF de acordo com o tempo decorrido
-        const percentualIOF: number = 1 - (diasDecorridos / maximoDiasIOF);
-        const valorIOF: number = (valorBruto - valorResgate) * percentualIOF;
-
-        return valorIOF;
+    
+        const aliquotaIOF = calcAliquota(applicationDays);
+    
+        const rendimentoBruto: number = Number(parseFloat((currentValue - initialValue).toFixed(2)));
+        
+        const valorIOF: number = aliquotaIOF * rendimentoBruto;
+    
+        let valorIR: number = 0;
+    
+        // Cálculo de IR com base no tempo total de aplicação
+        if (applicationDays >= 0 && applicationDays <= 180) {
+            valorIR = 0.225 * rendimentoBruto;
+        } else if (applicationDays >= 181 && applicationDays <= 360) {
+            valorIR = 0.20 * rendimentoBruto;
+        } else if (applicationDays >= 361 && applicationDays <= 720) {
+            valorIR = 0.175 * rendimentoBruto;
+        } else if (applicationDays > 720) {
+            valorIR = 0.15 * rendimentoBruto;
+        }
+    
+        return Number(parseFloat((valorIOF + valorIR).toFixed(2)));
     }
-
-
+    
+    // Teste
+    //const resultado = calcularIOF(new Date('2024-04-10'), 520.41, 539.22);
 
     async function registerInvestment(id: any, idPayment: any, title: string, category: string, initialValue: string, initialDate: string, finalDate: string, rentability: any, observation: string, trx: any) {
         var idInvestment = 0;
@@ -217,6 +230,9 @@ module.exports = ((app: any) => {
             } else {
                 formattedInvestment.category = "Outro";
             }
+
+            formattedInvestment.initialDateUS = investment.initialDate;
+            formattedInvestment.initialValueWithoutMask = investment.initialValue;
 
             formattedInvestment.initialValue = await globalFunctions.formatMoneyNumberToString(investment.initialValue);
             formattedInvestment.initialDate = await globalFunctions.convertDateToLocation(investment.initialDate);
@@ -473,17 +489,34 @@ module.exports = ((app: any) => {
                     .then(async (response: any) => {
                         // Investments
                         const investments = await calcInvestmentRentabilityByIdInvestment(response.id, trx);
-                        console.log("LISTA DE INVESTIMENTOS: ", investments);
 
-                        const bruteValue = investments.reduce(function (acc, obj) { return acc + obj.currentValueNumber; }, 0);
+                        const auxBruteValue = investments.reduce(function (acc, obj) { return acc + obj.currentValueNumber; }, 0);
+                        const bruteValue = await globalFunctions.arredondateNumber(auxBruteValue);
+
+                        console.log("VALOR BRUTO: ", bruteValue)
+                        console.log("DATA DE APLICAÇÃO: ", new Date(investments[0].initialDate))
+                        console.log("DATA DE RESGATE: ", new Date())
+
+                        //const calculoIof = calcularIOF(new Date(investments[0].initialDateUS), investments[0].initialValueWithoutMask, investments[0].currentValueNumber);
+                        const calculoIof = calcularIOF(investments[0].initialDateUS, investments[0].initialValueWithoutMask, investments[0].currentValueNumber)
+                        console.log("IOF: ", calculoIof);
+
+                        var rentabilityString: string = investments[0].rentabilityInfo;
+
+                        investments.forEach((element: any) =>{
+                            if(element.rentabilityInfo != rentabilityString) rentabilityString += element.rentabilityInfo;
+                        })
 
                         return {
                             name: response.name,
                             bruteValue,
-                            valueAvaliableRescue: 98,
-                            iof: -7.47,
-                            rentability: "100% do tigrinho",
-                            investments
+                            bruteValueWithMask: await globalFunctions.formatMoneyNumberToString(auxBruteValue),
+                            valueAvaliableRescue: bruteValue - calculoIof,
+                            valueAvaliableRescueWithMask: await globalFunctions.formatMoneyNumberToString(bruteValue - calculoIof),
+                            iof: calculoIof * -1,
+                            iofWithMask: await globalFunctions.formatMoneyNumberToString(calculoIof * -1),   
+                            rentability: rentabilityString,
+                            //investments
                         }
                     })
             })
