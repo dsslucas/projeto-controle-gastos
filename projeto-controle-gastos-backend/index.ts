@@ -4,6 +4,7 @@ const app = express()
 const db = require('./config/database')
 
 const globalFunctions = require('./config/globalFunctions.ts')
+//const configApi = require('./api/config.ts')
 
 const consign = require('consign')
 
@@ -18,6 +19,7 @@ const io = require('socket.io')(server, {
 });
 
 app.globalFunctions = globalFunctions;
+//app.configApi = configApi;
 
 consign()
     .include('./config/middleware.ts')

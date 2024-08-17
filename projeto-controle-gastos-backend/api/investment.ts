@@ -1,5 +1,6 @@
 module.exports = ((app: any) => {
     const globalFunctions = app.globalFunctions();
+    const configApi = app.api.config;
 
     function calcularIOF(initialDate: string, initialValue: number, currentValue: number): number {
         const differenceDates = Math.abs(new Date().getTime() - new Date(initialDate).getTime());    
@@ -527,6 +528,32 @@ module.exports = ((app: any) => {
         }
     }
 
+    const registerRescueInvestment = async (id: number, value: number, trx: any) => {
+        try {
+            await app.database("investment")
+                .where({
+                    id
+                })
+                .update({
+                    brutevalue: value
+                })
+                .transacting(trx)
+                .then(async (response: any) => {
+                    await app.database("investment_rescue")
+                        .insert({
+                            idInvestment: id,
+                            value,
+                            date: new Date(),
+                            id_user: 1 // until create user interface
+                        })
+                        .transacting(trx)
+                })
+        }
+        catch (e: any){
+            console.error(e);
+        }
+    }
+
     const rescueInvestment = async (req: any, res: any) => {
         const {id} = req.params;
         const {value} = req.body;
@@ -595,21 +622,68 @@ module.exports = ((app: any) => {
                             break;
                         }
                         else {
+                            // Se bater... Descontar do valor bruto de cada investimento
                             if (investment.currentValueNumber + valueRescued <= valueWithoutMoneyMask) {
                                 // Caso o valor do investimento possa ser completamente somado ao resgatado
                                 valueRescued += investment.currentValueNumber;
                                 investment.currentValueNumber = 0; // Zera o valor do investimento
+                                registerRescueInvestment(investment.id, 0, trx);                                
                             } else {
                                 // Caso o valor resgatado ultrapasse o valor necessário
                                 let remainingValue = valueWithoutMoneyMask - valueRescued;
                                 valueRescued += remainingValue;
                                 investment.currentValueNumber -= remainingValue; // Deduz o valor restante do investimento
+                                registerRescueInvestment(investment.id, remainingValue, trx);
+
                                 break; // Para a iteração após atingir o valor necessário
                             }            
                         }                       
                     }
-                    console.log(`VALOR RESGATADO: ${valueRescued}, `);
+                    console.log("VALOR RESGATADO: ", valueRescued);
                     console.log("APÓS: ", investmentsListsById.investments);
+
+                    const date = globalFunctions.formatDate(new Date('2024-07-10'));
+                    const {initialDate, finalDate} = globalFunctions.getBetweenDates(date);
+
+                    // Register the rescued value into config database
+                    if(configApi.checkIfExistsMonthConfig(new Date(), trx)){
+                        // Get ID of config
+                        const idConfig = await app.database("config")
+                            .where((builder: any) => {
+                                builder.where("date", ">=", initialDate).where("date", "<", finalDate);
+                            })
+                            .first()
+                            .transacting(trx)
+                            .then((response: any) => {
+                                return response.id
+                            })
+                        
+                        await app.database("config_entries")
+                            .insert({
+                                idConfig: idConfig,
+                                description: `Resgate de investimento: ${investmentsListsById} (${globalFunctions.convertDateToLocation(new Date())})`,
+                                value: valueRescued
+                            })
+                            .transacting(trx)
+                    }
+                    else {
+                        // Create new one
+                        const idConfig = await app.database("config")
+                            .insert({
+                                date: new Date()
+                            })
+                            .returning("id")
+                            .transacting(trx)
+
+                            app.database("config_entries")
+                                .insert({
+                                    idConfig: idConfig[0].id,
+                                    description: `Resgate de investimento: ${investmentsListsById} (${globalFunctions.convertDateToLocation(new Date())})`,
+                                    value: valueRescued
+                                })
+                                .transacting(trx)
+                    }
+
                 }
                 else {
                     throw "NO_INVESTMENT_LIST";
