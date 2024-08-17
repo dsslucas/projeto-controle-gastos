@@ -11,6 +11,7 @@ exports.up = function (knex: any) {
         table.datetime("finalDate").notNull()
         table.string("observation")
         table.double("bruteValue")
+        table.double("iof")
     })
 };
 

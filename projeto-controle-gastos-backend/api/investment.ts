@@ -274,14 +274,16 @@ module.exports = ((app: any) => {
                 formattedInvestment.currentValueNumber = await globalFunctions.arredondateNumber(value);
                 formattedInvestment.rentabilityInfo = rentabilityInfo;
 
-                console.log(formattedInvestment)
+                const iof = calcularIOF(formattedInvestment.initialDateUS, initialValueWithoutMoneyFormat, formattedInvestment.currentValueNumber);
+                formattedInvestment.iof = iof;
 
                 await app.database("investment")
                     .where({
                         id: formattedInvestment.id
                     })
                     .update({
-                        brutevalue: await globalFunctions.arredondateNumber(value)
+                        brutevalue: await globalFunctions.arredondateNumber(value),
+                        iof: iof
                     })
             }
             else {
