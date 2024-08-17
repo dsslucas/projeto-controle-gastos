@@ -8,8 +8,6 @@ import { faEye } from "@fortawesome/free-solid-svg-icons";
 const Table = (props: any) => {
     const { payment, investment, data } = props;
 
-    console.log(props)
-
     function renderHeader() {
         if (Array.isArray(data.columns) && data !== undefined && data.columns !== undefined) {
             const columns = data.columns;

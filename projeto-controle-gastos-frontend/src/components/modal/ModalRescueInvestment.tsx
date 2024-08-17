@@ -24,9 +24,9 @@ const ModalRescueInvestment = (props: any) => {
 
     const apiInvestmentList = async () => {
         await api.get("/investment/list")
-            .then((response: any) => {
+            .then(async (response: any) => {
                 setApiInvestments(response.data);
-                console.log("RESPOSTA SELECT DE INVESTIMENTOS: ", response)
+                console.log("RESPOSTA SELECT DE INVESTIMENTOS: ", response.data)
 
                 if (response.data[0].value === "-1") {
                     // SELECT CDB
@@ -36,9 +36,20 @@ const ModalRescueInvestment = (props: any) => {
                             ...dadosForm.investment,
                             category: "1"
                         }
-                    });
+                    });                    
+                }
+                else {
+                    const details = await apiInvestmentDetails(response.data[0].value);
 
-                    //apiInvestmentDetails(dadosForm.value);
+                    setDadosForm({
+                        ...dadosForm,
+                        name: details.name,
+                        bruteValueWithMask: details.bruteValueWithMask,
+                        valueAvaliableRescue: details.valueAvaliableRescue,
+                        valueAvaliableRescueWithMask: details.valueAvaliableRescueWithMask,
+                        iofWithMask: details.iofWithMask,
+                        rentability: details.rentability
+                    })
                 }
             })
             .catch((error: any) => {
@@ -50,9 +61,12 @@ const ModalRescueInvestment = (props: any) => {
     }
 
     const apiInvestmentDetails = async (id: number) => {
-        await api.get(`/investments/detail/${id}`)
+        return await api.get(`/investments/detail/${id}`)
             .then((response: any) => {
-                console.log(response)
+                console.log("RESPOSTA DETALHES INVESTIMENTO: ", response.data);
+
+                return response.data;
+                /*
                 setDadosForm({
                     ...dadosForm,
                     name: response.data.name,
@@ -62,6 +76,7 @@ const ModalRescueInvestment = (props: any) => {
                     iofWithMask: response.data.iofWithMask,
                     rentability: response.data.rentability
                 })
+                */
             })
             .catch((error: any) => {
                 Alert({
@@ -75,13 +90,21 @@ const ModalRescueInvestment = (props: any) => {
         event.preventDefault();
     }
 
-    const changeData = (name: string, valueChanged: any) => {
+    const changeData = async (name: string, valueChanged: any) => {
+        const details = await apiInvestmentDetails(valueChanged);
+
+        console.log("ALTERADO: ", name, valueChanged)
+
         setDadosForm({
             ...dadosForm,
-            [name]: valueChanged
+            [name]: valueChanged,
+            name: details.name,
+            bruteValueWithMask: details.bruteValueWithMask,
+            valueAvaliableRescue: details.valueAvaliableRescue,
+            valueAvaliableRescueWithMask: details.valueAvaliableRescueWithMask,
+            iofWithMask: details.iofWithMask,
+            rentability: details.rentability
         })
-
-        apiInvestmentDetails(valueChanged);
         console.log("alterei")
     }
 
