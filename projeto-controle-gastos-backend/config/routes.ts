@@ -37,4 +37,5 @@ module.exports = (app: any) => {
 
     app.route("/investments/detail/:id")
         .get(investment.detailInvestments)
+        .patch(investment.rescueInvestment)
 }

@@ -367,8 +367,6 @@ module.exports = ((app: any) => {
             else if (serie === 433) {
                 const yearDifference = await globalFunctions.calculateYearDifference(initialDate, finalDate);
 
-                console.log(yearDifference);
-
                 if (yearDifference >= 1) {
 
                     const initialDateInvestment = new Date(await globalFunctions.convertDateBrToUs(initialDate));
@@ -446,7 +444,6 @@ module.exports = ((app: any) => {
                 valorTotalInvestimento = 0;
             }
 
-            console.log("VALOR TOTAL DO INVESTIMENTO: ", valorTotalInvestimento)
             return valorTotalInvestimento;
         } catch (error) {
             console.error('Erro:', error);
@@ -492,8 +489,7 @@ module.exports = ((app: any) => {
 
                         const auxBruteValue = investments.reduce(function (acc, obj) { return acc + obj.currentValueNumber; }, 0);
                         const bruteValue = await globalFunctions.arredondateNumber(auxBruteValue);
-                        const calculoIof = calcularIOF(investments[0].initialDateUS, investments[0].initialValueWithoutMask, investments[0].currentValueNumber)
-                        console.log("IOF: ", calculoIof);
+                        const calculoIof = calcularIOF(investments[0].initialDateUS, investments[0].initialValueWithoutMask, investments[0].currentValueNumber);
 
                         var rentabilityString: string = investments[0].rentabilityInfo;
 
@@ -519,6 +515,123 @@ module.exports = ((app: any) => {
         catch (e: any) {
             res.status(500).send("deu ruim aqui ó")
         }
+    }
+
+    const rescueInvestment = async (req: any, res: any) => {
+        const {id} = req.params;
+        const {value} = req.body;
+
+        if(value === null || value === undefined || value === ""){
+            return res.status(404).send({
+                message: "Informe o valor para resgate."
+            });
+        }
+        else if(id === null || id === undefined || id === ""){
+            return res.status(400).send({
+                message: "Erro ao buscar o investimento. Consulte o administrador do sistema."
+            });
+        }
+
+        const valueWithoutMoneyMask: number = globalFunctions.formatMoney(value);
+        var valueRescued: number = 0;
+
+        console.log("COM MÁSCARA: ", value);
+        console.log("SEM MÁSCARA: ", valueWithoutMoneyMask);
+
+        try {
+            await app.database.transaction(async (trx: any) => {
+                // Search all investments
+
+                const investmentsListsById = await app.database("investments as is")
+                    .select("is.id", "is.name", "is.category")
+                    .where({ id })
+                    .first()
+                    .transacting(trx)
+                    .then(async (response: any) => {
+                        if(response === undefined) throw "NO_INVESTMENT";
+
+                        // Investments
+                        const investments = await calcInvestmentRentabilityByIdInvestment(response.id, trx);
+
+                        const auxBruteValue = investments.reduce(function (acc, obj) { return acc + obj.currentValueNumber; }, 0);
+                        const bruteValue = await globalFunctions.arredondateNumber(auxBruteValue);
+                        const calculoIof = calcularIOF(investments[0].initialDateUS, investments[0].initialValueWithoutMask, investments[0].currentValueNumber);
+
+                        var rentabilityString: string = investments[0].rentabilityInfo;
+
+                        investments.forEach((element: any) =>{
+                            if(element.rentabilityInfo != rentabilityString) rentabilityString += element.rentabilityInfo;
+                        })
+
+                        return {
+                            name: response.name,
+                            bruteValue,
+                            valueAvaliableRescue: bruteValue - calculoIof,
+                            iof: calculoIof * -1,
+                            investments
+                        }
+                    })
+                
+                if(valueWithoutMoneyMask > investmentsListsById.valueAvaliableRescue) throw "MAX_RESCUE_VALUE";
+                
+                console.log("ANTES: ", investmentsListsById.investments);
+
+                // zera cada um dos investimentos
+                if(Array.isArray(investmentsListsById.investments) && investmentsListsById.investments.length > 0){
+                    for(let i = 0; i < investmentsListsById.investments.length; i++){
+                        var investment = investmentsListsById.investments[i];
+
+                        if(valueRescued === valueWithoutMoneyMask){
+                            break;
+                        }
+                        else {
+                            if (investment.currentValueNumber + valueRescued <= valueWithoutMoneyMask) {
+                                // Caso o valor do investimento possa ser completamente somado ao resgatado
+                                valueRescued += investment.currentValueNumber;
+                                investment.currentValueNumber = 0; // Zera o valor do investimento
+                            } else {
+                                // Caso o valor resgatado ultrapasse o valor necessário
+                                let remainingValue = valueWithoutMoneyMask - valueRescued;
+                                valueRescued += remainingValue;
+                                investment.currentValueNumber -= remainingValue; // Deduz o valor restante do investimento
+                                break; // Para a iteração após atingir o valor necessário
+                            }            
+                        }                       
+                    }
+                    console.log(`VALOR RESGATADO: ${valueRescued}, `);
+                    console.log("APÓS: ", investmentsListsById.investments);
+                }
+                else {
+                    throw "NO_INVESTMENT_LIST";
+                }
+
+            })
+            .then((response: any) => res.status(200).send(response))
+            .catch((error: any) => {
+                console.error(error)
+                if(error === "NO_INVESTMENT") res.status(404).send({
+                    message: "Este investimento não está registrado."
+                });
+                else if(error === "NO_INVESTMENT_LIST") res.status(404).send({
+                    message: "Não há registros de investimentos."
+                });
+                else if(error === "MAX_RESCUE_VALUE") res.status(404).send({
+                    message: "O valor de resgate é maior que o limite disponível."
+                });
+                else res.status(404).send({
+                    message: "Erro ao consultar os investimentos."
+                });
+            })
+        }
+        catch (e: any){
+            console.log(e)
+            if(e === "NO_INVESTMENT") res.status(404).send({
+                message: "Este investimento não está registrado."
+            })
+            else res.status(500).send({
+                message: "Erro ao consultar os investimentos."
+            })
+        }        
     }
 
     const investmentDashboard = async (req: any, res: any) => {
@@ -555,5 +668,5 @@ module.exports = ((app: any) => {
         }
     }
 
-    return { registerInvestment, allInfoInvestmentByIdPayment, createInvestment, getAllInvestments, listInvestments, detailInvestments, investmentDashboard }
+    return { registerInvestment, allInfoInvestmentByIdPayment, createInvestment, getAllInvestments, listInvestments, detailInvestments, investmentDashboard, rescueInvestment }
 })
