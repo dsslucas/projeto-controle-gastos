@@ -237,7 +237,8 @@ module.exports = ((app: any) => {
 
             formattedInvestment.initialValue = await globalFunctions.formatMoneyNumberToString(investment.initialValue);
             formattedInvestment.initialDate = await globalFunctions.convertDateToLocation(investment.initialDate);
-            formattedInvestment.finalDate = await globalFunctions.convertDateToLocation(investment.finalDate);
+            //formattedInvestment.finalDate = await globalFunctions.convertDateToLocation(investment.finalDate);
+            formattedInvestment.finalDate = "07/07/2024";
 
             const initialValueWithoutMoneyFormat = await globalFunctions.formatMoney(investment.initialValue);
 
@@ -530,7 +531,7 @@ module.exports = ((app: any) => {
         }
     }
 
-    const registerRescueInvestment = async (id: number, value: number, trx: any) => {
+    const registerRescueInvestment = async (id: number, value: number, nameInvestment: string, trx: any) => {
         try {
             await app.database("investment")
                 .where({
@@ -540,16 +541,58 @@ module.exports = ((app: any) => {
                     brutevalue: value
                 })
                 .transacting(trx)
-                .then(async (response: any) => {
-                    await app.database("investment_rescue")
+
+            await app.database("investment_rescue")
+                .insert({
+                    idinvestment: id,
+                    value,
+                    date: new Date(),
+                    id_user: 1 // until create user interface
+                })
+                .transacting(trx)
+
+            // Register on config
+            const date = globalFunctions.formatDate(new Date('2024-07-10'));
+            const {initialDate, finalDate} = globalFunctions.getBetweenDates(date);
+
+            // Register the rescued value into config database
+            if(configApi.checkIfExistsMonthConfig(new Date(), trx)){
+                // Get ID of config
+                const idConfig = await app.database("config")
+                    .where((builder: any) => {
+                        builder.where("date", ">=", initialDate).where("date", "<", finalDate);
+                    })
+                    .first()
+                    .transacting(trx)
+                    .then((response: any) => {
+                        return response.id
+                    })
+                
+                await app.database("config_entries")
+                    .insert({
+                        idConfig: idConfig,
+                        description: `Resgate de investimento: ${nameInvestment} (${globalFunctions.convertDateToLocation(new Date())})`,
+                        value: value
+                    })
+                    .transacting(trx)
+            }
+            else {
+                // Create new one
+                const idConfig = await app.database("config")
+                    .insert({
+                        date: new Date()
+                    })
+                    .returning("id")
+                    .transacting(trx)
+
+                    await app.database("config_entries")
                         .insert({
-                            idInvestment: id,
-                            value,
-                            date: new Date(),
-                            id_user: 1 // until create user interface
+                            idConfig: idConfig[0].id,
+                            description: `Resgate de investimento: ${nameInvestment} (${globalFunctions.convertDateToLocation(new Date())})`,
+                            value: value
                         })
                         .transacting(trx)
-                })
+            }
         }
         catch (e: any){
             console.error(e);
@@ -629,13 +672,13 @@ module.exports = ((app: any) => {
                                 // Caso o valor do investimento possa ser completamente somado ao resgatado
                                 valueRescued += investment.currentValueNumber;
                                 investment.currentValueNumber = 0; // Zera o valor do investimento
-                                registerRescueInvestment(investment.id, 0, trx);                                
+                                registerRescueInvestment(investment.id, 0, investmentsListsById.name, trx);                                
                             } else {
                                 // Caso o valor resgatado ultrapasse o valor necessário
                                 let remainingValue = valueWithoutMoneyMask - valueRescued;
                                 valueRescued += remainingValue;
                                 investment.currentValueNumber -= remainingValue; // Deduz o valor restante do investimento
-                                registerRescueInvestment(investment.id, remainingValue, trx);
+                                registerRescueInvestment(investment.id, remainingValue, investmentsListsById.name, trx);
 
                                 break; // Para a iteração após atingir o valor necessário
                             }            
@@ -644,47 +687,7 @@ module.exports = ((app: any) => {
                     console.log("VALOR RESGATADO: ", valueRescued);
                     console.log("APÓS: ", investmentsListsById.investments);
 
-                    const date = globalFunctions.formatDate(new Date('2024-07-10'));
-                    const {initialDate, finalDate} = globalFunctions.getBetweenDates(date);
-
-                    // Register the rescued value into config database
-                    if(configApi.checkIfExistsMonthConfig(new Date(), trx)){
-                        // Get ID of config
-                        const idConfig = await app.database("config")
-                            .where((builder: any) => {
-                                builder.where("date", ">=", initialDate).where("date", "<", finalDate);
-                            })
-                            .first()
-                            .transacting(trx)
-                            .then((response: any) => {
-                                return response.id
-                            })
-                        
-                        await app.database("config_entries")
-                            .insert({
-                                idConfig: idConfig,
-                                description: `Resgate de investimento: ${investmentsListsById} (${globalFunctions.convertDateToLocation(new Date())})`,
-                                value: valueRescued
-                            })
-                            .transacting(trx)
-                    }
-                    else {
-                        // Create new one
-                        const idConfig = await app.database("config")
-                            .insert({
-                                date: new Date()
-                            })
-                            .returning("id")
-                            .transacting(trx)
-
-                            app.database("config_entries")
-                                .insert({
-                                    idConfig: idConfig[0].id,
-                                    description: `Resgate de investimento: ${investmentsListsById} (${globalFunctions.convertDateToLocation(new Date())})`,
-                                    value: valueRescued
-                                })
-                                .transacting(trx)
-                    }
+                    return true;
 
                 }
                 else {
@@ -692,7 +695,9 @@ module.exports = ((app: any) => {
                 }
 
             })
-            .then((response: any) => res.status(200).send(response))
+            .then((response: any) => res.status(200).send({
+                message: "Resgate efetuado com sucesso!"
+            }))
             .catch((error: any) => {
                 console.error(error)
                 if(error === "NO_INVESTMENT") res.status(404).send({
