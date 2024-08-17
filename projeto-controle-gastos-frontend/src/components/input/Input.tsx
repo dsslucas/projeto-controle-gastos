@@ -23,7 +23,14 @@ const Input = (props: any) => {
         else {
             if (mask === "money") {
                 let money = value.replace(/\D/g, '');
-                newFieldValue = `R$ ${(Number(money) / 100).toFixed(2).replace('.', ',').replace(/(\d)(?=(\d{3})+,)/g, '$1.')}`;
+                let numericValue = Number(money) / 100;
+
+                // Verifica se o valor excede o limite máximo
+                if (max !== undefined && numericValue > max) {
+                    return; // Se exceder, não atualiza o estado
+                }
+
+                newFieldValue = `R$ ${numericValue.toFixed(2).replace('.', ',').replace(/(\d)(?=(\d{3})+,)/g, '$1.')}`;
             }
             else if (mask === "percentage") {
                 // Remove qualquer caractere que não seja um número, ponto ou vírgula

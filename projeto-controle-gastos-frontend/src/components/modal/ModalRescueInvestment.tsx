@@ -12,6 +12,7 @@ import Text from "../text/Text";
 const ModalRescueInvestment = (props: any) => {
     const [dadosForm, setDadosForm] = useState<any>({
         idInvestment: "-",
+        valueToRescue: "",
         name: "",
         bruteValueWithMask: "R$ 0,00",
         valueAvaliableRescue: 0,
@@ -77,25 +78,35 @@ const ModalRescueInvestment = (props: any) => {
 
     const handleSubmit = async (event: any) => {
         event.preventDefault();
+
+        console.log("enviei")
     }
 
     const changeData = async (name: string, valueChanged: any) => {
-        const details = await apiInvestmentDetails(valueChanged);
+        if(name === "valueToRescue"){
+            setDadosForm({
+                ...dadosForm,
+                [name]: valueChanged,
+            });
+        }
+        else {
+            const details = await apiInvestmentDetails(valueChanged);
 
-        console.log("ALTERADO: ", name, valueChanged)
-
-        setDadosForm({
-            ...dadosForm,
-            [name]: valueChanged,
-            name: details.name,
-            bruteValueWithMask: details.bruteValueWithMask,
-            valueAvaliableRescue: details.valueAvaliableRescue,
-            valueAvaliableRescueWithMask: details.valueAvaliableRescueWithMask,
-            iofWithMask: details.iofWithMask,
-            rentability: details.rentability
-        })
-        console.log("alterei")
-    }
+            console.log("ALTERADO: ", name, valueChanged)
+    
+            setDadosForm({
+                ...dadosForm,
+                [name]: valueChanged,
+                name: details.name,
+                bruteValueWithMask: details.bruteValueWithMask,
+                valueAvaliableRescue: details.valueAvaliableRescue,
+                valueAvaliableRescueWithMask: details.valueAvaliableRescueWithMask,
+                iofWithMask: details.iofWithMask,
+                rentability: details.rentability
+            });
+            console.log("alterei")
+        }      
+    }   
 
     useEffect(() => {
         apiInvestmentList();
@@ -153,11 +164,13 @@ const ModalRescueInvestment = (props: any) => {
                                     <Label label="Valor a resgatar" />
                                     <Input
                                         type="text"
-                                        name="value"
+                                        name="valueToRescue"
                                         placeholder="Insira o valor"
                                         inputMode="numeric"
                                         mask="money"
-                                        returnInput={(name: string, value: string) => console.log(name, value)}
+                                        value={dadosForm.valueToRescue}
+                                        returnInput={(name: string, value: string) => changeData(name, value)}
+                                        max={dadosForm.valueAvaliableRescue}
                                     />
                                 </div>
 
