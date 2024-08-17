@@ -66,17 +66,6 @@ const ModalRescueInvestment = (props: any) => {
                 console.log("RESPOSTA DETALHES INVESTIMENTO: ", response.data);
 
                 return response.data;
-                /*
-                setDadosForm({
-                    ...dadosForm,
-                    name: response.data.name,
-                    bruteValueWithMask: response.data.bruteValueWithMask,
-                    valueAvaliableRescue: response.data.valueAvaliableRescue,
-                    valueAvaliableRescueWithMask: response.data.valueAvaliableRescueWithMask,
-                    iofWithMask: response.data.iofWithMask,
-                    rentability: response.data.rentability
-                })
-                */
             })
             .catch((error: any) => {
                 Alert({
