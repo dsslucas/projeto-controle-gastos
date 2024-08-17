@@ -272,6 +272,16 @@ module.exports = ((app: any) => {
                 formattedInvestment.currentValue = await globalFunctions.formatMoneyNumberToString(value);
                 formattedInvestment.currentValueNumber = await globalFunctions.arredondateNumber(value);
                 formattedInvestment.rentabilityInfo = rentabilityInfo;
+
+                console.log(formattedInvestment)
+
+                await app.database("investment")
+                    .where({
+                        id: formattedInvestment.id
+                    })
+                    .update({
+                        brutevalue: await globalFunctions.arredondateNumber(value)
+                    })
             }
             else {
                 formattedInvestment.currentValue = 0;

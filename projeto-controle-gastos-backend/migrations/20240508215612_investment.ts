@@ -10,6 +10,7 @@ exports.up = function (knex: any) {
         table.datetime("initialDate").notNull()
         table.datetime("finalDate").notNull()
         table.string("observation")
+        table.double("bruteValue")
     })
 };
 
