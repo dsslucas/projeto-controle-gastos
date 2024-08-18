@@ -254,6 +254,7 @@ module.exports = ((app: any) => {
 
             //const initialValueWithoutMoneyFormat = await globalFunctions.formatMoney(investment.initialValue);
             const bruteValue = await globalFunctions.arredondateNumber(investment.brutevalue);
+            formattedInvestment.brutevalue = bruteValue;
             //console.log(investment)
 
             var rendimento = 0;
@@ -304,6 +305,7 @@ module.exports = ((app: any) => {
                 formattedInvestment.currentValueNumber = await globalFunctions.arredondateNumber(rendimento);
                 formattedInvestment.rentabilityInfo = rentabilityInfo;                
                 formattedInvestment.iof = iof;
+                formattedInvestment.iofWithMask = await globalFunctions.formatMoneyNumberToString(iof * -1);
                 
                 if(dataAtual > dataBancoMaisUmDia){
                     console.log("ATUALIZEI NO BANCO")
@@ -341,6 +343,7 @@ module.exports = ((app: any) => {
                 return await app.database("investment as i")
                     .join("investments as is", "i.idInvestment", "is.id")
                     .select("i.id", "is.name", "i.initialValue", "i.initialDate", "i.finalDate", "i.observation", "is.category", "i.brutevalue", "i.lastupdate", "i.iof")
+                    .where("i.brutevalue", "!=", 0)
                     .orderBy("i.initialDate", "asc")
                     .transacting(trx)
                     .then(async (response: any) => {
@@ -356,7 +359,7 @@ module.exports = ((app: any) => {
 
             res.status(200).send({
                 data: formattedInvestments,
-                columns: ["Nome", "Categoria", "Data inicial", "Data final", "Valor inicial", "Valor atual", "Rentabilidade", "Observação"]
+                columns: ["Nome", "Categoria", "Data inicial", "Data final", "Valor inicial", "Valor atual", "Rentabilidade", "IOF/IR", "Observação"]
             });
         } catch (error) {
             console.error(error);
@@ -500,6 +503,7 @@ module.exports = ((app: any) => {
         try {
             return await app.database("investment as i")
                 .where("i.idInvestment", "=", id)
+                .where("i.brutevalue", "!=", 0)
                 .orderBy("i.id", "ASC")
                 .transacting(trx)
                 .then(async (response: any) => {
@@ -533,12 +537,12 @@ module.exports = ((app: any) => {
                         // Investments
                         const investments = await calcInvestmentRentabilityByIdInvestment(response.id, trx);
 
-                        const auxBruteValue = investments.reduce(function (acc, obj) { return acc + obj.currentValueNumber; }, 0);
+                        const auxBruteValue = investments.reduce(function (acc, obj) { return acc + obj.brutevalue; }, 0);
                         const bruteValue = await globalFunctions.arredondateNumber(auxBruteValue);
-                        const calculoIof = calcularIOF(investments[0].initialDateUS, investments[0].initialValueWithoutMask, investments[0].currentValueNumber);
-
+                        const iof = investments.reduce(function (acc, obj) { return acc + obj.iof; }, 0);
                         var rentabilityString: string = investments[0].rentabilityInfo;
 
+                        console.log(investments)
                         investments.forEach((element: any) =>{
                             if(element.rentabilityInfo != rentabilityString) rentabilityString += element.rentabilityInfo;
                         })
@@ -547,10 +551,10 @@ module.exports = ((app: any) => {
                             name: response.name,
                             bruteValue,
                             bruteValueWithMask: await globalFunctions.formatMoneyNumberToString(auxBruteValue),
-                            valueAvaliableRescue: bruteValue - calculoIof,
-                            valueAvaliableRescueWithMask: await globalFunctions.formatMoneyNumberToString(bruteValue - calculoIof),
-                            iof: calculoIof * -1,
-                            iofWithMask: await globalFunctions.formatMoneyNumberToString(calculoIof * -1),   
+                            valueAvaliableRescue: bruteValue - iof,
+                            valueAvaliableRescueWithMask: await globalFunctions.formatMoneyNumberToString(bruteValue - iof),
+                            iof: iof * -1,
+                            iofWithMask: await globalFunctions.formatMoneyNumberToString(iof * -1),   
                             rentability: rentabilityString,
                         }
                     })
