@@ -249,18 +249,18 @@ module.exports = ((app: any) => {
 
             formattedInvestment.initialValue = await globalFunctions.formatMoneyNumberToString(investment.initialValue);
             formattedInvestment.initialDate = await globalFunctions.convertDateToLocation(investment.initialDate);
-            //formattedInvestment.finalDate = await globalFunctions.convertDateToLocation(investment.finalDate);
-            formattedInvestment.finalDate = "07/07/2024";
+            formattedInvestment.finalDate = await globalFunctions.convertDateToLocation(investment.finalDate);
+            //formattedInvestment.finalDate = "07/07/2024";
 
-            const initialValueWithoutMoneyFormat = await globalFunctions.formatMoney(investment.initialValue);
+            //const initialValueWithoutMoneyFormat = await globalFunctions.formatMoney(investment.initialValue);
             const bruteValue = await globalFunctions.arredondateNumber(investment.brutevalue);
             //console.log(investment)
 
             var rendimento = 0;
             var rentabilityInfo = "";
             if (Array.isArray(formattedInvestment.rentability) && formattedInvestment.rentability.length > 0) {
-                //if(dataAtual > dataBancoMaisUmDia){
-                    console.log("Entrei no if")
+                if(dataAtual > dataBancoMaisUmDia){
+                    //console.log("Entrei no if")
                     for (const element of formattedInvestment.rentability) {
 
                         if (rentabilityInfo != "") rentabilityInfo += ` + `;
@@ -276,10 +276,10 @@ module.exports = ((app: any) => {
                                     countPercentage += Number(element.percentage / 100);
                                 })
     
-                                rendimento += await calculateInvestmentValue(initialValueWithoutMoneyFormat, formattedInvestment.initialDate, element.name, formattedInvestment.finalDate, countPercentage, formattedInvestment.name);
+                                rendimento += await calculateInvestmentValue(bruteValue, formattedInvestment.initialDate, element.name, formattedInvestment.finalDate, countPercentage, formattedInvestment.name);
                             }
                             else {
-                                rendimento += await calculateInvestmentValue(initialValueWithoutMoneyFormat, formattedInvestment.initialDate, element.name, formattedInvestment.finalDate, element.percentage, formattedInvestment.name);                           
+                                rendimento += await calculateInvestmentValue(bruteValue, formattedInvestment.initialDate, element.name, formattedInvestment.finalDate, element.percentage, formattedInvestment.name);                           
                             }
                         } catch (error) {
                             console.error(`Erro ao calcular rentabilidade para o investimento ${investment.name}: ${error}`);
@@ -287,15 +287,15 @@ module.exports = ((app: any) => {
                         }
                     }
 
-                    iof = calcularIOF(formattedInvestment.initialDateUS, initialValueWithoutMoneyFormat, rendimento);
-                //}
-                //else {
+                    iof = calcularIOF(formattedInvestment.initialDateUS, bruteValue, rendimento);
+                }
+                else {
                     //console.log("Entrei no else")
-                    //rendimento = bruteValue;
-                    //iof = await globalFunctions.arredondateNumber(investment.iof);
+                    rendimento = bruteValue;
+                    iof = await globalFunctions.arredondateNumber(investment.iof);
                     //value = bruteValue;
                     //iof = investment.iof;
-                //}
+                }
                 
                 //console.log("VALOR BRUTO: ", Number(investment.brutevalue));
                 //console.log("VALOR QUE RENDEU: ", await globalFunctions.arredondateNumber(rendimento));
@@ -304,7 +304,7 @@ module.exports = ((app: any) => {
                 formattedInvestment.currentValueNumber = await globalFunctions.arredondateNumber(rendimento);
                 formattedInvestment.rentabilityInfo = rentabilityInfo;                
                 formattedInvestment.iof = iof;
-                /*
+                
                 if(dataAtual > dataBancoMaisUmDia){
                     console.log("ATUALIZEI NO BANCO")
                     await app.database("investment")
@@ -316,8 +316,7 @@ module.exports = ((app: any) => {
                             iof: await globalFunctions.arredondateNumber(iof),
                             lastupdate: new Date()
                         })
-                }
-                */
+                }                
             }
             else {
                 formattedInvestment.currentValue = 0;
