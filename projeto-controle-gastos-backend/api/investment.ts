@@ -569,6 +569,8 @@ module.exports = ((app: any) => {
     }
 
     const registerRescueInvestment = async (id: number, rescuedValue: number, remainingValue: number, nameInvestment: string, reason: string, trx: any) => {
+        const actualDate = new Date();
+
         try {            
             await app.database("investment")
                 .where({
@@ -584,18 +586,19 @@ module.exports = ((app: any) => {
                 .insert({
                     idinvestment: id,
                     value: rescuedValue,
-                    date: new Date(),
+                    date: actualDate,
                     id_user: 1, // until create user interface,
                     reason
                 })
                 .transacting(trx)
             console.log("PASSEI DO SEGUNDO")
             // Register on config
-            const date = globalFunctions.formatDate(new Date('2024-07-10'));
+
+            const date = globalFunctions.formatDate(actualDate);
             const {initialDate, finalDate} = globalFunctions.getBetweenDates(date);
 
             // Register the rescued value into config database
-            if(configApi.checkIfExistsMonthConfig(new Date(), trx)){
+            if(configApi.checkIfExistsMonthConfig(actualDate, trx)){
                 // Get ID of config
                 const idConfig = await app.database("config")
                     .where((builder: any) => {
@@ -610,7 +613,7 @@ module.exports = ((app: any) => {
                 await app.database("config_entries")
                     .insert({
                         idConfig: idConfig,
-                        description: `Resgate de investimento: ${nameInvestment} (${globalFunctions.convertDateToLocation(new Date())})`,
+                        description: `Resgate de investimento: ${nameInvestment} (${globalFunctions.convertDateToLocation(actualDate)})`,
                         value: rescuedValue
                     })
                     .transacting(trx)
@@ -619,7 +622,7 @@ module.exports = ((app: any) => {
                 // Create new one
                 const idConfig = await app.database("config")
                     .insert({
-                        date: new Date()
+                        date: actualDate
                     })
                     .returning("id")
                     .transacting(trx)
@@ -627,7 +630,7 @@ module.exports = ((app: any) => {
                     await app.database("config_entries")
                         .insert({
                             idConfig: idConfig[0].id,
-                            description: `Resgate de investimento: ${nameInvestment} (${globalFunctions.convertDateToLocation(new Date())})`,
+                            description: `Resgate de investimento: ${nameInvestment} (${globalFunctions.convertDateToLocation(actualDate)})`,
                             value: rescuedValue
                         })
                         .transacting(trx)
