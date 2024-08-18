@@ -44,6 +44,7 @@ const ModalRescueInvestment = (props: any) => {
 
                     setDadosForm({
                         ...dadosForm,
+                        idInvestment: details.id,
                         name: details.name,
                         bruteValueWithMask: details.bruteValueWithMask,
                         valueAvaliableRescue: details.valueAvaliableRescue,
@@ -64,8 +65,6 @@ const ModalRescueInvestment = (props: any) => {
     const apiInvestmentDetails = async (id: number) => {
         return await api.get(`/investments/detail/${id}`)
             .then((response: any) => {
-                console.log("RESPOSTA DETALHES INVESTIMENTO: ", response.data);
-
                 return response.data;
             })
             .catch((error: any) => {
@@ -79,7 +78,22 @@ const ModalRescueInvestment = (props: any) => {
     const handleSubmit = async (event: any) => {
         event.preventDefault();
 
-        console.log("enviei")
+        await api.patch(`/investments/detail/${dadosForm.idInvestment}`, {
+            value: dadosForm.valueToRescue
+        })
+            .then((response: any) => {
+                Alert({
+                    text: response.data.message,
+                    icon: "success",
+                    callback: props.returnClick()
+                });
+            })
+            .catch((error: any) => {
+                Alert({
+                    text: error.response.data.message,
+                    icon: "error"
+                });
+            })
     }
 
     const changeData = async (name: string, valueChanged: any) => {

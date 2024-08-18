@@ -548,6 +548,7 @@ module.exports = ((app: any) => {
                         })
 
                         return {
+                            id: Number(id),
                             name: response.name,
                             bruteValue,
                             bruteValueWithMask: await globalFunctions.formatMoneyNumberToString(auxBruteValue),
@@ -773,7 +774,7 @@ module.exports = ((app: any) => {
             else res.status(500).send({
                 message: "Erro ao consultar os investimentos."
             })
-        }        
+        }      
     }
 
     const investmentDashboard = async (req: any, res: any) => {
