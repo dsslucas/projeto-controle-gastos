@@ -551,7 +551,7 @@ module.exports = ((app: any) => {
                             name: response.name,
                             bruteValue,
                             bruteValueWithMask: await globalFunctions.formatMoneyNumberToString(auxBruteValue),
-                            valueAvaliableRescue: bruteValue - iof,
+                            valueAvaliableRescue: await globalFunctions.arredondateNumber(bruteValue - iof),
                             valueAvaliableRescueWithMask: await globalFunctions.formatMoneyNumberToString(bruteValue - iof),
                             iof: iof * -1,
                             iofWithMask: await globalFunctions.formatMoneyNumberToString(iof * -1),   
