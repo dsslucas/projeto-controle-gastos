@@ -12,6 +12,7 @@ exports.up = function (knex: any) {
         table.string("observation")
         table.double("bruteValue")
         table.double("iof")
+        table.datetime("lastupdate")
     })
 };
 
