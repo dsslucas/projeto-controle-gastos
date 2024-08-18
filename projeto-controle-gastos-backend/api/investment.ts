@@ -501,6 +501,7 @@ module.exports = ((app: any) => {
         try {
             return await app.database("investment as i")
                 .where("i.idInvestment", "=", id)
+                .orderBy("i.id", "ASC")
                 .transacting(trx)
                 .then(async (response: any) => {
                     for (let i = 0; i < response.length; i++) {
@@ -563,14 +564,14 @@ module.exports = ((app: any) => {
         }
     }
 
-    const registerRescueInvestment = async (id: number, value: number, nameInvestment: string, trx: any) => {
+    const registerRescueInvestment = async (id: number, rescuedValue: number, remainingValue: number, nameInvestment: string, trx: any) => {
         try {            
             await app.database("investment")
                 .where({
                     id
                 })
                 .update({
-                    brutevalue: value
+                    brutevalue: remainingValue
                 })
                 .transacting(trx)
 
@@ -578,7 +579,7 @@ module.exports = ((app: any) => {
             await app.database("investment_rescue")
                 .insert({
                     idinvestment: id,
-                    value,
+                    value: rescuedValue,
                     date: new Date(),
                     id_user: 1 // until create user interface
                 })
@@ -605,7 +606,7 @@ module.exports = ((app: any) => {
                     .insert({
                         idConfig: idConfig,
                         description: `Resgate de investimento: ${nameInvestment} (${globalFunctions.convertDateToLocation(new Date())})`,
-                        value: value
+                        value: rescuedValue
                     })
                     .transacting(trx)
             }
@@ -622,7 +623,7 @@ module.exports = ((app: any) => {
                         .insert({
                             idConfig: idConfig[0].id,
                             description: `Resgate de investimento: ${nameInvestment} (${globalFunctions.convertDateToLocation(new Date())})`,
-                            value: value
+                            value: rescuedValue
                         })
                         .transacting(trx)
             }
@@ -649,9 +650,11 @@ module.exports = ((app: any) => {
 
         const valueWithoutMoneyMask: number = globalFunctions.formatMoney(value);
         var valueRescued: number = 0;
+        var remainingValue: number = 0;
 
         console.log("COM MÁSCARA: ", value);
         console.log("SEM MÁSCARA: ", valueWithoutMoneyMask);
+
 
         try {
             await app.database.transaction(async (trx: any) => {
@@ -689,36 +692,48 @@ module.exports = ((app: any) => {
                 
                 if(valueWithoutMoneyMask > investmentsListsById.valueAvaliableRescue) throw "MAX_RESCUE_VALUE";
                 
-                console.log("ANTES: ", investmentsListsById.investments);
+                //console.log("ANTES: ", investmentsListsById.investments);
 
                 // zera cada um dos investimentos
                 if(Array.isArray(investmentsListsById.investments) && investmentsListsById.investments.length > 0){
                     for(let i = 0; i < investmentsListsById.investments.length; i++){
                         var investment = investmentsListsById.investments[i];
-
+                        console.log("\n")
+                        console.log("INTERAÇÃO ", i + 1)
+                        console.log("VALOR RESGATADO: ", valueRescued)
+                        console.log("VALOR ATUAL DO INVESTIMENTO: ", investment.currentValueNumber)
+                        
                         if(valueRescued === valueWithoutMoneyMask){
                             break;
                         }
                         else {
                             // Se bater... Descontar do valor bruto de cada investimento
                             if (investment.currentValueNumber + valueRescued <= valueWithoutMoneyMask) {
+                                console.log("PRIMEIRA CONDIÇÃO: ")
                                 // Caso o valor do investimento possa ser completamente somado ao resgatado
                                 valueRescued += investment.currentValueNumber;
                                 investment.currentValueNumber = 0; // Zera o valor do investimento
-                                await registerRescueInvestment(investment.id, 0, investmentsListsById.name, trx);                                
+                                console.log("INVESTIMENTO ID ", investment.id, " VALOR QUE FOI RESGATADO: ", globalFunctions.arredondateNumber(valueRescued))
+                                console.log("VALOR QUE RESTOU: ", globalFunctions.arredondateNumber(investment.currentValueNumber))
+
+                                await registerRescueInvestment(investment.id, globalFunctions.arredondateNumber(valueRescued), globalFunctions.arredondateNumber(investment.currentValueNumber), investmentsListsById.name, trx);                                
                             } else {
+                                console.log("SEGUNDA CONDIÇÃO: ")
                                 // Caso o valor resgatado ultrapasse o valor necessário
                                 let remainingValue = valueWithoutMoneyMask - valueRescued;
                                 valueRescued += remainingValue;
                                 investment.currentValueNumber -= remainingValue; // Deduz o valor restante do investimento
-                                await registerRescueInvestment(investment.id, remainingValue, investmentsListsById.name, trx);
+                                console.log("INVESTIMENTO ID ", investment.id, " VALOR QUE FOI RESGATADO: ", globalFunctions.arredondateNumber(remainingValue))
+                                console.log("VALOR QUE RESTOU: ", globalFunctions.arredondateNumber(investment.currentValueNumber))
+                                
+                                await registerRescueInvestment(investment.id, globalFunctions.arredondateNumber(remainingValue), globalFunctions.arredondateNumber(investment.currentValueNumber), investmentsListsById.name, trx);
 
                                 break; // Para a iteração após atingir o valor necessário
                             }            
                         }                       
                     }
                     console.log("VALOR RESGATADO: ", valueRescued);
-                    console.log("APÓS: ", investmentsListsById.investments);
+                    //console.log("APÓS: ", investmentsListsById.investments);
 
                     return true;
 
