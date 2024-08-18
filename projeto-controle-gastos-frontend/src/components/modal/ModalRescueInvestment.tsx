@@ -18,7 +18,8 @@ const ModalRescueInvestment = (props: any) => {
         valueAvaliableRescue: 0,
         valueAvaliableRescueWithMask: "R$ 0,00",
         iofWithMask: "R$ 0,00",
-        rentability: ""
+        rentability: "",
+        reason: ""
     });
 
     const [apiInvestments, setApiInvestments] = useState<any>([]);
@@ -79,7 +80,8 @@ const ModalRescueInvestment = (props: any) => {
         event.preventDefault();
 
         await api.patch(`/investments/detail/${dadosForm.idInvestment}`, {
-            value: dadosForm.valueToRescue
+            value: dadosForm.valueToRescue,
+            reason: dadosForm.reason
         })
             .then((response: any) => {
                 Alert({
@@ -97,7 +99,7 @@ const ModalRescueInvestment = (props: any) => {
     }
 
     const changeData = async (name: string, valueChanged: any) => {
-        if(name === "valueToRescue"){
+        if(name === "valueToRescue" || name === "reason"){
             setDadosForm({
                 ...dadosForm,
                 [name]: valueChanged,
@@ -185,6 +187,18 @@ const ModalRescueInvestment = (props: any) => {
                                         value={dadosForm.valueToRescue}
                                         returnInput={(name: string, value: string) => changeData(name, value)}
                                         max={dadosForm.valueAvaliableRescue}
+                                        required
+                                    />
+                                </div>
+                                <div className="flex">
+                                    <Label label="Justificativa" />
+                                    <Input
+                                        type="text"
+                                        name="reason"
+                                        placeholder="Insira a justificativa"
+                                        value={dadosForm.reason}
+                                        returnInput={(name: string, value: string) => changeData(name, value)}
+                                        required
                                     />
                                 </div>
 

@@ -8,6 +8,7 @@ export async function up(knex: Knex): Promise<void> {
         table.double("value").notNull()
         table.datetime("date").notNull()
         table.integer("id_user").notNull()
+        table.string("reason").notNull()
     })
 }
 

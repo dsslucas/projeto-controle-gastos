@@ -568,7 +568,7 @@ module.exports = ((app: any) => {
         }
     }
 
-    const registerRescueInvestment = async (id: number, rescuedValue: number, remainingValue: number, nameInvestment: string, trx: any) => {
+    const registerRescueInvestment = async (id: number, rescuedValue: number, remainingValue: number, nameInvestment: string, reason: string, trx: any) => {
         try {            
             await app.database("investment")
                 .where({
@@ -585,7 +585,8 @@ module.exports = ((app: any) => {
                     idinvestment: id,
                     value: rescuedValue,
                     date: new Date(),
-                    id_user: 1 // until create user interface
+                    id_user: 1, // until create user interface,
+                    reason
                 })
                 .transacting(trx)
             console.log("PASSEI DO SEGUNDO")
@@ -639,11 +640,16 @@ module.exports = ((app: any) => {
 
     const rescueInvestment = async (req: any, res: any) => {
         const {id} = req.params;
-        const {value} = req.body;
+        const {value, reason} = req.body;
 
         if(value === null || value === undefined || value === ""){
             return res.status(404).send({
                 message: "Informe o valor para resgate."
+            });
+        }
+        else if(reason === null || reason === undefined || reason === ""){
+            return res.status(404).send({
+                message: "Informe a justificativa."
             });
         }
         else if(id === null || id === undefined || id === ""){
@@ -720,7 +726,7 @@ module.exports = ((app: any) => {
                                 console.log("INVESTIMENTO ID ", investment.id, " VALOR QUE FOI RESGATADO: ", globalFunctions.arredondateNumber(valueRescued))
                                 console.log("VALOR QUE RESTOU: ", globalFunctions.arredondateNumber(investment.currentValueNumber))
 
-                                await registerRescueInvestment(investment.id, globalFunctions.arredondateNumber(valueRescued), globalFunctions.arredondateNumber(investment.currentValueNumber), investmentsListsById.name, trx);                                
+                                await registerRescueInvestment(investment.id, globalFunctions.arredondateNumber(valueRescued), globalFunctions.arredondateNumber(investment.currentValueNumber), investmentsListsById.name, reason, trx);                                
                             } else {
                                 console.log("SEGUNDA CONDIÇÃO: ")
                                 // Caso o valor resgatado ultrapasse o valor necessário
@@ -730,7 +736,7 @@ module.exports = ((app: any) => {
                                 console.log("INVESTIMENTO ID ", investment.id, " VALOR QUE FOI RESGATADO: ", globalFunctions.arredondateNumber(remainingValue))
                                 console.log("VALOR QUE RESTOU: ", globalFunctions.arredondateNumber(investment.currentValueNumber))
                                 
-                                await registerRescueInvestment(investment.id, globalFunctions.arredondateNumber(remainingValue), globalFunctions.arredondateNumber(investment.currentValueNumber), investmentsListsById.name, trx);
+                                await registerRescueInvestment(investment.id, globalFunctions.arredondateNumber(remainingValue), globalFunctions.arredondateNumber(investment.currentValueNumber), investmentsListsById.name, reason, trx);
 
                                 break; // Para a iteração após atingir o valor necessário
                             }            
