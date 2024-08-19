@@ -145,6 +145,9 @@ module.exports = ((app: any) => {
         try {
             await app.database.transaction(async (trx: any) => {
                 return await app.database("investments")
+                    .where({
+                        active: true
+                    })
                     .transacting(trx)
                     .then((response: any) => {
                         const returnData = [];
@@ -182,6 +185,8 @@ module.exports = ((app: any) => {
                 .join("investment as i_simple", "i_simple.idInvestment", "i.id")
                 .select("i.id", "i_simple.id as idInvestment", "i_simple.idPayment", "i.name", "i.category", "i_simple.initialValue", "i_simple.initialDate", "i_simple.finalDate")
                 .where("i_simple.idPayment", idPayment)
+                .where("i.active", true)
+                .where("i_simple.active", true)
                 .first()
                 .transacting(trx)
                 .then(async (response: any) => {
@@ -345,6 +350,8 @@ module.exports = ((app: any) => {
                 return await app.database("investment as i")
                     .join("investments as is", "i.idInvestment", "is.id")
                     .select("i.id", "is.name", "i.initialValue", "i.initialDate", "i.finalDate", "i.observation", "is.category", "i.brutevalue", "i.lastupdate", "i.iof")                    
+                    .where("i.active", true)
+                    .where("is.active", true)
                     .orderBy("i.initialDate", "asc")
                     .transacting(trx)
                     .then(async (response: any) => {
@@ -504,7 +511,7 @@ module.exports = ((app: any) => {
         try {
             return await app.database("investment as i")
                 .where("i.idInvestment", "=", id)
-                
+                .where("i.active", true)
                 .orderBy("i.id", "ASC")
                 .transacting(trx)
                 .then(async (response: any) => {
@@ -532,6 +539,7 @@ module.exports = ((app: any) => {
                 return await app.database("investments as is")
                     .select("is.id", "is.name", "is.category")
                     .where({ id })
+                    .where("is.active", true)
                     .first()
                     .transacting(trx)
                     .then(async (response: any) => {
@@ -697,6 +705,7 @@ module.exports = ((app: any) => {
                 const investmentsListsById = await app.database("investments as is")
                     .select("is.id", "is.name", "is.category")
                     .where({ id })
+                    .where("is.active", true)
                     .first()
                     .transacting(trx)
                     .then(async (response: any) => {
@@ -811,11 +820,6 @@ module.exports = ((app: any) => {
     // DEVEMOS INATIVAR O INVESTIMENTO SE O VALOR BRUTO FOR 0 (INVESTMENTS)
     // DEVEMOS INATIVAR O REGISTRO DE INVESTIMENTO SE O VALOR BRUTO FOR 0 (INVESTMENT)
     // ADICIONAR FLAG EM AMBAS AS COLUNAS
-
-    // Check if investment have brute value 0
-    const checkBruteValue = async (idInvestment: number) => {
-
-    }
     
     const investmentDashboard = async (req: any, res: any) => {
         try {
@@ -823,6 +827,8 @@ module.exports = ((app: any) => {
                 return await app.database("investments as is")
                     .join("investment as i", "i.idInvestment", "is.id")
                     .select("is.id", "is.name")
+                    .where("i.active", true)
+                    .where("is.active", true)
                     .distinct()
                     .transacting(trx)
                     .then(async (response: any) => {
