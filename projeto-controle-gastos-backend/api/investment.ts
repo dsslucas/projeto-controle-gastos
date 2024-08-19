@@ -256,12 +256,12 @@ module.exports = ((app: any) => {
 
             formattedInvestment.initialValue = await globalFunctions.formatMoneyNumberToString(investment.initialValue);
             formattedInvestment.initialDate = await globalFunctions.convertDateToLocation(investment.initialDate);
-            formattedInvestment.finalDate = await globalFunctions.convertDateToLocation(investment.finalDate);
-            //formattedInvestment.finalDate = "07/07/2024";
+            //formattedInvestment.finalDate = await globalFunctions.convertDateToLocation(investment.finalDate);
+            formattedInvestment.finalDate = "07/07/2024";
 
             //const initialValueWithoutMoneyFormat = await globalFunctions.formatMoney(investment.initialValue);
             const bruteValue = await globalFunctions.arredondateNumber(investment.brutevalue);
-            formattedInvestment.brutevalue = bruteValue;
+            //formattedInvestment.brutevalue = bruteValue;
             //console.log(investment)
 
             var rendimento = 0;
@@ -578,17 +578,21 @@ module.exports = ((app: any) => {
     }
 
     const registerRescueInvestment = async (id: number, idInvestment: number, rescuedValue: number, remainingValue: number, nameInvestment: string, reason: string, trx: any) => {
-        const actualDate = new Date();
+        //const actualDate = new Date();
+        const actualDate = new Date("2024-07-07");
+        const totalRescue = remainingValue <= 0;
 
         try {   
-            await app.database("investment")
+            await app.database("investment")                
+                .update({
+                    brutevalue: remainingValue,
+                    active: totalRescue
+                })
                 .where({
                     id
                 })
-                .update({
-                    brutevalue: remainingValue
-                })
                 .transacting(trx)
+                .catch((err: any) => console.error(err))
 
             console.log("PASSEI DO PRIMEIRO")
             await app.database("investment_rescue")
@@ -602,6 +606,16 @@ module.exports = ((app: any) => {
                 .transacting(trx)
             console.log("PASSEI DO SEGUNDO")
             // Register on config
+
+            await app.database("investments")                
+                .update({
+                    active: totalRescue
+                })
+                .where({
+                    id: idInvestment
+                })
+                .transacting(trx)
+                .catch((err: any) => console.error(err))
 
             const date = globalFunctions.formatDate(actualDate);
             const {initialDate, finalDate} = globalFunctions.getBetweenDates(date);
@@ -643,27 +657,7 @@ module.exports = ((app: any) => {
                             value: rescuedValue
                         })
                         .transacting(trx)
-            }
-
-            const bruteValueInvestment = Number((await app.database("investment as i").where("i.idInvestment", "=", idInvestment).sum("i.brutevalue"))[0].sum);
-
-            console.log("TAL DINHEIRO É QUANTO? ", bruteValueInvestment);
-            if(bruteValueInvestment <= 0){
-                await app.database("investment as i")
-                    .where("i.idInvestment", "=", idInvestment)
-                    .update({
-                        active: false,
-                        lastupdate: new Date()
-                    })
-                    .transacting(trx)
-
-                await app.database("investments as is")
-                    .where("i.id", "=", idInvestment)
-                    .update({
-                        active: false
-                    })
-                    .transacting(trx)
-            }
+            }            
         }
         catch (e: any){
             console.error(e);
@@ -736,48 +730,59 @@ module.exports = ((app: any) => {
                 if(valueWithoutMoneyMask > investmentsListsById.valueAvaliableRescue) throw "MAX_RESCUE_VALUE";
                 
                 //console.log("ANTES: ", investmentsListsById.investments);
+                
+                
 
                 // zera cada um dos investimentos
                 if(Array.isArray(investmentsListsById.investments) && investmentsListsById.investments.length > 0){
-                    for(let i = 0; i < investmentsListsById.investments.length; i++){
+                    
+                    for (let i = 0; i < investmentsListsById.investments.length; i++) {
                         var investment = investmentsListsById.investments[i];
-                        console.log("\n")
-                        console.log("INTERAÇÃO ", i + 1)
-                        console.log("VALOR RESGATADO: ", valueRescued)
-                        console.log("VALOR ATUAL DO INVESTIMENTO: ", investment.currentValueNumber)
-                        console.log(investment)
-                        
-                        if(valueRescued === valueWithoutMoneyMask){
+                        console.log("\n");
+                        console.log("INTERAÇÃO ", i + 1);
+                        console.log("VALOR RESGATADO ATUAL: ", valueRescued);
+                        console.log("VALOR BRUTO DO INVESTIMENTO EM BANCO: ", investment.currentValueNumber);
+                    
+                        // Calcula o valor restante necessário para atingir o valor solicitado
+                        let remainingValue = valueWithoutMoneyMask - valueRescued;
+
+                        if (remainingValue <= 0) {
                             break;
                         }
-                        else {
-                            // Se bater... Descontar do valor bruto de cada investimento
-                            if (investment.currentValueNumber + valueRescued <= valueWithoutMoneyMask) {
-                                console.log("PRIMEIRA CONDIÇÃO: ")
-                                // Caso o valor do investimento possa ser completamente somado ao resgatado
-                                valueRescued += investment.currentValueNumber;
-                                investment.currentValueNumber = 0; // Zera o valor do investimento
-                                console.log("INVESTIMENTO ID ", investment.id, " VALOR QUE FOI RESGATADO: ", globalFunctions.arredondateNumber(valueRescued))
-                                console.log("VALOR QUE RESTOU: ", globalFunctions.arredondateNumber(investment.currentValueNumber))
 
-                                await registerRescueInvestment(investment.id, investment.idInvestment, globalFunctions.arredondateNumber(valueRescued), globalFunctions.arredondateNumber(investment.currentValueNumber), investmentsListsById.name, reason, trx);                                
-                            } else {
-                                console.log("SEGUNDA CONDIÇÃO: ")
-                                // Caso o valor resgatado ultrapasse o valor necessário
-                                let remainingValue = valueWithoutMoneyMask - valueRescued;
-                                valueRescued += remainingValue;
-                                investment.currentValueNumber -= remainingValue; // Deduz o valor restante do investimento
-                                console.log("INVESTIMENTO ID ", investment.id, " VALOR QUE FOI RESGATADO: ", globalFunctions.arredondateNumber(remainingValue))
-                                console.log("VALOR QUE RESTOU: ", globalFunctions.arredondateNumber(investment.currentValueNumber))
-                                
-                                await registerRescueInvestment(investment.id, investment.idInvestment, globalFunctions.arredondateNumber(remainingValue), globalFunctions.arredondateNumber(investment.currentValueNumber), investmentsListsById.name, reason, trx);
+                        if (investment.currentValueNumber <= remainingValue) {
+                            console.log("PRIMEIRA CONDIÇÃO")
 
-                                break; // Para a iteração após atingir o valor necessário
-                            }            
-                        }                       
+                            // Armazena o valor atual antes de zerar
+                            const valorResgatado = globalFunctions.arredondateNumber(investment.currentValueNumber);
+
+                            // Se o investimento atual pode cobrir o restante, resgata tudo dele
+                            valueRescued += investment.currentValueNumber;
+                            console.log("INVESTIMENTO ID ", investment.id, " TOTALMENTE RESGATADO: ", globalFunctions.arredondateNumber(investment.currentValueNumber));     
+                            investment.currentValueNumber = 0;                     
+
+                            await registerRescueInvestment(investment.id, id, valorResgatado, investment.currentValueNumber, investmentsListsById.name, reason, trx);
+                            
+                        } else {
+                            console.log("SEGUNDA CONDIÇÃO")
+
+                            // Armazena o valor a ser resgatado
+                            const valorResgatado = globalFunctions.arredondateNumber(remainingValue);
+
+                            // Se o investimento atual é maior que o necessário, resgata apenas o restante necessário
+                            valueRescued += remainingValue;
+                            console.log("INVESTIMENTO ID ", investment.id, " RESGATE PARCIAL: ", globalFunctions.arredondateNumber(remainingValue));
+                            console.log("VALOR QUE RESTOU NO INVESTIMENTO: ", globalFunctions.arredondateNumber(investment.currentValueNumber));
+                            investment.currentValueNumber -= remainingValue;
+
+                            await registerRescueInvestment(investment.id, id, valorResgatado, globalFunctions.arredondateNumber(investment.currentValueNumber), investmentsListsById.name, reason, trx);
+                            break;
+                        }                        
                     }
+
                     console.log("VALOR RESGATADO: ", valueRescued);
                     //console.log("APÓS: ", investmentsListsById.investments);
+                    //await checkValueAfterRescue(id, trx);
 
                     return true;
 
@@ -816,6 +821,37 @@ module.exports = ((app: any) => {
             })
         }      
     }  
+
+    const checkValueAfterRescue = async (idInvestment: number, trx: any) => {
+        const bruteValueInvestment = Number((await app.database("investment as i").where("i.idInvestment", "=", idInvestment).sum("i.brutevalue"))[0].sum);
+
+        try {
+            console.log("\n")
+            console.log("TAL DINHEIRO É QUANTO? TAL DINHEIRO É QUANTO?");
+            console.log("É QUANTO? É QUANTO É?")
+            console.log("DINHEIRO É QUANTO? ", bruteValueInvestment)
+            if(bruteValueInvestment <= 0){
+                await app.database("investment as i")
+                    .where("i.idInvestment", "=", idInvestment)
+                    .update({
+                        active: false,
+                        lastupdate: new Date()
+                    })
+                    .transacting(trx)
+
+                await app.database("investments as is")
+                    .where("i.id", "=", idInvestment)
+                    .update({
+                        active: false
+                    })
+                    .transacting(trx)
+            }
+        }
+        catch (e: any){
+            console.log("Deu ruim aqui")
+            console.error(e)
+        }
+    }
 
     // DEVEMOS INATIVAR O INVESTIMENTO SE O VALOR BRUTO FOR 0 (INVESTMENTS)
     // DEVEMOS INATIVAR O REGISTRO DE INVESTIMENTO SE O VALOR BRUTO FOR 0 (INVESTMENT)
