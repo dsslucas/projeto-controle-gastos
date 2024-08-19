@@ -261,8 +261,7 @@ module.exports = ((app: any) => {
 
             //const initialValueWithoutMoneyFormat = await globalFunctions.formatMoney(investment.initialValue);
             const bruteValue = await globalFunctions.arredondateNumber(investment.brutevalue);
-            //formattedInvestment.brutevalue = bruteValue;
-            //console.log(investment)
+            formattedInvestment.brutevalue = bruteValue;
 
             var rendimento = 0;
             var rentabilityInfo = "";
