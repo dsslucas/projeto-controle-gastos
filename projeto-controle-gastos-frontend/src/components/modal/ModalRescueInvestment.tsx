@@ -11,15 +11,24 @@ import Text from "../text/Text";
 
 const ModalRescueInvestment = (props: any) => {
     const [dadosForm, setDadosForm] = useState<any>({
-        idInvestment: "-"
+        idInvestment: "-",
+        valueToRescue: "",
+        name: "",
+        bruteValueWithMask: "R$ 0,00",
+        valueAvaliableRescue: 0,
+        valueAvaliableRescueWithMask: "R$ 0,00",
+        iofWithMask: "R$ 0,00",
+        rentability: "",
+        reason: ""
     });
 
     const [apiInvestments, setApiInvestments] = useState<any>([]);
 
     const apiInvestmentList = async () => {
         await api.get("/investment/list")
-            .then((response: any) => {
+            .then(async (response: any) => {
                 setApiInvestments(response.data);
+                console.log("RESPOSTA SELECT DE INVESTIMENTOS: ", response.data)
 
                 if (response.data[0].value === "-1") {
                     // SELECT CDB
@@ -29,8 +38,35 @@ const ModalRescueInvestment = (props: any) => {
                             ...dadosForm.investment,
                             category: "1"
                         }
-                    });
+                    });                    
                 }
+                else {
+                    const details = await apiInvestmentDetails(response.data[0].value);
+
+                    setDadosForm({
+                        ...dadosForm,
+                        idInvestment: details.id,
+                        name: details.name,
+                        bruteValueWithMask: details.bruteValueWithMask,
+                        valueAvaliableRescue: details.valueAvaliableRescue,
+                        valueAvaliableRescueWithMask: details.valueAvaliableRescueWithMask,
+                        iofWithMask: details.iofWithMask,
+                        rentability: details.rentability
+                    })
+                }
+            })
+            .catch((error: any) => {
+                Alert({
+                    text: error.response.data,
+                    icon: "error"
+                });
+            })
+    }
+
+    const apiInvestmentDetails = async (id: number) => {
+        return await api.get(`/investments/detail/${id}`)
+            .then((response: any) => {
+                return response.data;
             })
             .catch((error: any) => {
                 Alert({
@@ -42,14 +78,51 @@ const ModalRescueInvestment = (props: any) => {
 
     const handleSubmit = async (event: any) => {
         event.preventDefault();
+
+        await api.patch(`/investments/detail/${dadosForm.idInvestment}`, {
+            value: dadosForm.valueToRescue,
+            reason: dadosForm.reason
+        })
+            .then((response: any) => {
+                Alert({
+                    text: response.data.message,
+                    icon: "success",
+                    callback: props.returnClick()
+                });
+            })
+            .catch((error: any) => {
+                Alert({
+                    text: error.response.data.message,
+                    icon: "error"
+                });
+            })
     }
 
-    const changeData = (name: string, valueChanged: any) => {
-        setDadosForm({
-            ...dadosForm,
-            [name]: valueChanged
-        })
-    }
+    const changeData = async (name: string, valueChanged: any) => {
+        if(name === "valueToRescue" || name === "reason"){
+            setDadosForm({
+                ...dadosForm,
+                [name]: valueChanged,
+            });
+        }
+        else {
+            const details = await apiInvestmentDetails(valueChanged);
+
+            console.log("ALTERADO: ", name, valueChanged)
+    
+            setDadosForm({
+                ...dadosForm,
+                [name]: valueChanged,
+                name: details.name,
+                bruteValueWithMask: details.bruteValueWithMask,
+                valueAvaliableRescue: details.valueAvaliableRescue,
+                valueAvaliableRescueWithMask: details.valueAvaliableRescueWithMask,
+                iofWithMask: details.iofWithMask,
+                rentability: details.rentability
+            });
+            console.log("alterei")
+        }      
+    }   
 
     useEffect(() => {
         apiInvestmentList();
@@ -85,33 +158,47 @@ const ModalRescueInvestment = (props: any) => {
                                     </div>
                                     <div className="flex w-full justify-between">
                                         <Subtitle subtitle="Valor bruto" />
-                                        <Text modalRescue text="R$ 125,05" />
+                                        <Text modalRescue text={dadosForm.bruteValueWithMask} />
                                     </div>
 
                                     <div className="flex w-full justify-between">
                                         <Subtitle subtitle="Valor disponível para resgate" />
-                                        <Text modalRescue text="R$ 125,05" />
+                                        <Text modalRescue text={dadosForm.valueAvaliableRescueWithMask} />
                                     </div>
 
                                     <div className="flex w-full justify-between">
                                         <Subtitle subtitle="IOF/IR" />
-                                        <Text modalRescue text="-R$ 7,27" />
+                                        <Text modalRescue text={dadosForm.iofWithMask} />
                                     </div>
 
                                     <div className="flex w-full justify-between">
                                         <Subtitle subtitle="Rentabilidade" />
-                                        <Text modalRescue text="100% do CDI" />
+                                        <Text modalRescue text={dadosForm.rentability} />
                                     </div>
                                 </div>
                                 <div className="flex">
                                     <Label label="Valor a resgatar" />
                                     <Input
                                         type="text"
-                                        name="value"
+                                        name="valueToRescue"
                                         placeholder="Insira o valor"
                                         inputMode="numeric"
                                         mask="money"
-                                        returnInput={(name: string, value: string) => console.log(name, value)}
+                                        value={dadosForm.valueToRescue}
+                                        returnInput={(name: string, value: string) => changeData(name, value)}
+                                        max={dadosForm.valueAvaliableRescue}
+                                        required
+                                    />
+                                </div>
+                                <div className="flex">
+                                    <Label label="Justificativa" />
+                                    <Input
+                                        type="text"
+                                        name="reason"
+                                        placeholder="Insira a justificativa"
+                                        value={dadosForm.reason}
+                                        returnInput={(name: string, value: string) => changeData(name, value)}
+                                        required
                                     />
                                 </div>
 

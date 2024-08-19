@@ -8,8 +8,6 @@ import { faEye } from "@fortawesome/free-solid-svg-icons";
 const Table = (props: any) => {
     const { payment, investment, data } = props;
 
-    console.log(props)
-
     function renderHeader() {
         if (Array.isArray(data.columns) && data !== undefined && data.columns !== undefined) {
             const columns = data.columns;
@@ -37,6 +35,7 @@ const Table = (props: any) => {
                         <th>{columns[5]}</th>
                         <th>{columns[6]}</th>
                         <th>{columns[7]}</th>
+                        <th>{columns[8]}</th>
                     </tr>
                 );
             }
@@ -81,6 +80,7 @@ const Table = (props: any) => {
                             <td>{element.initialValue}</td>
                             <td>{element.currentValue}</td>
                             <td>{element.rentabilityInfo}</td>
+                            <td>{element.iofWithMask}</td>
                             <td>{element.observation}</td>
                         </tr>
                     )

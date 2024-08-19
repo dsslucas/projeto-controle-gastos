@@ -35,6 +35,7 @@ module.exports = (app: any) => {
     app.route("/investment/list")
         .get(investment.listInvestments)
 
-    app.route("/teste")
-        .post(investment.teste)
+    app.route("/investments/detail/:id")
+        .get(investment.detailInvestments)
+        .patch(investment.rescueInvestment)
 }

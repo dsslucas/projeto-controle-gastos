@@ -1,25 +1,41 @@
 module.exports = ((app: any) => {
     const globalFunctions = app.globalFunctions();
+    const configApi = app.api.config;
 
-    function calcularIOF(valorResgate: number, dataAplicacao: Date, dataResgate: Date): number {
-        const umDia: number = 24 * 60 * 60 * 1000; // milissegundos em um dia
-        const maximoDiasIOF: number = 30; // Máximo de 30 dias com IOF
-        const valorBruto: number = 523.13; // Valor bruto do investimento
-
-        // Calcula o número de dias corridos desde a aplicação até o resgate
-        const diasDecorridos: number = Math.round(Math.abs((dataResgate.getTime() - dataAplicacao.getTime()) / umDia));
-
-        // Se o resgate ocorrer após 30 dias da aplicação, não há IOF
-        if (diasDecorridos > maximoDiasIOF) {
-            return 0;
+    function calcularIOF(initialDate: string, initialValue: number, currentValue: number): number {
+        const differenceDates = Math.abs(new Date().getTime() - new Date(initialDate).getTime());    
+        const applicationDays = Math.ceil(differenceDates / (1000 * 60 * 60 * 24)); 
+    
+        // Função para calcular a alíquota de IOF com base no número de dias aplicados
+        function calcAliquota(days: number): number {
+            if (days >= 30) return 0;
+            return (30 - days) / 30 * 0.96;  // 96% no primeiro dia, decrescendo até 0% no 30º dia
         }
-
-        // Calcula o valor do IOF de acordo com o tempo decorrido
-        const percentualIOF: number = 1 - (diasDecorridos / maximoDiasIOF);
-        const valorIOF: number = (valorBruto - valorResgate) * percentualIOF;
-
-        return valorIOF;
+    
+        const aliquotaIOF = calcAliquota(applicationDays);
+    
+        const rendimentoBruto: number = Number(parseFloat((currentValue - initialValue).toFixed(2)));
+        
+        const valorIOF: number = aliquotaIOF * rendimentoBruto;
+    
+        let valorIR: number = 0;
+    
+        // Cálculo de IR com base no tempo total de aplicação
+        if (applicationDays >= 0 && applicationDays <= 180) {
+            valorIR = 0.225 * rendimentoBruto;
+        } else if (applicationDays >= 181 && applicationDays <= 360) {
+            valorIR = 0.20 * rendimentoBruto;
+        } else if (applicationDays >= 361 && applicationDays <= 720) {
+            valorIR = 0.175 * rendimentoBruto;
+        } else if (applicationDays > 720) {
+            valorIR = 0.15 * rendimentoBruto;
+        }
+    
+        return Number(parseFloat((valorIOF + valorIR).toFixed(2)));
     }
+    
+    // Teste
+    //const resultado = calcularIOF(new Date('2024-04-10'), 520.41, 539.22);
 
     async function registerInvestment(id: any, idPayment: any, title: string, category: string, initialValue: string, initialDate: string, finalDate: string, rentability: any, observation: string, trx: any) {
         var idInvestment = 0;
@@ -30,7 +46,8 @@ module.exports = ((app: any) => {
                     .insert({
                         name: title,
                         category: parseInt(category),
-                        idPayment: parseInt(idPayment)
+                        idPayment: parseInt(idPayment),
+                        active: true
                     })
                     .returning("id")
                     .transacting(trx))[0].id;
@@ -45,8 +62,10 @@ module.exports = ((app: any) => {
                     idPayment: idPayment,
                     initialValue: globalFunctions.formatMoney(initialValue),
                     initialDate: new Date(initialDate),
+                    brutevalue: globalFunctions.formatMoney(initialValue),
                     finalDate: new Date(finalDate),
-                    observation: observation
+                    observation: observation,
+                    active: true
                 })
                 .transacting(trx))[0].id;
 
@@ -121,11 +140,14 @@ module.exports = ((app: any) => {
         }
     }
 
-    // Investments list
+    // Investments list, FOR SELECT
     const listInvestments = async (req: any, res: any) => {
         try {
             await app.database.transaction(async (trx: any) => {
                 return await app.database("investments")
+                    .where({
+                        active: true
+                    })
                     .transacting(trx)
                     .then((response: any) => {
                         const returnData = [];
@@ -163,6 +185,8 @@ module.exports = ((app: any) => {
                 .join("investment as i_simple", "i_simple.idInvestment", "i.id")
                 .select("i.id", "i_simple.id as idInvestment", "i_simple.idPayment", "i.name", "i.category", "i_simple.initialValue", "i_simple.initialDate", "i_simple.finalDate")
                 .where("i_simple.idPayment", idPayment)
+                .where("i.active", true)
+                .where("i_simple.active", true)
                 .first()
                 .transacting(trx)
                 .then(async (response: any) => {
@@ -198,39 +222,124 @@ module.exports = ((app: any) => {
         }
     }
 
-    const getUniqueInvestment = async (req: any, res: any) => {
-        try {
-            await app.database.transaction(async (trx: any) => {
-                return await app.database("investments")
-                    .transacting(trx)
-                    .then((response: any) => {
-                        const returnData = [];
-                        response.forEach(async (element: any) => {
-                            returnData.push({
-                                value: element.id.toString(),
-                                text: element.name
-                                //...element,
-                                //rentability: await rentabilityInvestments(element.id, trx)
-                            })
-                        });
+    const getInvestmentInfo = async (investments: Array<any>) => {
+        const formattedInvestments = [];
+        //var value = 0;
+        const dataAtual = new Date();
+        dataAtual.setHours(0, 0, 0, 0);
+        var iof = 0;
 
-                        returnData.push({
-                            value: (-1).toString(),
-                            text: "Não possuo"
-                        });
+        for (const investment of investments) {
+            let formattedInvestment = investment;
+            //value = 0;
 
-                        return returnData
-                    })
-            })
-                .then((response: any) => res.status(200).send(response))
-                .catch((error: any) => {
-                    console.error(error)
-                    res.status(400).send("Erro ao buscar a lista de investimentos.")
-                })
+            // Converter a data recuperada em um objeto Date
+            const dataBanco = new Date(investment.lastupdate);
+
+            // Adicionar 1 dia à data do banco
+            const dataBancoMaisUmDia = new Date(dataBanco);
+            dataBancoMaisUmDia.setDate(dataBancoMaisUmDia.getDate() + 1);
+            dataBancoMaisUmDia.setHours(0, 0, 0, 0);
+
+            if (investment.category === 1) {
+                formattedInvestment.category = "CDB";
+            } else if (investment.category === 2) {
+                formattedInvestment.category = "LCI/LCA";
+            } else if (investment.category === 3) {
+                formattedInvestment.category = "Poupança";
+            } else {
+                formattedInvestment.category = "Outro";
+            }
+
+            formattedInvestment.initialDateUS = investment.initialDate;
+            formattedInvestment.initialValueWithoutMask = investment.initialValue;
+
+            formattedInvestment.initialValue = await globalFunctions.formatMoneyNumberToString(investment.initialValue);
+            formattedInvestment.initialDate = await globalFunctions.convertDateToLocation(investment.initialDate);
+            formattedInvestment.finalDate = await globalFunctions.convertDateToLocation(investment.finalDate);
+            //formattedInvestment.finalDate = "07/07/2024";
+
+            //const initialValueWithoutMoneyFormat = await globalFunctions.formatMoney(investment.initialValue);
+            const bruteValue = await globalFunctions.arredondateNumber(investment.brutevalue);
+            formattedInvestment.brutevalue = bruteValue;
+
+            var rendimento = 0;
+            var rentabilityInfo = "";
+            if (Array.isArray(formattedInvestment.rentability) && formattedInvestment.rentability.length > 0) {
+                if(dataAtual > dataBancoMaisUmDia){
+                    //console.log("Entrei no if")
+                    for (const element of formattedInvestment.rentability) {
+
+                        if (rentabilityInfo != "") rentabilityInfo += ` + `;
+    
+                        if (element.name.includes("CDI")) rentabilityInfo += `${element.percentage.toLocaleString("pt-br")}% do CDI`;
+                        else if (element.name.includes("IPCA")) rentabilityInfo += element.name;
+                        else if (element.name.includes("tax")) rentabilityInfo += `${element.percentage.toLocaleString("pt-br")}% ${element.type}`;
+    
+                        try {
+                            if (formattedInvestment.rentability.some((item: any) => item.name === "tax")) {
+                                var countPercentage = 0;
+                                formattedInvestment.rentability.filter((item: any) => item.name === "tax").forEach((element: any) => {
+                                    countPercentage += Number(element.percentage / 100);
+                                })
+    
+                                rendimento += await calculateInvestmentValue(bruteValue, formattedInvestment.initialDate, element.name, formattedInvestment.finalDate, countPercentage, formattedInvestment.name);
+                            }
+                            else {
+                                rendimento += await calculateInvestmentValue(bruteValue, formattedInvestment.initialDate, element.name, formattedInvestment.finalDate, element.percentage, formattedInvestment.name);                           
+                            }
+                        } catch (error) {
+                            console.error(`Erro ao calcular rentabilidade para o investimento ${investment.name}: ${error}`);
+                            formattedInvestment.currentValue = 0; // Ou qualquer outro valor padrão que você deseje
+                        }
+                    }
+
+                    iof = calcularIOF(formattedInvestment.initialDateUS, bruteValue, rendimento);
+                }
+                else {
+                    //console.log("Entrei no else")
+                    rendimento = bruteValue;
+                    iof = await globalFunctions.arredondateNumber(investment.iof);
+                    //value = bruteValue;
+                    //iof = investment.iof;
+                }
+                
+                //console.log("VALOR BRUTO: ", Number(investment.brutevalue));
+                //console.log("VALOR QUE RENDEU: ", await globalFunctions.arredondateNumber(rendimento));
+
+                formattedInvestment.currentValue = await globalFunctions.formatMoneyNumberToString(rendimento);
+                formattedInvestment.currentValueNumber = await globalFunctions.arredondateNumber(rendimento);
+                formattedInvestment.rentabilityInfo = rentabilityInfo;                
+                formattedInvestment.iof = iof;
+                formattedInvestment.iofWithMask = await globalFunctions.formatMoneyNumberToString(iof * -1);
+                
+                if(dataAtual > dataBancoMaisUmDia){
+                    console.log("ATUALIZEI NO BANCO")
+                    await app.database("investment")
+                        .where({
+                            id: formattedInvestment.id
+                        })
+                        .update({
+                            brutevalue: await globalFunctions.arredondateNumber(rendimento),
+                            iof: await globalFunctions.arredondateNumber(iof),
+                            lastupdate: new Date()
+                        })
+                }       
+            }
+            else {
+                formattedInvestment.currentValue = 0;
+            }
+
+            if (investment.observation === "" || investment.observation === null) {
+                formattedInvestment.observation = "-";
+            } else {
+                formattedInvestment.observation = investment.observation;
+            }
+
+            formattedInvestments.push(formattedInvestment);
         }
-        catch (e: any) {
-            res.status(400).send("Erro ao buscar a lista de investimentos.")
-        }
+
+        return formattedInvestments;
     }
 
     // Table within investments registrated
@@ -239,7 +348,9 @@ module.exports = ((app: any) => {
             const investments = await app.database.transaction(async (trx) => {
                 return await app.database("investment as i")
                     .join("investments as is", "i.idInvestment", "is.id")
-                    .select("i.id", "is.name", "i.initialValue", "i.initialDate", "i.finalDate", "i.observation", "is.category")
+                    .select("i.id", "is.name", "i.initialValue", "i.initialDate", "i.finalDate", "i.observation", "is.category", "i.brutevalue", "i.lastupdate", "i.iof")                    
+                    .where("i.active", true)
+                    .where("is.active", true)
                     .orderBy("i.initialDate", "asc")
                     .transacting(trx)
                     .then(async (response: any) => {
@@ -251,76 +362,11 @@ module.exports = ((app: any) => {
                     });
             });
 
-            const formattedInvestments = [];
-            var value = 0;
-            for (const investment of investments) {
-                let formattedInvestment = investment;
-                value = 0;
-
-                if (investment.category === 1) {
-                    formattedInvestment.category = "CDB";
-                } else if (investment.category === 2) {
-                    formattedInvestment.category = "LCI/LCA";
-                } else if (investment.category === 3) {
-                    formattedInvestment.category = "Poupança";
-                } else {
-                    formattedInvestment.category = "Outro";
-                }
-
-                formattedInvestment.initialValue = await globalFunctions.formatMoneyNumberToString(investment.initialValue);
-                formattedInvestment.initialDate = await globalFunctions.convertDateToLocation(investment.initialDate);
-                formattedInvestment.finalDate = await globalFunctions.convertDateToLocation(investment.finalDate);
-
-                const initialValueWithoutMoneyFormat = await globalFunctions.formatMoney(investment.initialValue);
-
-                var value = 0;
-                var rentabilityInfo = "";
-                if (Array.isArray(formattedInvestment.rentability) && formattedInvestment.rentability.length > 0) {
-                    for (const element of formattedInvestment.rentability) {
-
-                        if (rentabilityInfo != "") rentabilityInfo += ` + `;
-
-                        if (element.name.includes("CDI")) rentabilityInfo += `${element.percentage.toLocaleString("pt-br")}% do CDI`;
-                        else if (element.name.includes("IPCA")) rentabilityInfo += element.name;
-                        else if (element.name.includes("tax")) rentabilityInfo += `${element.percentage.toLocaleString("pt-br")}% ${element.type}`;
-
-                        try {
-                            if (formattedInvestment.rentability.some((item: any) => item.name === "tax")) {
-                                var countPercentage = 0;
-                                formattedInvestment.rentability.filter((item: any) => item.name === "tax").forEach((element: any) => {
-                                    countPercentage += Number(element.percentage / 100);
-                                })
-
-                                value += await calculateInvestmentValue(initialValueWithoutMoneyFormat, formattedInvestment.initialDate, element.name, formattedInvestment.finalDate, countPercentage, formattedInvestment.name);
-                            }
-                            else {
-                                value += await calculateInvestmentValue(initialValueWithoutMoneyFormat, formattedInvestment.initialDate, element.name, formattedInvestment.finalDate, element.percentage, formattedInvestment.name);
-                            }
-                        } catch (error) {
-                            console.error(`Erro ao calcular rentabilidade para o investimento ${investment.name}: ${error}`);
-                            formattedInvestment.currentValue = 0; // Ou qualquer outro valor padrão que você deseje
-                        }
-                    }
-
-                    formattedInvestment.currentValue = await globalFunctions.formatMoneyNumberToString(value);
-                    formattedInvestment.rentabilityInfo = rentabilityInfo;
-                }
-                else {
-                    formattedInvestment.currentValue = 0;
-                }
-
-                if (investment.observation === "" || investment.observation === null) {
-                    formattedInvestment.observation = "-";
-                } else {
-                    formattedInvestment.observation = investment.observation;
-                }
-
-                formattedInvestments.push(formattedInvestment);
-            }
+            const formattedInvestments = await getInvestmentInfo(investments);
 
             res.status(200).send({
                 data: formattedInvestments,
-                columns: ["Nome", "Categoria", "Data inicial", "Data final", "Valor inicial", "Valor atual", "Rentabilidade", "Observação"]
+                columns: ["Nome", "Categoria", "Data inicial", "Data final", "Valor inicial", "Valor atual", "Rentabilidade", "IOF/IR", "Observação"]
             });
         } catch (error) {
             console.error(error);
@@ -375,8 +421,6 @@ module.exports = ((app: any) => {
             }
             else if (serie === 433) {
                 const yearDifference = await globalFunctions.calculateYearDifference(initialDate, finalDate);
-
-                console.log(yearDifference);
 
                 if (yearDifference >= 1) {
 
@@ -455,7 +499,6 @@ module.exports = ((app: any) => {
                 valorTotalInvestimento = 0;
             }
 
-            console.log("VALOR TOTAL DO INVESTIMENTO: ", valorTotalInvestimento)
             return valorTotalInvestimento;
         } catch (error) {
             console.error('Erro:', error);
@@ -463,36 +506,23 @@ module.exports = ((app: any) => {
         }
     };
 
-    const teste = async (req: any, res: any) => {
-        const { idInvestment, initialValue, initialDate, finalDate } = req.body;
-
-        try {
-
-        }
-        catch (e: any) {
-            console.error(e)
-            res.status(400).send("deu ruim")
-        }
-    }
-
     const calcInvestmentRentabilityByIdInvestment = async (id: number, trx: any) => {
         try {
             return await app.database("investment as i")
                 .where("i.idInvestment", "=", id)
+                .where("i.active", true)
+                .orderBy("i.id", "ASC")
                 .transacting(trx)
                 .then(async (response: any) => {
-                    //console.log(response);
-
-                    var value = 0;
-                    if (Array.isArray(response) && response.length > 0) {                       
-                        response.forEach(async (element: any) => {
-                            console.log(element.id);
-                           
-                            console.log(await getRentability(element.id, trx))
-                        })
+                    for (let i = 0; i < response.length; i++) {
+                        const element = response[i];
+                        const rentabilidade = await getRentability(element.id, trx);
+                        element.rentability = rentabilidade;
                     }
-                    
-                    return response;
+
+                    const updatedInvestmentList = await getInvestmentInfo(response);
+
+                    return updatedInvestmentList;
                 })
         }
         catch (e: any) {
@@ -501,12 +531,273 @@ module.exports = ((app: any) => {
         }
     }
 
+    const detailInvestments = async (req: any, res: any) => {
+        const { id } = req.params;
+        try {
+            await app.database.transaction(async (trx: any) => {
+                return await app.database("investments as is")
+                    .select("is.id", "is.name", "is.category")
+                    .where({ id })
+                    .where("is.active", true)
+                    .first()
+                    .transacting(trx)
+                    .then(async (response: any) => {
+                        // Investments
+                        const investments = await calcInvestmentRentabilityByIdInvestment(response.id, trx);
+
+                        const auxBruteValue = investments.reduce(function (acc, obj) { return acc + obj.brutevalue; }, 0);
+                        const bruteValue = await globalFunctions.arredondateNumber(auxBruteValue);
+                        const iof = investments.reduce(function (acc, obj) { return acc + obj.iof; }, 0);
+                        var rentabilityString: string = investments[0].rentabilityInfo;
+
+                        console.log(investments)
+                        investments.forEach((element: any) =>{
+                            if(element.rentabilityInfo != rentabilityString) rentabilityString += element.rentabilityInfo;
+                        })
+
+                        return {
+                            id: Number(id),
+                            name: response.name,
+                            bruteValue,
+                            bruteValueWithMask: await globalFunctions.formatMoneyNumberToString(auxBruteValue),
+                            valueAvaliableRescue: await globalFunctions.arredondateNumber(bruteValue - iof),
+                            valueAvaliableRescueWithMask: await globalFunctions.formatMoneyNumberToString(bruteValue - iof),
+                            iof: iof * -1,
+                            iofWithMask: await globalFunctions.formatMoneyNumberToString(iof * -1),   
+                            rentability: rentabilityString,
+                        }
+                    })
+            })
+                .then((response: any) => res.status(200).send(response))
+                .catch((error: any) => res.status(500).send({
+                    message: "Não há registro de investimento com base nos dados fornecidos."
+                }))
+        }
+        catch (e: any) {
+            res.status(500).send({
+                message: "Erro interno de servidor. Consulte o administrador do sistema."
+            })
+        }
+    }
+
+    const registerRescueInvestment = async (id: number, idInvestment: number, rescuedValue: number, remainingValue: number, nameInvestment: string, reason: string, trx: any) => {
+        const actualDate = new Date();
+        const active = remainingValue > 0 ? "t" : "f";
+
+        try {   
+            await app.database("investment")                
+                .update({
+                    brutevalue: remainingValue,
+                    active
+                })
+                .where({
+                    id
+                })
+                .transacting(trx)
+                .catch((err: any) => console.error(err))
+
+            console.log("PASSEI DO PRIMEIRO")
+            await app.database("investment_rescue")
+                .insert({
+                    idinvestment: id,
+                    value: rescuedValue,
+                    date: actualDate,
+                    id_user: 1, // until create user interface,
+                    reason
+                })
+                .transacting(trx)
+            console.log("PASSEI DO SEGUNDO")
+            // Register on config
+
+            await app.database("investments")                
+                .update({
+                    active
+                })
+                .where({
+                    id: idInvestment
+                })
+                .transacting(trx)
+                .catch((err: any) => console.error(err))
+
+            const date = globalFunctions.formatDate(actualDate);
+            const {initialDate, finalDate} = globalFunctions.getBetweenDates(date);
+
+            // Register the rescued value into config database
+            if(configApi.checkIfExistsMonthConfig(actualDate, trx)){
+                // Get ID of config
+                const idConfig = await app.database("config")
+                    .where((builder: any) => {
+                        builder.where("date", ">=", initialDate).where("date", "<", finalDate);
+                    })
+                    .first()
+                    .transacting(trx)
+                    .then((response: any) => {
+                        return response.id
+                    })
+                
+                await app.database("config_entries")
+                    .insert({
+                        idConfig: idConfig,
+                        description: `Resgate de investimento: ${nameInvestment} (${globalFunctions.convertDateToLocation(actualDate)})`,
+                        value: rescuedValue
+                    })
+                    .transacting(trx)
+            }
+            else {
+                // Create new one
+                const idConfig = await app.database("config")
+                    .insert({
+                        date: actualDate
+                    })
+                    .returning("id")
+                    .transacting(trx)
+
+                    await app.database("config_entries")
+                        .insert({
+                            idConfig: idConfig[0].id,
+                            description: `Resgate de investimento: ${nameInvestment} (${globalFunctions.convertDateToLocation(actualDate)})`,
+                            value: rescuedValue
+                        })
+                        .transacting(trx)
+            }            
+        }
+        catch (e: any){
+            console.error(e);
+        }
+    }
+
+    const rescueInvestment = async (req: any, res: any) => {
+        const {id} = req.params;
+        const {value, reason} = req.body;
+
+        if(value === null || value === undefined || value === ""){
+            return res.status(404).send({
+                message: "Informe o valor para resgate."
+            });
+        }
+        else if(reason === null || reason === undefined || reason === ""){
+            return res.status(404).send({
+                message: "Informe a justificativa."
+            });
+        }
+        else if(id === null || id === undefined || id === ""){
+            return res.status(400).send({
+                message: "Erro ao buscar o investimento. Consulte o administrador do sistema."
+            });
+        }
+
+        const valueWithoutMoneyMask: number = globalFunctions.formatMoney(value);
+        var valueRescued: number = 0;
+
+        try {
+            await app.database.transaction(async (trx: any) => {
+                // Search all investments
+
+                const investmentsListsById = await app.database("investments as is")
+                    .select("is.id", "is.name", "is.category")
+                    .where({ id })
+                    .where("is.active", true)
+                    .first()
+                    .transacting(trx)
+                    .then(async (response: any) => {
+                        if(response === undefined) throw "NO_INVESTMENT";
+
+                        // Investments
+                        const investments = await calcInvestmentRentabilityByIdInvestment(response.id, trx);
+
+                        const auxBruteValue = investments.reduce(function (acc, obj) { return acc + obj.currentValueNumber; }, 0);
+                        const bruteValue = await globalFunctions.arredondateNumber(auxBruteValue);
+                        const calculoIof = calcularIOF(investments[0].initialDateUS, investments[0].initialValueWithoutMask, investments[0].currentValueNumber);
+
+                        var rentabilityString: string = investments[0].rentabilityInfo;
+
+                        investments.forEach((element: any) =>{
+                            if(element.rentabilityInfo != rentabilityString) rentabilityString += element.rentabilityInfo;
+                        })
+
+                        return {
+                            name: response.name,
+                            bruteValue,
+                            valueAvaliableRescue: bruteValue - calculoIof,
+                            iof: calculoIof * -1,
+                            investments
+                        }
+                    })
+                
+                if(valueWithoutMoneyMask > investmentsListsById.valueAvaliableRescue) throw "MAX_RESCUE_VALUE";
+
+                if(Array.isArray(investmentsListsById.investments) && investmentsListsById.investments.length > 0){
+                    
+                    for (let i = 0; i < investmentsListsById.investments.length; i++) {
+                        var investment = investmentsListsById.investments[i];
+                        let remainingValue = valueWithoutMoneyMask - valueRescued;
+
+                        if (remainingValue <= 0) {
+                            break;
+                        }
+
+                        if (investment.currentValueNumber <= remainingValue) {
+                            const valorResgatado = globalFunctions.arredondateNumber(investment.currentValueNumber);
+                            valueRescued += investment.currentValueNumber; 
+                            investment.currentValueNumber = 0;                     
+
+                            await registerRescueInvestment(investment.id, id, valorResgatado, investment.currentValueNumber, investmentsListsById.name, reason, trx);
+                            
+                        } else {
+                            const valorResgatado = globalFunctions.arredondateNumber(remainingValue);
+                            valueRescued += remainingValue;
+                            investment.currentValueNumber -= remainingValue;
+
+                            await registerRescueInvestment(investment.id, id, valorResgatado, globalFunctions.arredondateNumber(investment.currentValueNumber), investmentsListsById.name, reason, trx);
+                            break;
+                        }                        
+                    }
+
+                    return true;
+                }
+                else {
+                    throw "NO_INVESTMENT_LIST";
+                }
+
+            })
+            .then((response: any) => res.status(200).send({
+                message: "Resgate efetuado com sucesso!"
+            }))
+            .catch((error: any) => {
+                console.error(error)
+                if(error === "NO_INVESTMENT") res.status(404).send({
+                    message: "Este investimento não está registrado."
+                });
+                else if(error === "NO_INVESTMENT_LIST") res.status(404).send({
+                    message: "Não há registros de investimentos."
+                });
+                else if(error === "MAX_RESCUE_VALUE") res.status(404).send({
+                    message: "O valor de resgate é maior que o limite disponível."
+                });
+                else res.status(404).send({
+                    message: "Erro ao consultar os investimentos."
+                });
+            })
+        }
+        catch (e: any){
+            console.log(e)
+            if(e === "NO_INVESTMENT") res.status(404).send({
+                message: "Este investimento não está registrado."
+            })
+            else res.status(500).send({
+                message: "Erro ao consultar os investimentos."
+            })
+        }      
+    }
+    
     const investmentDashboard = async (req: any, res: any) => {
         try {
             await app.database.transaction(async (trx: any) => {
                 return await app.database("investments as is")
                     .join("investment as i", "i.idInvestment", "is.id")
                     .select("is.id", "is.name")
+                    .where("i.active", true)
+                    .where("is.active", true)
                     .distinct()
                     .transacting(trx)
                     .then(async (response: any) => {
@@ -535,5 +826,5 @@ module.exports = ((app: any) => {
         }
     }
 
-    return { registerInvestment, allInfoInvestmentByIdPayment, createInvestment, getAllInvestments, listInvestments, teste, investmentDashboard }
+    return { registerInvestment, allInfoInvestmentByIdPayment, createInvestment, getAllInvestments, listInvestments, detailInvestments, investmentDashboard, rescueInvestment }
 })

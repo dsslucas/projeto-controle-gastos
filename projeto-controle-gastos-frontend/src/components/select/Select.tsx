@@ -5,8 +5,6 @@ const Select = (props: any) => {
     const value = props.value;
     const disabled = props.disabled;
     const options = props.options;
-
-    console.log(props)
     
     return (
         <select 

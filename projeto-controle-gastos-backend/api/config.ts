@@ -1,6 +1,16 @@
 module.exports = (app: any) => {
     const globalFunctions = app.globalFunctions();
 
+    const checkIfExistsMonthConfig = async (date: Date, trx: any) => {
+        await app.database("config")
+            .where({ date })
+            .transacting(trx)
+            .then((response: any) => {
+                if (response.length > 0) return true;
+                else return false;
+            })
+    }
+
     const registerConfig = async (req: any, res: any) => {
         const { date, values } = req.body;
 
@@ -15,15 +25,7 @@ module.exports = (app: any) => {
                 const currentDate = new Date();
                 if (currentDate < initialDate) throw "NOT_CURRENT_DATE";
 
-                const existsMonthConfig = await app.database("config")
-                    .where({ date })
-                    .transacting(trx)
-                    .then((response: any) => {
-                        if (response.length > 0) return true;
-                        else return false;
-                    })
-
-                if (existsMonthConfig) throw "EXISTS_CONFIG";
+                if(checkIfExistsMonthConfig(date, trx)) throw "EXISTS_CONFIG";
                 else {
                     const idConfig = await app.database("config")
                         .insert({
@@ -135,5 +137,5 @@ module.exports = (app: any) => {
         }
     }
 
-    return { registerConfig, getConfig, editConfig }
+    return { checkIfExistsMonthConfig, registerConfig, getConfig, editConfig }
 }
