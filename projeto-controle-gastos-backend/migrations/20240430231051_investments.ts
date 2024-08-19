@@ -6,6 +6,7 @@ exports.up = function (knex: any) {
         table.integer("idPayment")        
         table.string("name").notNull()
         table.integer("category").default(1).notNull()
+        table.boolean("active").default(true).notNull()
     })
 };
 

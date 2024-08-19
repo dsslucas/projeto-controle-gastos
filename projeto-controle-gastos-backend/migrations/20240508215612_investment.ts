@@ -13,6 +13,7 @@ exports.up = function (knex: any) {
         table.double("bruteValue")
         table.double("iof")
         table.datetime("lastupdate")
+        table.boolean("active").default(true).notNull()
     })
 };
 

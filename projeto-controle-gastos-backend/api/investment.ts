@@ -46,7 +46,8 @@ module.exports = ((app: any) => {
                     .insert({
                         name: title,
                         category: parseInt(category),
-                        idPayment: parseInt(idPayment)
+                        idPayment: parseInt(idPayment),
+                        active: true
                     })
                     .returning("id")
                     .transacting(trx))[0].id;
@@ -63,7 +64,8 @@ module.exports = ((app: any) => {
                     initialDate: new Date(initialDate),
                     brutevalue: globalFunctions.formatMoney(initialValue),
                     finalDate: new Date(finalDate),
-                    observation: observation
+                    observation: observation,
+                    active: true
                 })
                 .transacting(trx))[0].id;
 
@@ -318,7 +320,7 @@ module.exports = ((app: any) => {
                             iof: await globalFunctions.arredondateNumber(iof),
                             lastupdate: new Date()
                         })
-                }                
+                }       
             }
             else {
                 formattedInvestment.currentValue = 0;
@@ -342,8 +344,7 @@ module.exports = ((app: any) => {
             const investments = await app.database.transaction(async (trx) => {
                 return await app.database("investment as i")
                     .join("investments as is", "i.idInvestment", "is.id")
-                    .select("i.id", "is.name", "i.initialValue", "i.initialDate", "i.finalDate", "i.observation", "is.category", "i.brutevalue", "i.lastupdate", "i.iof")
-                    .where("i.brutevalue", "!=", 0)
+                    .select("i.id", "is.name", "i.initialValue", "i.initialDate", "i.finalDate", "i.observation", "is.category", "i.brutevalue", "i.lastupdate", "i.iof")                    
                     .orderBy("i.initialDate", "asc")
                     .transacting(trx)
                     .then(async (response: any) => {
@@ -503,7 +504,7 @@ module.exports = ((app: any) => {
         try {
             return await app.database("investment as i")
                 .where("i.idInvestment", "=", id)
-                .where("i.brutevalue", "!=", 0)
+                
                 .orderBy("i.id", "ASC")
                 .transacting(trx)
                 .then(async (response: any) => {
@@ -568,10 +569,10 @@ module.exports = ((app: any) => {
         }
     }
 
-    const registerRescueInvestment = async (id: number, rescuedValue: number, remainingValue: number, nameInvestment: string, reason: string, trx: any) => {
+    const registerRescueInvestment = async (id: number, idInvestment: number, rescuedValue: number, remainingValue: number, nameInvestment: string, reason: string, trx: any) => {
         const actualDate = new Date();
 
-        try {            
+        try {   
             await app.database("investment")
                 .where({
                     id
@@ -634,6 +635,26 @@ module.exports = ((app: any) => {
                             value: rescuedValue
                         })
                         .transacting(trx)
+            }
+
+            const bruteValueInvestment = Number((await app.database("investment as i").where("i.idInvestment", "=", idInvestment).sum("i.brutevalue"))[0].sum);
+
+            console.log("TAL DINHEIRO É QUANTO? ", bruteValueInvestment);
+            if(bruteValueInvestment <= 0){
+                await app.database("investment as i")
+                    .where("i.idInvestment", "=", idInvestment)
+                    .update({
+                        active: false,
+                        lastupdate: new Date()
+                    })
+                    .transacting(trx)
+
+                await app.database("investments as is")
+                    .where("i.id", "=", idInvestment)
+                    .update({
+                        active: false
+                    })
+                    .transacting(trx)
             }
         }
         catch (e: any){
@@ -715,6 +736,7 @@ module.exports = ((app: any) => {
                         console.log("INTERAÇÃO ", i + 1)
                         console.log("VALOR RESGATADO: ", valueRescued)
                         console.log("VALOR ATUAL DO INVESTIMENTO: ", investment.currentValueNumber)
+                        console.log(investment)
                         
                         if(valueRescued === valueWithoutMoneyMask){
                             break;
@@ -729,7 +751,7 @@ module.exports = ((app: any) => {
                                 console.log("INVESTIMENTO ID ", investment.id, " VALOR QUE FOI RESGATADO: ", globalFunctions.arredondateNumber(valueRescued))
                                 console.log("VALOR QUE RESTOU: ", globalFunctions.arredondateNumber(investment.currentValueNumber))
 
-                                await registerRescueInvestment(investment.id, globalFunctions.arredondateNumber(valueRescued), globalFunctions.arredondateNumber(investment.currentValueNumber), investmentsListsById.name, reason, trx);                                
+                                await registerRescueInvestment(investment.id, investment.idInvestment, globalFunctions.arredondateNumber(valueRescued), globalFunctions.arredondateNumber(investment.currentValueNumber), investmentsListsById.name, reason, trx);                                
                             } else {
                                 console.log("SEGUNDA CONDIÇÃO: ")
                                 // Caso o valor resgatado ultrapasse o valor necessário
@@ -739,7 +761,7 @@ module.exports = ((app: any) => {
                                 console.log("INVESTIMENTO ID ", investment.id, " VALOR QUE FOI RESGATADO: ", globalFunctions.arredondateNumber(remainingValue))
                                 console.log("VALOR QUE RESTOU: ", globalFunctions.arredondateNumber(investment.currentValueNumber))
                                 
-                                await registerRescueInvestment(investment.id, globalFunctions.arredondateNumber(remainingValue), globalFunctions.arredondateNumber(investment.currentValueNumber), investmentsListsById.name, reason, trx);
+                                await registerRescueInvestment(investment.id, investment.idInvestment, globalFunctions.arredondateNumber(remainingValue), globalFunctions.arredondateNumber(investment.currentValueNumber), investmentsListsById.name, reason, trx);
 
                                 break; // Para a iteração após atingir o valor necessário
                             }            
@@ -784,8 +806,17 @@ module.exports = ((app: any) => {
                 message: "Erro ao consultar os investimentos."
             })
         }      
-    }
+    }  
 
+    // DEVEMOS INATIVAR O INVESTIMENTO SE O VALOR BRUTO FOR 0 (INVESTMENTS)
+    // DEVEMOS INATIVAR O REGISTRO DE INVESTIMENTO SE O VALOR BRUTO FOR 0 (INVESTMENT)
+    // ADICIONAR FLAG EM AMBAS AS COLUNAS
+
+    // Check if investment have brute value 0
+    const checkBruteValue = async (idInvestment: number) => {
+
+    }
+    
     const investmentDashboard = async (req: any, res: any) => {
         try {
             await app.database.transaction(async (trx: any) => {
