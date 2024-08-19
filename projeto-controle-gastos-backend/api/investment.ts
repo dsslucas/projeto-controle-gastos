@@ -569,10 +569,14 @@ module.exports = ((app: any) => {
                     })
             })
                 .then((response: any) => res.status(200).send(response))
-                .catch((error: any) => res.status(500).send("deu ruim"))
+                .catch((error: any) => res.status(500).send({
+                    message: "Não há registro de investimento com base nos dados fornecidos."
+                }))
         }
         catch (e: any) {
-            res.status(500).send("deu ruim aqui ó")
+            res.status(500).send({
+                message: "Erro interno de servidor. Consulte o administrador do sistema."
+            })
         }
     }
 
