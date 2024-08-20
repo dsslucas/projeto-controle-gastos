@@ -623,7 +623,7 @@ module.exports = ((app: any) => {
             const {initialDate, finalDate} = globalFunctions.getBetweenDates(date);
 
             // Register the rescued value into config database
-            if(configApi.checkIfExistsMonthConfig(actualDate, trx)){
+            if(await configApi.checkIfExistsMonthConfig(actualDate, trx)){
                 // Get ID of config
                 const idConfig = await app.database("config")
                     .where((builder: any) => {
