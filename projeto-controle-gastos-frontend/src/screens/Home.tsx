@@ -368,7 +368,7 @@ const Home = (props: any) => {
                                 returnInput={(name: string, text: string) => setSearchString(text)} />
                         </div>
                     </div>
-                    <div className="xs:max-h-[85vh] lg:max-h-[90vh] xl:max-h-[80vh] overflow-y-auto block">
+                    <div className="xs:max-h-[85vh] lg:max-h-[90vh] xl:max-h-[85vh] 2xl:max-h-[95vh] overflow-y-auto block">
                         {dataApiPayment && (
                             <Table
                                 payment
