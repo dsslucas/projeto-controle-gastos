@@ -95,11 +95,30 @@ const Home = (props: any) => {
                         text: response.data.message,
                         textYesButton: "Sim",
                         textNotButton: "Não",
-                        confirmCallback: () => {
-                            console.log("confirmei")
+                        confirmCallback: async () => {
+                            await setEntries();
                         }
                     })
                 }
+            })
+            .catch((error: any) => {
+                Alert({
+                    text: error.response.data,
+                    icon: "error"
+                });
+            })
+    }
+
+    const setEntries = async () => {
+        await api.post("/entries/check")
+            .then((response: any) => {
+                Alert({
+                    text: response.data.message,
+                    icon: "success",
+                    callback: function (){
+                        console.log("Oi")
+                    }
+                });
             })
             .catch((error: any) => {
                 Alert({
@@ -125,7 +144,7 @@ const Home = (props: any) => {
                     icon: "error"
                 });
             })
-    }
+    }   
 
     const getDashboardData = async (date: string) => {
         await api.get("/dashboard", {

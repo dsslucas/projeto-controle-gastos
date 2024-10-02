@@ -15,6 +15,7 @@ module.exports = (app: any) => {
         .patch(config.editConfig)
 
     app.route("/entries/check")
+        .post(config.setPreviousEntriesValues)
         .get(config.checkMonthEntries)
 
     app.route("/payment")

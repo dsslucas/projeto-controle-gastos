@@ -205,14 +205,53 @@ module.exports = (app: any) => {
             })
         }
         catch (error: any){
-            console.error(error)
             res.status(500).send("Não foi possível realizar a verificação. Tente novamente mais tarde.");
         }
     }
 
     // Set month entries using previous values
     const setPreviousEntriesValues = async (req: any, res: any) => {
+        const paymentService = app.api.payment;
+        const date = await globalFunctions.formatDate(new Date());
+        const { initialDate, finalDate } = globalFunctions.getBetweenDates(date.substring(0, 7));
+        const initialDateLastMonth = await globalFunctions.getPreviousMonth(initialDate);
+        const finalDateLastMonth = await globalFunctions.getPreviousMonth(finalDate); 
 
+        res.status(200).send({
+            message: "opa joia",
+            status: true
+        })
+
+        try {
+            await app.database.transaction(async (trx: any) => {
+                const entriesLastMonth = await getAllEntriesValuesByMonth(initialDateLastMonth, finalDateLastMonth, trx);
+                const expensesLastMonth = await paymentService.getAllPaymentValuesByMonth(null, null, initialDateLastMonth, finalDateLastMonth, true, trx);
+
+                console.log("VALOR RESTANTE: ", entriesLastMonth - expensesLastMonth)
+
+                // if(await checkIfExistsMonthConfig(date, trx)) throw "EXISTS_CONFIG";
+                // else {
+                //     const idConfig = await app.database("config")
+                //         .insert({
+                //             date: new Date(date)
+                //         })
+                //         .returning("id")
+                //         .transacting(trx)
+                    
+                //     await app.database("config_entries")
+                //         .insert({
+                //             idConfig: idConfig[0].id,
+                //             description: "Valor restante do mês anterior",
+                //             value: globalFunctions.formatMoney(element.value)
+                //         })
+                //         .transacting(trx)                    
+                // }
+            })
+        }
+        catch (error: any){
+            if (error === "EXISTS_CONFIG") res.status(404).send("Já existe configuração registrada para este mês.");
+            else res.status(500).send("Não foi possível realizar a verificação. Tente novamente mais tarde.");
+        }
     }
 
     return { checkIfExistsMonthConfig, registerConfig, getAllEntriesValuesByMonth, getConfig, editConfig, checkMonthEntries, setPreviousEntriesValues}
