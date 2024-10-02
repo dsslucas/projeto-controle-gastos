@@ -110,7 +110,7 @@ const Home = (props: any) => {
     }
 
     const setEntries = async () => {
-        await api.post("/entries/check")
+        await api.post("/entries")
             .then((response: any) => {
                 Alert({
                     text: response.data.message,

@@ -216,18 +216,15 @@ module.exports = (app: any) => {
         const { initialDate, finalDate } = globalFunctions.getBetweenDates(date.substring(0, 7));
         const initialDateLastMonth = await globalFunctions.getPreviousMonth(initialDate);
         const finalDateLastMonth = await globalFunctions.getPreviousMonth(finalDate); 
-
-        res.status(200).send({
-            message: "opa joia",
-            status: true
-        })
-
+        
         try {
             await app.database.transaction(async (trx: any) => {
                 const entriesLastMonth = await getAllEntriesValuesByMonth(initialDateLastMonth, finalDateLastMonth, trx);
                 const expensesLastMonth = await paymentService.getAllPaymentValuesByMonth(null, null, initialDateLastMonth, finalDateLastMonth, true, trx);
 
-                console.log("VALOR RESTANTE: ", entriesLastMonth - expensesLastMonth)
+                const availableValue = await globalFunctions.arredondateNumber(entriesLastMonth - expensesLastMonth)
+
+                console.log("VALOR RESTANTE: ", availableValue)
 
                 // if(await checkIfExistsMonthConfig(date, trx)) throw "EXISTS_CONFIG";
                 // else {
@@ -246,6 +243,12 @@ module.exports = (app: any) => {
                 //         })
                 //         .transacting(trx)                    
                 // }
+            })
+            .then((response: any) => {
+                res.status(200).send({
+                    message: "opa joia",
+                    status: true
+                })
             })
         }
         catch (error: any){

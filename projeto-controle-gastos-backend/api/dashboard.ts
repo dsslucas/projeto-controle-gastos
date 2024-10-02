@@ -56,8 +56,6 @@ module.exports = ((app: any) => {
                     })
                 }
 
-                console.log(allPaymentsByMonth)
-
                 const expenses = totalContas + totalInvestimentos + totalLazer + totalAlimentacao + totalCompras + totalSaude + totalViagens + totalOutros;
 
                 const valueAvaliable = entries - expenses;
