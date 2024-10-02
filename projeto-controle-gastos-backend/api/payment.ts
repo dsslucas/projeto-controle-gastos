@@ -181,6 +181,42 @@ module.exports = ((app: any) => {
         }
     }
 
+    const getPaymentsByMonth = async (category: String, paymentMethod: String, initialDate: Date, finalDate: Date, dateReported: boolean, trx: any) => {
+        return await app.database("payment")
+            .where((builder: any) => {
+                if (category) builder.where("category", category);
+                else if (paymentMethod) builder.where("paymentMethod", paymentMethod);
+                else builder.whereNotNull('category')
+
+                if (dateReported) {
+                    builder.where("date", ">=", initialDate).where("date", "<", finalDate);
+                }
+            })
+            .orderBy("date", "asc")
+            .transacting(trx)
+            .then((response: any) => {
+                response.forEach(async (element: any) => {
+                    element.valueWithoutMask = element.value;
+                    element.date = await globalFunctions.formatDateHourTimeFormat(element.date);
+
+                    if (element.paymentMethod === "Crédito") element.value = await globalFunctions.formatMoneyNumberToString(element.parcel_value);
+                    else element.value = await globalFunctions.formatMoneyNumberToString(element.value);
+                })
+
+                return response;
+            })
+    }
+
+    const getAllPaymentValuesByMonth = async (category: String, paymentMethod: String, initialDate: Date, finalDate: Date, dateReported: boolean, trx: any) => {
+        const data = await getPaymentsByMonth(category, paymentMethod, initialDate, finalDate, dateReported, trx);
+
+        var totalExpenses = data.reduce(function (acc: any, obj: any) { 
+            return acc + obj.valueWithoutMask; 
+        }, 0);
+
+        return totalExpenses;
+    }
+
     const getPayments = async (req: any, res: any) => {
         const { category, paymentMethod, date } = req.query;
         const dateReported = date !== "";
@@ -204,31 +240,12 @@ module.exports = ((app: any) => {
                 const currentDate = new Date();
                 if (currentDate < initialDate) throw "NOT_CURRENT_DATE";
 
-                const data = await app.database("payment")
-                    .where((builder: any) => {
-                        if (category) builder.where("category", category);
-                        else if (paymentMethod) builder.where("paymentMethod", paymentMethod);
-                        else builder.whereNotNull('category')
+                const data = await getPaymentsByMonth(category, paymentMethod, initialDate, finalDate, dateReported, trx);
 
-                        if (dateReported) {
-                            builder.where("date", ">=", initialDate).where("date", "<", finalDate);
-                        }
-                    })
-                    .orderBy("date", "asc")
-                    .transacting(trx)
-                    .then(async (response: any) => {
-                        response.forEach(async (element: any) => {
-                            element.date = await globalFunctions.formatDateHourTimeFormat(element.date);
-
-                            if (element.paymentMethod === "Crédito") element.value = await globalFunctions.formatMoneyNumberToString(element.parcel_value);
-                            else element.value = await globalFunctions.formatMoneyNumberToString(element.value);
-                        })
-                        return {
-                            data: response,
-                            columns: ["TÍTULO",	"DATA",	"CATEGORIA", "DESCRIÇÃO", "FORMA", "VALOR",	"AÇÕES"]
-                        };
-                    });
-                return data;
+                return {
+                    data,
+                    columns: ["TÍTULO",	"DATA",	"CATEGORIA", "DESCRIÇÃO", "FORMA", "VALOR",	"AÇÕES"]
+                };
             })
                 .then((response: any) => res.status(200).send(response));
         }
@@ -359,5 +376,5 @@ module.exports = ((app: any) => {
         }
     }
 
-    return { registerPayment, getPayments, getPayment, editPayment, checkPaymentPossible }
+    return { registerPayment, getPaymentsByMonth, getPayments, getPayment, getAllPaymentValuesByMonth, editPayment, checkPaymentPossible }
 })

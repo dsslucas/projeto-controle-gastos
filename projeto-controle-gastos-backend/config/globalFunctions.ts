@@ -11,7 +11,7 @@ module.exports = ((app: any) => {
     function formatMoneyNumberToString(value: number){
         const convertedValue = (value).toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' });
         return convertedValue;
-    }
+    }    
 
     // PERCENTAGE
     function formatPercentage(value: string) {
@@ -128,6 +128,12 @@ module.exports = ((app: any) => {
         return yearDifference;
     }
     
+    // Change the date for last month
+    function getPreviousMonth(date: Date) { 
+        const newDate = new Date(date);
+        newDate.setMonth(newDate.getMonth() - 1);
+        return newDate;
+    }
 
     // Check if number is infinite or NaN
     function checkNumber(number: number) {
@@ -156,5 +162,5 @@ module.exports = ((app: any) => {
         return Number(numberArredondated);
     }
 
-    return { formatMoney, formatMoneyNumberToString, formatPercentage, getBetweenDates, formatDate, formatDateTFormat, formatDateHourTimeFormat, convertDateToLocation, monthDifference, calculateYearDifference, convertDateBrToUs, checkNumber, calcDateDiff, arredondateNumber }
+    return { formatMoney, formatMoneyNumberToString, formatPercentage, getBetweenDates, formatDate, formatDateTFormat, formatDateHourTimeFormat, convertDateToLocation, monthDifference, calculateYearDifference, convertDateBrToUs, checkNumber, calcDateDiff, arredondateNumber, getPreviousMonth }
 })

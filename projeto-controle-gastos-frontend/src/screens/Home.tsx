@@ -18,6 +18,7 @@ import api from "../api/api";
 import Alert from "../components/alert/Alert";
 import Button from "../components/button/Button";
 import globalFunctions from "../global/functions";
+import Confirm from "../components/confirm/Confirm";
 //import { io } from "socket.io-client";
 
 const Home = (props: any) => {
@@ -65,6 +66,7 @@ const Home = (props: any) => {
         setMaxMonth(month);
 
         // Renderize API info
+        checkMonthEntries( `${year}-${month}`);
         getData("", "", `${year}-${month}`);
         getDashboardData(`${year}-${month}`);
 
@@ -79,6 +81,33 @@ const Home = (props: any) => {
     }, [])
 
     // NEW_PAYMENT_REGISTED
+
+    const checkMonthEntries = async (date: string) => {
+        await api.get("/entries/check", {
+            params: {
+                date: date
+            }
+        })
+            .then((response: any) => {
+                console.log(response.data)
+                if(!response.data.status){
+                    Confirm({
+                        text: response.data.message,
+                        textYesButton: "Sim",
+                        textNotButton: "Não",
+                        confirmCallback: () => {
+                            console.log("confirmei")
+                        }
+                    })
+                }
+            })
+            .catch((error: any) => {
+                Alert({
+                    text: error.response.data,
+                    icon: "error"
+                });
+            })
+    }
 
     const getData = async (category: string, paymentMethod: string, date: string) => {
         console.log("O QUE ESTOU RECEBENDO: ", date)
