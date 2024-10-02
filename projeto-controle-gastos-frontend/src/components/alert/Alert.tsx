@@ -12,7 +12,7 @@ const Alert = (props: any) => {
         text,
         icon
     })
-    .then(() => callback)
+    .then(callback)
 }
 
 export default Alert;

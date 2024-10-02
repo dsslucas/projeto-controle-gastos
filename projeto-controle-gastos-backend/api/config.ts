@@ -216,7 +216,7 @@ module.exports = (app: any) => {
         const { initialDate, finalDate } = globalFunctions.getBetweenDates(date.substring(0, 7));
         const initialDateLastMonth = await globalFunctions.getPreviousMonth(initialDate);
         const finalDateLastMonth = await globalFunctions.getPreviousMonth(finalDate); 
-        
+
         try {
             await app.database.transaction(async (trx: any) => {
                 const entriesLastMonth = await getAllEntriesValuesByMonth(initialDateLastMonth, finalDateLastMonth, trx);

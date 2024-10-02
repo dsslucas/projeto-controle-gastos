@@ -66,9 +66,10 @@ const Home = (props: any) => {
         setMaxMonth(month);
 
         // Renderize API info
-        checkMonthEntries( `${year}-${month}`);
+        
         getData("", "", `${year}-${month}`);
         getDashboardData(`${year}-${month}`);
+        checkMonthEntries( `${year}-${month}`);
 
         // const socket = io(`ws://${window.location.hostname}:3003`, {
         //     reconnectionDelayMax: 10000
@@ -96,7 +97,7 @@ const Home = (props: any) => {
                         textYesButton: "Sim",
                         textNotButton: "Não",
                         confirmCallback: async () => {
-                            await setEntries();
+                            await setEntries(date);
                         }
                     })
                 }
@@ -109,15 +110,13 @@ const Home = (props: any) => {
             })
     }
 
-    const setEntries = async () => {
+    const setEntries = async (date: string) => {
         await api.post("/entries")
             .then((response: any) => {
                 Alert({
                     text: response.data.message,
                     icon: "success",
-                    callback: function (){
-                        console.log("Oi")
-                    }
+                    callback: () => updatePage(date)
                 });
             })
             .catch((error: any) => {
@@ -128,8 +127,14 @@ const Home = (props: any) => {
             })
     }
 
+    const updatePage = (date: string) => {
+        getData("", "", date);
+        getDashboardData(date);
+    }
+
     const getData = async (category: string, paymentMethod: string, date: string) => {
-        console.log("O QUE ESTOU RECEBENDO: ", date)
+        console.log("O QUE ESTOU RECEBENDO: ", date);
+
         await api.get("/payment", {
             params: {
                 category: category,
@@ -143,7 +148,7 @@ const Home = (props: any) => {
                     text: error.response.data,
                     icon: "error"
                 });
-            })
+            })        
     }   
 
     const getDashboardData = async (date: string) => {
@@ -336,8 +341,7 @@ const Home = (props: any) => {
                 <ModalConfig
                     returnClick={() => {
                         setShowModalConfig(false);
-                        getData("", "", `${currentYear}-${currentMonth}`);
-                        getDashboardData(`${currentYear}-${currentMonth}`);
+                        //updatePage();
                     }}
                     currentDay={currentDay}
                     currentMonth={currentMonth}
@@ -361,8 +365,7 @@ const Home = (props: any) => {
                     returnClick={() => {
                         setShowModalRegister(false);
                         setIdSelected(undefined);
-                        getData("", "", `${currentYear}-${currentMonth}`);
-                        getDashboardData(`${currentYear}-${currentMonth}`);
+                        //updatePage();
                     }}
                 />
             )}
