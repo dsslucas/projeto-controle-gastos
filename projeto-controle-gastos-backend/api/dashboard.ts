@@ -18,7 +18,7 @@ module.exports = ((app: any) => {
 
         try {
             await app.database.transaction(async (trx: any) => {
-                const allPaymentsByMonth = await paymentService.getAllPaymentValuesByMonth(null, null, initialDate, finalDate, true, trx);
+                const allPaymentsByMonth = await paymentService.getPaymentsByMonth(null, null, initialDate, finalDate, true, trx);
 
                 var valorPix: number = 0.0;
                 var valorDebito: number = 0.0;
@@ -38,7 +38,7 @@ module.exports = ((app: any) => {
                         var value = 0;
 
                         if (element.parcel) value = element.parcel_value;
-                        else value = element.value
+                        else value = element.valueWithoutMask
 
                         if (element.category === "Contas") totalContas += value
                         else if (element.category === "Investimentos") totalInvestimentos += value
@@ -55,6 +55,8 @@ module.exports = ((app: any) => {
                         else if (element.paymentMethod === "Espécie") valorEspecie += value
                     })
                 }
+
+                console.log(allPaymentsByMonth)
 
                 const expenses = totalContas + totalInvestimentos + totalLazer + totalAlimentacao + totalCompras + totalSaude + totalViagens + totalOutros;
 
@@ -123,6 +125,8 @@ module.exports = ((app: any) => {
                         }
                     }
                 }
+
+                
 
                 return teste;                
             })
