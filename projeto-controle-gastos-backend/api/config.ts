@@ -179,9 +179,14 @@ module.exports = (app: any) => {
 
                         const entriesLastMonth = await getAllEntriesValuesByMonth(initialDateLastMonth, finalDateLastMonth, trx);                        
                         const expensesLastMonth = await paymentService.getAllPaymentValuesByMonth(null, null, initialDateLastMonth, finalDateLastMonth, true, trx);
+                        const availableValue = await globalFunctions.arredondateNumber(entriesLastMonth - expensesLastMonth);
 
-                        return {
-                            message: `Ainda não há entradas para este mês. Deseja inserir os ${await globalFunctions.formatMoneyNumberToString(entriesLastMonth - expensesLastMonth)} restantes do mês anterior?`,
+                        if(availableValue <= 0) return {
+                            message: "Tudo ok!",
+                            status: true
+                        }
+                        else return {
+                            message: `Ainda não há entradas para este mês. Deseja inserir os ${await globalFunctions.formatMoneyNumberToString(availableValue)} restantes do mês anterior?`,
                             status: false
                         }
                     }
@@ -222,37 +227,37 @@ module.exports = (app: any) => {
                 const entriesLastMonth = await getAllEntriesValuesByMonth(initialDateLastMonth, finalDateLastMonth, trx);
                 const expensesLastMonth = await paymentService.getAllPaymentValuesByMonth(null, null, initialDateLastMonth, finalDateLastMonth, true, trx);
 
-                const availableValue = await globalFunctions.arredondateNumber(entriesLastMonth - expensesLastMonth)
+                const availableValue = await globalFunctions.arredondateNumber(entriesLastMonth - expensesLastMonth);
+                if(availableValue <= 0) throw "INSUFFICIENT_VALUE";
 
-                console.log("VALOR RESTANTE: ", availableValue)
-
-                // if(await checkIfExistsMonthConfig(date, trx)) throw "EXISTS_CONFIG";
-                // else {
-                //     const idConfig = await app.database("config")
-                //         .insert({
-                //             date: new Date(date)
-                //         })
-                //         .returning("id")
-                //         .transacting(trx)
+                if(await checkIfExistsMonthConfig(date, trx)) throw "EXISTS_CONFIG";
+                else {
+                    const idConfig = await app.database("config")
+                        .insert({
+                            date: new Date(date)
+                        })
+                        .returning("id")
+                        .transacting(trx)
                     
-                //     await app.database("config_entries")
-                //         .insert({
-                //             idConfig: idConfig[0].id,
-                //             description: "Valor restante do mês anterior",
-                //             value: globalFunctions.formatMoney(element.value)
-                //         })
-                //         .transacting(trx)                    
-                // }
+                    await app.database("config_entries")
+                        .insert({
+                            idConfig: idConfig[0].id,
+                            description: "Valor restante do mês anterior",
+                            value: availableValue
+                        })
+                        .transacting(trx)                    
+                }
             })
             .then((response: any) => {
                 res.status(200).send({
-                    message: "opa joia",
+                    message: "Setado a entrada deste mês com os valores restantes!",
                     status: true
                 })
             })
         }
         catch (error: any){
             if (error === "EXISTS_CONFIG") res.status(404).send("Já existe configuração registrada para este mês.");
+            else if(error === "INSUFFICIENT_VALUE") res.status(404).send("Valor insuficiente para salvar neste mês.");
             else res.status(500).send("Não foi possível realizar a verificação. Tente novamente mais tarde.");
         }
     }
