@@ -6,7 +6,6 @@ module.exports = (app: any) => {
             .where({ date })
             .transacting(trx)
             .then((response: any) => {
-                console.log(response)
                 if (response.length > 0) return true;
                 else return false;
             })
@@ -205,7 +204,6 @@ module.exports = (app: any) => {
                 res.status(200).send(response)
             })
             .catch((error: any) => {
-                console.log(error)
                 //throw new Error;
             })
         }

@@ -9,7 +9,6 @@ module.exports = ((app: any) => {
 
         for (const [key, value] of Object.entries(requestBody)) {
             if ((key !== "description" && key !== "parcel") && (value === "" || value === null || value === undefined)) {
-                console.log("entrei aqui, ", key, value)
                 throw "EMPTY_FIELD";
             }
 
@@ -77,16 +76,10 @@ module.exports = ((app: any) => {
                         const valueParcel = parseFloat((globalFunctions.formatMoney(value) / parcel).toFixed(2));
                         const datePayment = new Date(date);
 
-                        console.log("QTD PARCELAS: ", parcel)
-
-                        console.log("DATE PAYMENT: ", datePayment)
-
                         for (let i = 0; i < parcel; i++) {
                             const dateParcel = new Date(datePayment.getFullYear(), datePayment.getMonth() + i + 1, 1);
                             dateParcel.setHours(datePayment.getHours());
                             dateParcel.setMinutes(datePayment.getMinutes());
-
-                            console.log("DATA PARCELA: ", dateParcel)
 
                             idPayment = (await app.database("payment")
                                 .insert({

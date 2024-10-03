@@ -28,7 +28,6 @@ const ModalRescueInvestment = (props: any) => {
         await api.get("/investment/list")
             .then(async (response: any) => {
                 setApiInvestments(response.data);
-                console.log("RESPOSTA SELECT DE INVESTIMENTOS: ", response.data)
 
                 if (response.data[0].value === "-1") {
                     // SELECT CDB
@@ -107,8 +106,6 @@ const ModalRescueInvestment = (props: any) => {
         }
         else {
             const details = await apiInvestmentDetails(valueChanged);
-
-            console.log("ALTERADO: ", name, valueChanged)
     
             setDadosForm({
                 ...dadosForm,
@@ -120,7 +117,6 @@ const ModalRescueInvestment = (props: any) => {
                 iofWithMask: details.iofWithMask,
                 rentability: details.rentability
             });
-            console.log("alterei")
         }      
     }   
 

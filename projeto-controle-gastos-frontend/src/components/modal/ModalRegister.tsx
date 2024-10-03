@@ -91,7 +91,6 @@ const ModalRegister = (props: any) => {
     const getData = async (id: number) => {
         await api.get(`/payment/${id}`)
             .then((response: any) => {
-                console.log(response.data)
                 if(response.data.investment !== null || response.data.paymentMethod === "Crédito") {
                     setBlockRegisterInfo(true);
                 }
@@ -173,7 +172,6 @@ const ModalRegister = (props: any) => {
 
     useEffect(() => {
         if(dadosForm.category ===  "Investimentos" && apiInvestments[0].value !== "-1"){
-            console.log("mudei pra investimento");
             setDadosForm({...dadosForm, 
             investment: {
                 ...dadosForm.investment,
@@ -185,7 +183,6 @@ const ModalRegister = (props: any) => {
 
     const changeData = (name: string, valueChanged: any) => {
         if (name.startsWith("rentability")) {
-            console.log(name, valueChanged)
             const rentabilityIndex = parseInt(name.split("-")[1]);
             const updatedRentability = [...dadosForm.investment.rentability]; // Mudança aqui
             updatedRentability[rentabilityIndex] = {
@@ -202,7 +199,6 @@ const ModalRegister = (props: any) => {
             });
         }
         else if (name.startsWith("investment")) {
-            console.log(name, valueChanged);
             const investmentName = name.substring(11);
 
             const updatedInvestment = {
@@ -218,7 +214,6 @@ const ModalRegister = (props: any) => {
         else {
             setDadosForm({ ...dadosForm, [name]: valueChanged });
 
-            console.log(name, valueChanged)
             if (name === "category" && valueChanged !== "Investimentos") {
                 setDadosForm({
                     ...dadosForm,
