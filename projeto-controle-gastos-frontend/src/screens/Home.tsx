@@ -90,7 +90,6 @@ const Home = (props: any) => {
             }
         })
             .then((response: any) => {
-                console.log(response.data)
                 if(!response.data.status){
                     Confirm({
                         text: response.data.message,
@@ -133,8 +132,6 @@ const Home = (props: any) => {
     }
 
     const getData = async (category: string, paymentMethod: string, date: string) => {
-        console.log("O QUE ESTOU RECEBENDO: ", date);
-
         await api.get("/payment", {
             params: {
                 category: category,
@@ -169,8 +166,6 @@ const Home = (props: any) => {
     }
 
     const changeDate = (value: string) => {
-        console.log("VALOR RECEBIDO: ", value);
-
         const month = value.substring(5, 7);
         const year = value.substring(0, 4);
 
