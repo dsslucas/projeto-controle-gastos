@@ -336,7 +336,7 @@ const Home = (props: any) => {
                 <ModalConfig
                     returnClick={() => {
                         setShowModalConfig(false);
-                        //updatePage();
+                        updatePage(`${currentYear}-${currentMonth}`);
                     }}
                     currentDay={currentDay}
                     currentMonth={currentMonth}
@@ -360,7 +360,7 @@ const Home = (props: any) => {
                     returnClick={() => {
                         setShowModalRegister(false);
                         setIdSelected(undefined);
-                        //updatePage();
+                        updatePage(`${currentYear}-${currentMonth}`);
                     }}
                 />
             )}
