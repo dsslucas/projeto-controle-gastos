@@ -13,10 +13,12 @@ import ModalConfig from "../components/modal/ModalConfig";
 import ModalRegister from "../components/modal/ModalRegister";
 import ModalView from "../components/modal/ModalView";
 import Input from "../components/input/Input";
-import Navbar from "../components/navbar/Navbar";
 import ModalDashboard from "../components/modal/ModalDashboard";
 import api from "../api/api";
 import Alert from "../components/alert/Alert";
+import Button from "../components/button/Button";
+import globalFunctions from "../global/functions";
+import Confirm from "../components/confirm/Confirm";
 //import { io } from "socket.io-client";
 
 const Home = (props: any) => {
@@ -33,7 +35,7 @@ const Home = (props: any) => {
     const [currentSeconds, setCurrentSeconds] = useState<String>();
 
     const [maxYear, setMaxYear] = useState<String>();
-    const [maxMonth, setMaxMonth] = useState<String>();   
+    const [maxMonth, setMaxMonth] = useState<String>();
 
     const [idSelected, setIdSelected] = useState<number>();
     const [searchString, setSearchString] = useState("");
@@ -64,8 +66,10 @@ const Home = (props: any) => {
         setMaxMonth(month);
 
         // Renderize API info
+        
         getData("", "", `${year}-${month}`);
-        getDashboardData(`${year}-${month}`);       
+        getDashboardData(`${year}-${month}`);
+        checkMonthEntries( `${year}-${month}`);
 
         // const socket = io(`ws://${window.location.hostname}:3003`, {
         //     reconnectionDelayMax: 10000
@@ -79,8 +83,55 @@ const Home = (props: any) => {
 
     // NEW_PAYMENT_REGISTED
 
+    const checkMonthEntries = async (date: string) => {
+        await api.get("/entries/check", {
+            params: {
+                date: date
+            }
+        })
+            .then((response: any) => {
+                if(!response.data.status){
+                    Confirm({
+                        text: response.data.message,
+                        textYesButton: "Sim",
+                        textNotButton: "Não",
+                        confirmCallback: async () => {
+                            await setEntries(date);
+                        }
+                    })
+                }
+            })
+            .catch((error: any) => {
+                Alert({
+                    text: error.response.data,
+                    icon: "error"
+                });
+            })
+    }
+
+    const setEntries = async (date: string) => {
+        await api.post("/entries")
+            .then((response: any) => {
+                Alert({
+                    text: response.data.message,
+                    icon: "success",
+                    callback: () => updatePage(date)
+                });
+            })
+            .catch((error: any) => {
+                Alert({
+                    text: error.response.data,
+                    icon: "error"
+                });
+            })
+    }
+
+    const updatePage = (date: string) => {
+        getData("", "", date);
+        getDashboardData(date);
+    }
+
     const getData = async (category: string, paymentMethod: string, date: string) => {
-        console.log("O QUE ESTOU RECEBENDO: ", date)
         await api.get("/payment", {
             params: {
                 category: category,
@@ -94,8 +145,8 @@ const Home = (props: any) => {
                     text: error.response.data,
                     icon: "error"
                 });
-            })
-    }
+            })        
+    }   
 
     const getDashboardData = async (date: string) => {
         await api.get("/dashboard", {
@@ -103,7 +154,9 @@ const Home = (props: any) => {
                 date: date
             }
         })
-            .then((response: any) => setDataApiDashboard(response.data))
+            .then((response: any) => {
+                setDataApiDashboard(response.data)
+            })
             .catch((error: any) => {
                 Alert({
                     text: error.response.data,
@@ -113,8 +166,6 @@ const Home = (props: any) => {
     }
 
     const changeDate = (value: string) => {
-        console.log("VALOR RECEBIDO: ", value);
-
         const month = value.substring(5, 7);
         const year = value.substring(0, 4);
 
@@ -280,14 +331,12 @@ const Home = (props: any) => {
     }
 
     return (
-        <main className="flex flex-col xs:overflow-x-hidden xl:h-screen xl:overflow-hidden bg-gray-300">
-
+        <>
             {showModalConfig && (
                 <ModalConfig
                     returnClick={() => {
                         setShowModalConfig(false);
-                        getData("", "", `${currentYear}-${currentMonth}`);
-                        getDashboardData(`${currentYear}-${currentMonth}`);
+                        updatePage(`${currentYear}-${currentMonth}`);
                     }}
                     currentDay={currentDay}
                     currentMonth={currentMonth}
@@ -308,11 +357,10 @@ const Home = (props: any) => {
                     currentYear={currentYear}
                     currentHour={currentHour}
                     currentMinutes={currentMinutes}
-                    returnClick={() => {                        
+                    returnClick={() => {
                         setShowModalRegister(false);
                         setIdSelected(undefined);
-                        getData("", "", `${currentYear}-${currentMonth}`);
-                        getDashboardData(`${currentYear}-${currentMonth}`);
+                        updatePage(`${currentYear}-${currentMonth}`);
                     }}
                 />
             )}
@@ -329,20 +377,27 @@ const Home = (props: any) => {
                     returnClick={() => setShowModalDashboard(false)}
                 />
             )}
-            
-            <header className="flex xs:items-center xs:justify-start xs:h-12 xl:flex-row xl:justify-between xl:items-center bg-gray-800 text-white p-1">
-                <Navbar
-                    clickButtonConfig={() => setShowModalConfig(true)}
-                    clickButtonRegister={checkRegisterPossible}
-                    clickButtonDashboard={() => setShowModalDashboard(true)}
-                />
-            </header>
 
-            <section className="flex xl:flex-row gap-2 px-1 p-1">
-                <Subtitle subtitle={`Mês de atuação: ${currentMonth}/${currentYear}`} />
+            <section className="flex xs:flex-col lg:flex-row items-center justify-between xl:flex-row gap-2">
+                <div>
+                    <Subtitle subtitle={`Mês de atuação: ${currentMonth}/${currentYear}`} />
+                </div>
+                <div className="flex gap-2">
+                    <div className="xl:hidden">
+                        <Button type="button" content="Dashboard" color="bg-blue-500" registerConfig returnClick={() => {
+                            setShowModalDashboard(true)
+                        }} />
+                    </div>
+                    <Button type="button" content="Configurações" color="bg-sky-500" registerConfig returnClick={() => {
+                        setShowModalConfig(true)
+                    }} />
+                    <Button type="button" content="Registrar" color="bg-green-500" registerConfig returnClick={() => {
+                        checkRegisterPossible()
+                    }} />
+                </div>
             </section>
 
-            <section className="flex xl:flex-row gap-2 xl:h-[90%] px-1 p-1">
+            <section className="flex xl:flex-row gap-2 xl:h-[90%]">
                 <div className="lg:w-[20%] xl:w-[30%] flex flex-col gap-2 xs:hidden sm:hidden md:hidden lg:flex lg:h-[100%]">
                     {dashboardData()}
                 </div>
@@ -359,18 +414,21 @@ const Home = (props: any) => {
                                 returnInput={(name: string, text: string) => setSearchString(text)} />
                         </div>
                     </div>
-                    <div className="xs:max-h-[85vh] lg:max-h-[90vh] xl:max-h-[80vh] overflow-y-auto block">
-                        <Table
-                            returnClick={(id: number) => {
-                                setIdSelected(id);
-                                setShowModalRegister(true);
-                            }}
-                            data={dataApiPayment}
-                        />
+                    <div className="xs:max-h-[85vh] lg:max-h-[90vh] xl:max-h-[85vh] 2xl:max-h-[95vh] overflow-y-auto block">
+                        {dataApiPayment && (
+                            <Table
+                                payment
+                                returnClick={(id: number) => {
+                                    setIdSelected(id);
+                                    setShowModalRegister(true);
+                                }}
+                                data={dataApiPayment}
+                            />
+                        )}                        
                     </div>
                 </div>
             </section>
-        </main>
+        </>
     )
 }
 

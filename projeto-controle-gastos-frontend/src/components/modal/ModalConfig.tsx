@@ -93,7 +93,6 @@ const ModalConfig = (props: any) => {
             }
         })
             .then((response: any) => {
-                console.log(response)
                 //setData({...data, value: })
                 setIdConfig(response.data.id);
                 setTotalMoney(response.data.value);
@@ -199,9 +198,9 @@ const ModalConfig = (props: any) => {
 
                             </div>
                             {/*footer*/}
-                            <div className="flex items-center justify-end p-6 border-t border-solid border-blueGray-200 rounded-b">
-                                <Button type="button" content="Sair" color="bg-red-500" returnClick={() => props.returnClick()} />
-                                <Button type="submit" content="Salvar" color="bg-green-500" returnClick={() => null} />
+                            <div className="flex items-center justify-end p-6 border-t border-solid border-blueGray-200 rounded-b gap-2">
+                                <Button type="button" content="Sair" color="bg-red-500" modalFooter returnClick={() => props.returnClick()} />
+                                <Button type="submit" content="Salvar" color="bg-green-500" modalFooter returnClick={() => null} />
 
                             </div>
                         </form>

@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import Title from "../text/Title";
 import Button from "../button/Button";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = (props: any) => {
     const [isNavOpen, setIsNavOpen] = useState(false); // initiate isNavOpen state with false
+    const navigate = useNavigate();
 
     return (
         <>
@@ -36,43 +38,38 @@ const Navbar = (props: any) => {
                                 <line x1="6" y1="6" x2="18" y2="18" />
                             </svg>
                         </div>
-                        <ul className="MENU-LINK-MOBILE-OPEN flex flex-col items-center justify-between min-h-[250px]">
-                            <li className="border-b border-gray-400 my-8 uppercase xs:flex sm:flex md:flex lg:hidden">
-                                {/* <a href="/about">Aboutaaaaaaaaaa</a> */}
-                                <Button type="button" content="Dashboard" color="" returnClick={() => {
+                        <ul className="MENU-LINK-MOBILE-OPEN flex flex-col items-center justify-between min-h-[250px]">    
+                            <li className="border-b border-gray-400 my-8 uppercase">
+                                <Button type="button" content="Investimentos" color="" returnClick={() => {
                                     setIsNavOpen(false);
-                                    props.clickButtonDashboard();
+                                    navigate("/investments");
                                 }} />
                             </li>
                             <li className="border-b border-gray-400 my-8 uppercase">
-                                {/* <a href="/about">Aboutaaaaaaaaaa</a> */}
-                                <Button type="button" content="Configurações" color="" returnClick={() => {
+                                <Button type="button" content="Relatório anual" color="" returnClick={() => {
                                     setIsNavOpen(false);
-                                    props.clickButtonConfig();
-                                }} />
-                            </li>
-                            <li className="border-b border-gray-400 my-8 uppercase">
-                                <Button type="button" content="Registrar" color="" returnClick={() => {
-                                    setIsNavOpen(false);
-                                    props.clickButtonRegister();
+                                    navigate("/report");
                                 }} />
                             </li>
                         </ul>
                     </div>
                 </section>
 
-                <Title title="Controle de Gastos" />
-                <ul className="DESKTOP-MENU xs:hidden xl:flex space-x-8 lg:flex">
-                    <li>
-                        <Button type="button" content="Configurações" color="" returnClick={() => {
+                <Button type="button" title content="Controle de gastos" color="" returnClick={() => {
                             setIsNavOpen(false);
-                            props.clickButtonConfig();
+                            navigate("/home");
+                        }} />
+                <ul className="DESKTOP-MENU xs:hidden xl:flex space-x-8 lg:flex">                    
+                    <li className="">
+                        <Button type="button" navbar content="Investimentos" color="" returnClick={() => {
+                            setIsNavOpen(false);
+                            navigate("/investments");
                         }} />
                     </li>
-                    <li>
-                        <Button type="button" content="Registrar" color="" returnClick={() => {
+                    <li className="">
+                        <Button type="button" navbar content="Relatório" color="" returnClick={() => {
                             setIsNavOpen(false);
-                            props.clickButtonRegister();
+                            navigate("/report");
                         }} />
                     </li>
                 </ul>

@@ -1,5 +1,6 @@
 module.exports = ((app: any) => {
     const globalFunctions = app.globalFunctions();
+    const investmentService = app.api.investment;
 
     function checkConditions(requestBody: object) {
         if (!("category" in requestBody) || !("date" in requestBody) || !("paymentMethod" in requestBody) || !("title" in requestBody) || !("value" in requestBody)) {
@@ -8,7 +9,6 @@ module.exports = ((app: any) => {
 
         for (const [key, value] of Object.entries(requestBody)) {
             if ((key !== "description" && key !== "parcel") && (value === "" || value === null || value === undefined)) {
-                console.log("entrei aqui, ", key, value)
                 throw "EMPTY_FIELD";
             }
 
@@ -27,12 +27,12 @@ module.exports = ((app: any) => {
             await app.database.transaction(async (trx: any) => {
                 checkConditions(req.body);
 
-                const { category, date, description, paymentMethod, title, value, parcel } = req.body;
+                const { category, date, description, paymentMethod, title, value, parcel, investment } = req.body;
 
                 const { initialDate, finalDate } = globalFunctions.getBetweenDates(date.substring(0, 7));
 
                 const currentDate = new Date();
-                if(currentDate < initialDate) throw "NOT_CURRENT_DATE";
+                if (currentDate < initialDate) throw "NOT_CURRENT_DATE";
 
                 const entriesValue = await app.database("config as c")
                     .join("config_entries as ce", "ce.idConfig", "c.id")
@@ -60,7 +60,7 @@ module.exports = ((app: any) => {
                         var expensesValue = 0;
 
                         response.forEach((element: any) => {
-                            if(element.parcel) expensesValue += element.parcel_value;
+                            if (element.parcel) expensesValue += element.parcel_value;
                             else expensesValue += element.value
                         })
 
@@ -69,23 +69,19 @@ module.exports = ((app: any) => {
 
                 if (entriesValue < expenses) throw "NO_CASH";
 
+                var idPayment = 0;
+
                 if (paymentMethod === "Crédito") {
                     if (parcel) {
                         const valueParcel = parseFloat((globalFunctions.formatMoney(value) / parcel).toFixed(2));
                         const datePayment = new Date(date);
-
-                        console.log("QTD PARCELAS: ", parcel)
-
-                        console.log("DATE PAYMENT: ", datePayment)
 
                         for (let i = 0; i < parcel; i++) {
                             const dateParcel = new Date(datePayment.getFullYear(), datePayment.getMonth() + i + 1, 1);
                             dateParcel.setHours(datePayment.getHours());
                             dateParcel.setMinutes(datePayment.getMinutes());
 
-                            console.log("DATA PARCELA: ", dateParcel)
-
-                            await app.database("payment")
+                            idPayment = (await app.database("payment")
                                 .insert({
                                     category,
                                     date: dateParcel,
@@ -96,7 +92,8 @@ module.exports = ((app: any) => {
                                     parcel,
                                     parcel_value: valueParcel
                                 })
-                                .transacting(trx)
+                                .returning("id")
+                                .transacting(trx))[0].id;
                         }
                     }
                     else {
@@ -106,7 +103,7 @@ module.exports = ((app: any) => {
                 else {
                     if (globalFunctions.formatMoney(value) > (entriesValue - expenses)) throw "INSUFFICIENT_FUNDS";
 
-                    await app.database("payment")
+                    idPayment = (await app.database("payment")
                         .insert({
                             category,
                             date: new Date(date),
@@ -115,16 +112,32 @@ module.exports = ((app: any) => {
                             title,
                             value: globalFunctions.formatMoney(value)
                         })
-                        .transacting(trx)
+                        .returning("id")
+                        .transacting(trx))[0].id;
+                }
+
+                if (category === "Investimentos") {
+                    var idInvestment = 0;
+
+                    if (Number(investment.id) === 0 || Number(investment.id) === -1) idInvestment = null;
+                    else idInvestment = Number(investment.id);
+
+                    const valueInvestment = globalFunctions.formatMoney(value);
+
+                    const rentability = investment.rentability.filter((element: any) => element.checked);
+
+                    await investmentService.registerInvestment(idInvestment, idPayment, investment.title, investment.category, value, investment.initialDate, investment.finalDate, rentability, description, trx);
                 }
             })
+
                 .then(() => {
                     app.io.emit("NEW_PAYMENT_REGISTED");
                     res.status(200).send("Registro salvo!");
                 })
         }
         catch (error: any) {
-            if(error === "NOT_CURRENT_DATE") return res.status(404).send("Não é possível registrar gastos para o mês seguinte.")
+            console.error(error)
+            if (error === "NOT_CURRENT_DATE") return res.status(404).send("Não é possível registrar gastos para o mês seguinte.")
             else if (error === "NO_CATEGORY") return res.status(404).send("Erro: está faltando um parâmetro para envio deste registro.");
             else if (error === "EMPTY_FIELD") return res.status(404).send("Erro: é necessário preencher os campos obrigatórios para salvar este registro.");
             else if (error === "INVALID_CATEGORY") return res.status(404).send("Erro: categoria inválida.");
@@ -161,49 +174,77 @@ module.exports = ((app: any) => {
         }
     }
 
+    const getPaymentsByMonth = async (category: String, paymentMethod: String, initialDate: Date, finalDate: Date, dateReported: boolean, trx: any) => {
+        return await app.database("payment")
+            .where((builder: any) => {
+                if (category) builder.where("category", category);
+                else if (paymentMethod) builder.where("paymentMethod", paymentMethod);
+                else builder.whereNotNull('category')
+
+                if (dateReported) {
+                    builder.where("date", ">=", initialDate).where("date", "<", finalDate);
+                }
+            })
+            .orderBy("date", "asc")
+            .transacting(trx)
+            .then((response: any) => {
+                response.forEach(async (element: any) => {
+                    element.valueWithoutMask = element.value;
+                    element.date = await globalFunctions.formatDateHourTimeFormat(element.date);
+
+                    if (element.paymentMethod === "Crédito") element.value = await globalFunctions.formatMoneyNumberToString(element.parcel_value);
+                    else element.value = await globalFunctions.formatMoneyNumberToString(element.value);
+                })
+
+                return response;
+            })
+    }
+
+    const getAllPaymentValuesByMonth = async (category: String, paymentMethod: String, initialDate: Date, finalDate: Date, dateReported: boolean, trx: any) => {
+        const data = await getPaymentsByMonth(category, paymentMethod, initialDate, finalDate, dateReported, trx);
+
+        var totalExpenses = data.reduce(function (acc: any, obj: any) { 
+            return acc + obj.valueWithoutMask; 
+        }, 0);
+
+        return totalExpenses;
+    }
+
     const getPayments = async (req: any, res: any) => {
         const { category, paymentMethod, date } = req.query;
+        const dateReported = date !== "";
 
-        if(date === "" || date === undefined || date === null) return res.status(404).send("A data para consulta não foi informada.")
+        //if(date === "" || date === undefined || date === null) return res.status(404).send("A data para consulta não foi informada.")
+        var initialDate = null;
+        var finalDate = null;
 
-        const { initialDate, finalDate } = globalFunctions.getBetweenDates(date.substring(0, 7));
+        if(date === undefined || date === null || date === ""){
+           return res.status(404).send("As datas não foram informadas.")
+        }
+
+        if (dateReported) {
+            const { initialDate: startDate, finalDate: endDate } = globalFunctions.getBetweenDates(date.substring(0, 7));
+            initialDate = startDate;
+            finalDate = endDate;
+        }
 
         try {
             await app.database.transaction(async (trx: any) => {
                 const currentDate = new Date();
-                if(currentDate < initialDate) throw "NOT_CURRENT_DATE";
+                if (currentDate < initialDate) throw "NOT_CURRENT_DATE";
 
-                const data = await app.database("payment")
-                    .where((builder: any) => {
-                        if (category) builder.where("category", category);
-                        else if (paymentMethod) builder.where("paymentMethod", paymentMethod);
-                        else builder.whereNotNull('category')
-                    })
-                    .where("date", ">=", initialDate)
-                    .where("date", "<", finalDate)
-                    .orderBy("date", "asc")
-                    .transacting(trx)
-                    .then((response: any) => {
-                        response.forEach((element: any) => {
-                            let year = element.date.getFullYear();
-                            let month = String(element.date.getMonth() + 1).padStart(2, '0');
-                            let day = String(element.date.getDate()).padStart(2, '0');
-                            let hour = String(element.date.getHours()).padStart(2, '0');
-                            let minute = String(element.date.getMinutes()).padStart(2, '0');
+                const data = await getPaymentsByMonth(category, paymentMethod, initialDate, finalDate, dateReported, trx);
 
-                            element.date = `${day}/${month}/${year} ${hour}:${minute}`;
-
-                            if(element.paymentMethod === "Crédito") element.value = element.parcel_value.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' });
-                            else element.value = element.value.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' });
-                        })
-                        return response;
-                    });
-                return data;
+                return {
+                    data,
+                    columns: ["TÍTULO",	"DATA",	"CATEGORIA", "DESCRIÇÃO", "FORMA", "VALOR",	"AÇÕES"]
+                };
             })
                 .then((response: any) => res.status(200).send(response));
         }
         catch (error: any) {
-            if(error === "NOT_CURRENT_DATE") return res.status(404).send("Não é possível registrar gastos para o mês seguinte.")
+            console.error(error)
+            if (error === "NOT_CURRENT_DATE") return res.status(404).send("Não é possível registrar gastos para o mês seguinte.")
             else res.status(500).send("Erro interno. Contate o administrador do sistema.");
         }
     }
@@ -216,17 +257,19 @@ module.exports = ((app: any) => {
                     .where({ id })
                     .first()
                     .transacting(trx)
-                    .then((response: any) => {
-                        let year = response.date.getFullYear();
-                        let month = String(response.date.getMonth() + 1).padStart(2, '0');
-                        let day = String(response.date.getDate()).padStart(2, '0');
-                        let hour = String(response.date.getHours()).padStart(2, '0');
-                        let minute = String(response.date.getMinutes()).padStart(2, '0');
-
+                    .then(async (response: any) => {
                         if (response.description === "") response.description = "-";
-                        response.date = `${year}-${month}-${day}T${hour}:${minute}`;
-                        response.value = response.value.toLocaleString("pt-BR", { style: 'currency', currency: 'BRL' });
-                        return response;
+                        response.date = globalFunctions.formatDateTFormat(response.date);
+                        response.value = await globalFunctions.formatMoneyNumberToString(response.value);
+
+                        var investment = null;
+                        if (response.category === "Investimentos") {
+                            investment = await investmentService.allInfoInvestmentByIdPayment(response.id, trx);
+                        }
+                        return {
+                            ...response,
+                            investment
+                        };
                     });
 
                 return data;
@@ -276,7 +319,7 @@ module.exports = ((app: any) => {
                         var expensesValue = 0;
 
                         response.forEach((element: any) => {
-                            if(element.parcel) expensesValue += element.parcel_value;
+                            if (element.parcel) expensesValue += element.parcel_value;
                             else expensesValue += element.value
                         })
 
@@ -287,7 +330,7 @@ module.exports = ((app: any) => {
 
                 var data = {};
 
-                if(paymentMethod === "Crédito"){
+                if (paymentMethod === "Crédito") {
                     data = {
                         category,
                         description,
@@ -326,5 +369,5 @@ module.exports = ((app: any) => {
         }
     }
 
-    return { registerPayment, getPayments, getPayment, editPayment, checkPaymentPossible }
+    return { registerPayment, getPaymentsByMonth, getPayments, getPayment, getAllPaymentValuesByMonth, editPayment, checkPaymentPossible }
 })

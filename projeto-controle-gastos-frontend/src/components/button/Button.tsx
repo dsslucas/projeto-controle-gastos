@@ -8,6 +8,10 @@ const Button = (props: any) => {
     const color = props.color;
     const iconConfig = props.iconConfig;
     const disabled = props.disabled || false;
+    const buttonRegisterConfig = props.registerConfig;
+    const navbar = props.navbar;
+    const title = props.title;
+    const modalFooter = props.modalFooter
 
     return (
         <button
@@ -16,8 +20,10 @@ const Button = (props: any) => {
                 ${iconCard && 'h-full w-full rounded-r'} 
                 ${iconTable && 'w-8 h-8 rounded'}
                 ${iconConfig && 'xs:w-[60px] xs:h-auto'}
-                ${!iconCard && !iconTable && 'p-2 rounded'}
+                ${!iconCard && !iconTable && !buttonRegisterConfig && !navbar && !title && 'p-2 rounded'}
                 ${color}
+                ${buttonRegisterConfig ? "h-8 text-white rounded px-2" : ""}
+                ${title ? "w-full ml-0 uppercase text-left font-bold xs:text-center lg:text-left" : ""}
                 uppercase
                 hover:brightness-[0.90]
                 hover:transition-all
