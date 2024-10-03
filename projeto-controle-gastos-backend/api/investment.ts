@@ -314,7 +314,6 @@ module.exports = ((app: any) => {
                 formattedInvestment.iofWithMask = await globalFunctions.formatMoneyNumberToString(iof * -1);
                 
                 if(dataAtual > dataBancoMaisUmDia){
-                    console.log("ATUALIZEI NO BANCO")
                     await app.database("investment")
                         .where({
                             id: formattedInvestment.id
@@ -550,7 +549,6 @@ module.exports = ((app: any) => {
                         const iof = investments.reduce(function (acc, obj) { return acc + obj.iof; }, 0);
                         var rentabilityString: string = investments[0].rentabilityInfo;
 
-                        console.log(investments)
                         investments.forEach((element: any) =>{
                             if(element.rentabilityInfo != rentabilityString) rentabilityString += element.rentabilityInfo;
                         })
@@ -596,7 +594,6 @@ module.exports = ((app: any) => {
                 .transacting(trx)
                 .catch((err: any) => console.error(err))
 
-            console.log("PASSEI DO PRIMEIRO")
             await app.database("investment_rescue")
                 .insert({
                     idinvestment: id,
@@ -606,7 +603,6 @@ module.exports = ((app: any) => {
                     reason
                 })
                 .transacting(trx)
-            console.log("PASSEI DO SEGUNDO")
             // Register on config
 
             await app.database("investments")                
@@ -780,7 +776,6 @@ module.exports = ((app: any) => {
             })
         }
         catch (e: any){
-            console.log(e)
             if(e === "NO_INVESTMENT") res.status(404).send({
                 message: "Este investimento não está registrado."
             })

@@ -18,6 +18,7 @@ import api from "../api/api";
 import Alert from "../components/alert/Alert";
 import Button from "../components/button/Button";
 import globalFunctions from "../global/functions";
+import Confirm from "../components/confirm/Confirm";
 //import { io } from "socket.io-client";
 
 const Home = (props: any) => {
@@ -65,8 +66,10 @@ const Home = (props: any) => {
         setMaxMonth(month);
 
         // Renderize API info
+        
         getData("", "", `${year}-${month}`);
         getDashboardData(`${year}-${month}`);
+        checkMonthEntries( `${year}-${month}`);
 
         // const socket = io(`ws://${window.location.hostname}:3003`, {
         //     reconnectionDelayMax: 10000
@@ -80,8 +83,55 @@ const Home = (props: any) => {
 
     // NEW_PAYMENT_REGISTED
 
+    const checkMonthEntries = async (date: string) => {
+        await api.get("/entries/check", {
+            params: {
+                date: date
+            }
+        })
+            .then((response: any) => {
+                if(!response.data.status){
+                    Confirm({
+                        text: response.data.message,
+                        textYesButton: "Sim",
+                        textNotButton: "Não",
+                        confirmCallback: async () => {
+                            await setEntries(date);
+                        }
+                    })
+                }
+            })
+            .catch((error: any) => {
+                Alert({
+                    text: error.response.data,
+                    icon: "error"
+                });
+            })
+    }
+
+    const setEntries = async (date: string) => {
+        await api.post("/entries")
+            .then((response: any) => {
+                Alert({
+                    text: response.data.message,
+                    icon: "success",
+                    callback: () => updatePage(date)
+                });
+            })
+            .catch((error: any) => {
+                Alert({
+                    text: error.response.data,
+                    icon: "error"
+                });
+            })
+    }
+
+    const updatePage = (date: string) => {
+        getData("", "", date);
+        getDashboardData(date);
+    }
+
     const getData = async (category: string, paymentMethod: string, date: string) => {
-        console.log("O QUE ESTOU RECEBENDO: ", date)
         await api.get("/payment", {
             params: {
                 category: category,
@@ -95,8 +145,8 @@ const Home = (props: any) => {
                     text: error.response.data,
                     icon: "error"
                 });
-            })
-    }
+            })        
+    }   
 
     const getDashboardData = async (date: string) => {
         await api.get("/dashboard", {
@@ -116,8 +166,6 @@ const Home = (props: any) => {
     }
 
     const changeDate = (value: string) => {
-        console.log("VALOR RECEBIDO: ", value);
-
         const month = value.substring(5, 7);
         const year = value.substring(0, 4);
 
@@ -288,8 +336,7 @@ const Home = (props: any) => {
                 <ModalConfig
                     returnClick={() => {
                         setShowModalConfig(false);
-                        getData("", "", `${currentYear}-${currentMonth}`);
-                        getDashboardData(`${currentYear}-${currentMonth}`);
+                        updatePage(`${currentYear}-${currentMonth}`);
                     }}
                     currentDay={currentDay}
                     currentMonth={currentMonth}
@@ -313,8 +360,7 @@ const Home = (props: any) => {
                     returnClick={() => {
                         setShowModalRegister(false);
                         setIdSelected(undefined);
-                        getData("", "", `${currentYear}-${currentMonth}`);
-                        getDashboardData(`${currentYear}-${currentMonth}`);
+                        updatePage(`${currentYear}-${currentMonth}`);
                     }}
                 />
             )}

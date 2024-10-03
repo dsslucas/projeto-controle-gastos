@@ -93,7 +93,6 @@ const ModalConfig = (props: any) => {
             }
         })
             .then((response: any) => {
-                console.log(response)
                 //setData({...data, value: })
                 setIdConfig(response.data.id);
                 setTotalMoney(response.data.value);

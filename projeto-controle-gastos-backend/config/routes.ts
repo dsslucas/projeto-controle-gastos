@@ -14,6 +14,12 @@ module.exports = (app: any) => {
     app.route("/config/:id")
         .patch(config.editConfig)
 
+    app.route("/entries")
+        .post(config.setPreviousEntriesValues)
+
+    app.route("/entries/check")        
+        .get(config.checkMonthEntries)
+
     app.route("/payment")
         .post(payment.registerPayment)
         .get(payment.getPayments)

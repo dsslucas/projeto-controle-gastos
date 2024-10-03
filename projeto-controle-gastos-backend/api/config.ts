@@ -6,10 +6,30 @@ module.exports = (app: any) => {
             .where({ date })
             .transacting(trx)
             .then((response: any) => {
-                console.log(response)
                 if (response.length > 0) return true;
                 else return false;
             })
+    }
+
+    // Consult entries
+    const getAllEntriesValuesByMonth = async (initialDate: Date, finalDate: Date, trx: any) => {
+        return await app.database("config as c")
+            .join("config_entries as ce", "c.id", "ce.idConfig")
+            .where("c.date", ">=", initialDate)
+            .where("c.date", "<", finalDate)
+            .transacting(trx)
+            .then(async (response: any) => {
+                var value = 0;
+                if(Array.isArray(response)){
+                    if(response.length > 0){    
+                        response.forEach((element: any) => {
+                            value += element.value;
+                        });    
+                    }
+                }
+                return value;
+            })
+            .catch((error: any) => console.error(error));
     }
 
     const registerConfig = async (req: any, res: any) => {
@@ -138,5 +158,107 @@ module.exports = (app: any) => {
         }
     }
 
-    return { checkIfExistsMonthConfig, registerConfig, getConfig, editConfig }
+    // Check if month have entries
+    const checkMonthEntries = async (req: any, res: any) => {
+        const { date } = req.query;
+        const { initialDate, finalDate } = globalFunctions.getBetweenDates(date.substring(0, 7));
+        const paymentService = app.api.payment;
+
+        try {
+            await app.database.transaction(async (trx: any) => {
+                const haveEntriesCurrentMonth = await app.database("config as c")
+                .join("config_entries as ce", "c.id", "ce.idConfig")
+                .where("c.date", ">=", initialDate)
+                .where("c.date", "<", finalDate)
+                .transacting(trx)                
+                if(Array.isArray(haveEntriesCurrentMonth)){
+                    if(haveEntriesCurrentMonth.length == 0){
+                        const initialDateLastMonth = await globalFunctions.getPreviousMonth(initialDate);
+                        const finalDateLastMonth = await globalFunctions.getPreviousMonth(finalDate);                                      
+
+                        const entriesLastMonth = await getAllEntriesValuesByMonth(initialDateLastMonth, finalDateLastMonth, trx);                        
+                        const expensesLastMonth = await paymentService.getAllPaymentValuesByMonth(null, null, initialDateLastMonth, finalDateLastMonth, true, trx);
+                        const availableValue = await globalFunctions.arredondateNumber(entriesLastMonth - expensesLastMonth);
+
+                        if(availableValue <= 0) return {
+                            message: "Tudo ok!",
+                            status: true
+                        }
+                        else return {
+                            message: `Ainda não há entradas para este mês. Deseja inserir os ${await globalFunctions.formatMoneyNumberToString(availableValue)} restantes do mês anterior?`,
+                            status: false
+                        }
+                    }
+                    else {
+                        return {
+                            message: "Tudo ok!",
+                            status: true
+                        }
+                    }
+                }
+                else {
+                    //throw new Error;
+                }
+            })
+            .then((response: any) => {
+                res.status(200).send(response)
+            })
+            .catch((error: any) => {
+                //throw new Error;
+            })
+        }
+        catch (error: any){
+            res.status(500).send("Não foi possível realizar a verificação. Tente novamente mais tarde.");
+        }
+    }
+
+    // Set month entries using previous values
+    const setPreviousEntriesValues = async (req: any, res: any) => {
+        const paymentService = app.api.payment;
+        const date = await globalFunctions.formatDate(new Date());
+        const { initialDate, finalDate } = globalFunctions.getBetweenDates(date.substring(0, 7));
+        const initialDateLastMonth = await globalFunctions.getPreviousMonth(initialDate);
+        const finalDateLastMonth = await globalFunctions.getPreviousMonth(finalDate); 
+
+        try {
+            await app.database.transaction(async (trx: any) => {
+                const entriesLastMonth = await getAllEntriesValuesByMonth(initialDateLastMonth, finalDateLastMonth, trx);
+                const expensesLastMonth = await paymentService.getAllPaymentValuesByMonth(null, null, initialDateLastMonth, finalDateLastMonth, true, trx);
+
+                const availableValue = await globalFunctions.arredondateNumber(entriesLastMonth - expensesLastMonth);
+                if(availableValue <= 0) throw "INSUFFICIENT_VALUE";
+
+                if(await checkIfExistsMonthConfig(date, trx)) throw "EXISTS_CONFIG";
+                else {
+                    const idConfig = await app.database("config")
+                        .insert({
+                            date: new Date(date)
+                        })
+                        .returning("id")
+                        .transacting(trx)
+                    
+                    await app.database("config_entries")
+                        .insert({
+                            idConfig: idConfig[0].id,
+                            description: "Valor restante do mês anterior",
+                            value: availableValue
+                        })
+                        .transacting(trx)                    
+                }
+            })
+            .then((response: any) => {
+                res.status(200).send({
+                    message: "Setado a entrada deste mês com os valores restantes!",
+                    status: true
+                })
+            })
+        }
+        catch (error: any){
+            if (error === "EXISTS_CONFIG") res.status(404).send("Já existe configuração registrada para este mês.");
+            else if(error === "INSUFFICIENT_VALUE") res.status(404).send("Valor insuficiente para salvar neste mês.");
+            else res.status(500).send("Não foi possível realizar a verificação. Tente novamente mais tarde.");
+        }
+    }
+
+    return { checkIfExistsMonthConfig, registerConfig, getAllEntriesValuesByMonth, getConfig, editConfig, checkMonthEntries, setPreviousEntriesValues}
 }
